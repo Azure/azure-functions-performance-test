@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{582CC16B-6C75-494B-B27F-7A769DEC0C30}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ServerlessBenchmark</RootNamespace>
+    <AssemblyName>ServerlessBenchmark</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AWSSDK.CloudWatch">
+      <HintPath>..\packages\AWSSDK.CloudWatch.3.1.0.7\lib\net45\AWSSDK.CloudWatch.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.CloudWatchLogs">
+      <HintPath>..\packages\AWSSDK.CloudWatchLogs.3.1.2.6\lib\net45\AWSSDK.CloudWatchLogs.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.Core">
+      <HintPath>..\packages\AWSSDK.Core.3.1.7.0\lib\net45\AWSSDK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.Lambda">
+      <HintPath>..\packages\AWSSDK.Lambda.3.1.4.2\lib\net45\AWSSDK.Lambda.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.S3">
+      <HintPath>..\packages\AWSSDK.S3.3.1.7.2\lib\net45\AWSSDK.S3.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.SimpleNotificationService">
+      <HintPath>..\packages\AWSSDK.SimpleNotificationService.3.1.0.7\lib\net45\AWSSDK.SimpleNotificationService.dll</HintPath>
+    </Reference>
+    <Reference Include="AWSSDK.SQS">
+      <HintPath>..\packages\AWSSDK.SQS.3.1.0.10\lib\net45\AWSSDK.SQS.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Azure.KeyVault.Core">
+      <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.OData.5.6.4\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=7.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WindowsAzure.Storage.7.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MetricInfo\PerfMetrics.cs" />
+    <Compile Include="PerfResultProviders\AzureGenericPerformanceResultsProvider.cs" />
+    <Compile Include="PerfResultProviders\AzurePerformanceResultProviderBase.cs" />
+    <Compile Include="PerfResultProviders\FunctionLogs.cs" />
+    <Compile Include="ServerlessPlatformControllers\Azure\AzureController.cs" />
+    <Compile Include="TriggerTests\AmazonS3TriggerTest.cs" />
+    <Compile Include="PerfResultProviders\AwsGenericPerformanceResultsProvider.cs" />
+    <Compile Include="PerfResultProviders\AwsPerformanceResultProviderBase.cs" />
+    <Compile Include="ServerlessPlatformControllers\AWS\AWS_CloudPlatformResponse.cs" />
+    <Compile Include="ServerlessPlatformControllers\AWS\AWS_Controller.cs" />
+    <Compile Include="TriggerTests\AzureBlobTriggerTest.cs" />
+    <Compile Include="TriggerTests\AzureStorageTriggerTestsBase.cs" />
+    <Compile Include="TriggerTests\BlobTriggerTest.cs" />
+    <Compile Include="ServerlessPlatformControllers\CloudPlatformController.cs" />
+    <Compile Include="ServerlessPlatformControllers\CloudPlatformRequest.cs" />
+    <Compile Include="ServerlessPlatformControllers\CloudPlatformResponse.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="TriggerTests\IFunctionsTest.cs" />
+    <Compile Include="MetricInfo\Metric.cs" />
+    <Compile Include="TriggerTests\ObjectRemovedBlobTrigger.cs" />
+    <Compile Include="PerfResultProviders\PerfResultProvider.cs" />
+    <Compile Include="PerfTestResult.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TriggerTests\QueueTriggerTest.cs" />
+    <Compile Include="SupplementalPerfTestResult.cs" />
+    <Compile Include="TestRequest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

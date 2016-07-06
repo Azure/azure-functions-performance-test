@@ -1,0 +1,11 @@
+{ 
+    "bindings": [ 
+        { 
+            "type": "queueTrigger", 
+            "name": "input", 
+            "direction": "in", 
+            "queueName": "samples-node-js-cpu-perf-test",
+            "connection": ""
+        }
+    ] 
+} 

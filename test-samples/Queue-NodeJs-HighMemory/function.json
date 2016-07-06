@@ -1,0 +1,11 @@
+{ 
+    "bindings": [ 
+        { 
+            "type": "queueTrigger", 
+            "name": "input", 
+            "direction": "in", 
+            "queueName": "samples-node-js-memory-perf-test",
+            "connection": ""
+        }
+    ] 
+} 

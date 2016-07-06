@@ -1,7 +1,9 @@
-﻿namespace ServerlessBenchmark.TriggerTests
+﻿using ServerlessBenchmark.LoadProfiles;
+
+namespace ServerlessBenchmark.TriggerTests
 {
     interface IFunctionsTest
     {
-        PerfTestResult Run(bool warmup = true);
+        PerfTestResult Run(TriggerTestLoadProfile loadProfile, bool warmup = true);
     }
 }

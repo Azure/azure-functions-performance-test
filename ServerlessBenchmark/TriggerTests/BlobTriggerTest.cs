@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 
@@ -13,7 +14,7 @@ namespace ServerlessBenchmark.TriggerTests
 {
     public abstract class BlobTriggerTest:IFunctionsTest
     {
-        protected readonly string[] BlobPaths;
+        protected string[] BlobPaths;
         protected readonly string SrcBlobContainer;
         protected readonly string DstBlobContainer;
         protected readonly string FunctionName;
@@ -132,8 +133,9 @@ namespace ServerlessBenchmark.TriggerTests
             }
         }
 
-        public PerfTestResult Run(bool warmup = true)
+        public PerfTestResult Run(TriggerTestLoadProfile loadProfile, bool warmup = true)
         {
+            int blobCount = BlobPaths.Count();
             DateTime clientStartTime, clientEndTime;
 
             if (CloudPlatformController == null)
@@ -150,18 +152,12 @@ namespace ServerlessBenchmark.TriggerTests
                 Console.WriteLine("Posting Blobs");
                 clientStartTime = DateTime.Now;
                 var sw = Stopwatch.StartNew();
-                Parallel.ForEach(BlobPaths, blobPath =>
+                loadProfile.ExecuteRate(UploadBlobs);
+                while (BlobPaths.Any())
                 {
-                    using (FileStream stream = new FileStream(blobPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        CloudPlatformController.PostBlob(new CloudPlatformRequest()
-                        {
-                            Key = Guid.NewGuid().ToString(),
-                            Source = SrcBlobContainer,
-                            DataStream = stream
-                        });
-                    }
-                });
+                    //wait until no blobs are left
+                }
+                loadProfile.Dispose();
                 sw.Stop();
                 Console.WriteLine("Elapsed time to post blobs:      {0}", sw.Elapsed);
             }
@@ -180,10 +176,31 @@ namespace ServerlessBenchmark.TriggerTests
                 }).Data;
                 Console.WriteLine("Destination Blobs - Number Of Blobs:     {0}", blobs.Count());
                 Thread.Sleep(1 * 1000);
-            } while (blobs.Count() < BlobPaths.Length);
+            } while (blobs.Count() < blobCount);
             clientEndTime = DateTime.Now;
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, clientStartTime, clientEndTime, expectedExecutionCount: blobs.Count());
             return perfResult;
+        }
+
+        private void UploadBlobs(int numberOfBlobItems)
+        {
+            var selectedBlobs = BlobPaths.Take(numberOfBlobItems);
+            var blobList = BlobPaths.ToList();
+            blobList.RemoveRange(0, numberOfBlobItems > blobList.Count ? blobList.Count : numberOfBlobItems);
+            BlobPaths = blobList.ToArray();
+
+            Parallel.ForEach(selectedBlobs, blobPath =>
+            {
+                using (FileStream stream = new FileStream(blobPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    CloudPlatformController.PostBlob(new CloudPlatformRequest()
+                    {
+                        Key = Guid.NewGuid().ToString(),
+                        Source = SrcBlobContainer,
+                        DataStream = stream
+                    });
+                }
+            });
         }
     }
 }

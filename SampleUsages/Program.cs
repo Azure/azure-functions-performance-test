@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using System.Xml.XPath;
 using ServerlessBenchmark;
+using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.TriggerTests;
 
 namespace SampleUsages
@@ -19,6 +20,7 @@ namespace SampleUsages
         {
             //var result = AmazonS3Test();
             var result5 = AzureBlobTest();
+            Console.ReadKey();
             return;
             var t1 = Task.Run(() => AmazonS3Test());
             var t2 = Task.Run(() => AzureBlobTest());
@@ -72,8 +74,8 @@ namespace SampleUsages
                 blobs.Add(@"C:\Users\hawfor\Pictures\original-image.jpg");
             }
             var s3Test = new AmazonS3TriggerTest("ImageResizerV2", blobs, defaultSrcContainer, defaultDstContainer);
-            var result = s3Test.Run();
-            return result;
+            //var result = s3Test.Run();
+            return null;
         }
 
         public static PerfTestResult AzureBlobTest()
@@ -81,12 +83,12 @@ namespace SampleUsages
             var blobs = new List<string>();
             const string defaultSrcContainer = "input-image";
             const string defaultDstContainer = "output-images";
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 50; i++)
             {
                 blobs.Add(@"C:\Users\hawfor\Pictures\original-image.jpg");
             }
             var azureFunctionsTest = new AzureBlobTriggerTest("ImageResizer", blobs, defaultSrcContainer, defaultDstContainer);
-            var perfResult = azureFunctionsTest.Run();
+            var perfResult = azureFunctionsTest.Run(new LinearLoad(TimeSpan.FromMinutes(5), blobs.Count));
             return perfResult;
         }
 

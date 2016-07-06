@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
+using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 
 namespace ServerlessBenchmark.TriggerTests
@@ -58,6 +59,11 @@ namespace ServerlessBenchmark.TriggerTests
         }
 
         public PerfTestResult Run(bool warmup = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public PerfTestResult Run(TriggerTestLoadProfile loadProfile, bool warmup = true)
         {
             throw new NotImplementedException();
         }

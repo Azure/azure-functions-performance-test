@@ -2,6 +2,7 @@
 using System.Configuration;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
@@ -24,7 +25,7 @@ namespace ServerlessBenchmark.TriggerTests
 
         protected override bool TestSetup()
         {
-            return RemoveAzureFunctionLogs();
+            return RemoveAzureFunctionLogs() && EnableLoggingIfDisabled();
         }
 
         protected override ICloudPlatformController CloudPlatformController
@@ -51,6 +52,16 @@ namespace ServerlessBenchmark.TriggerTests
                 return true;
             }
             return false;
+        }
+
+        private bool EnableLoggingIfDisabled()
+        {
+            var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+            var operationContext = new OperationContext();
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var currentServiceProperties = blobClient.GetServiceProperties();
+            return true;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -8,34 +9,44 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using System.Xml.XPath;
+using MiniCommandLineHelper;
 using ServerlessBenchmark;
 using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.TriggerTests;
 
 namespace SampleUsages
 {
-    class Program
+    public class Program:CmdHelper
     {
-        public static void Main(string[] args)
+        public new static void Main(string[] args)
         {
-            //var result = AmazonS3Test();
-            var result5 = AzureBlobTest();
-            Console.WriteLine(result5);
-            Console.ReadKey();
-            return;
-            var t1 = Task.Run(() => AmazonS3Test());
-            var t2 = Task.Run(() => AzureBlobTest());
-            var tasks = new Task[]{t1, t2};
-            Task.WaitAll(tasks);
-            var result = t1.Result;
-            var result2 = t2.Result;
+            var p = new Program();
+            ((CmdHelper) p).Main(args);
+        }
 
-            var results = new List<KeyValuePair<string, PerfTestResult>>
+        [Command]
+        [CommandLineAttribute("BlobTest <functionName> <blobPath> <srcBlobContainer> <targetBlobContainer> <loadProfile> [<eps>]")]
+        public void BlobTest(string functionName, string blobPath, string srcBlobContainer, string targetBlobContainer, string loadProfile, int eps = 1)
+        {            
+            var blobs = Directory.GetFiles(blobPath);
+            TriggerTestLoadProfile profile;
+            if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase))
             {
-                new KeyValuePair<string, PerfTestResult>("Amazon", result),
-                new KeyValuePair<string, PerfTestResult>("Azure", result2)
-            };
-            ShowCloudPlatformCompeteTable(results);
+                profile = new LinearLoad(TimeSpan.FromMinutes(1), blobs.Count());
+            }
+            else
+            {
+                throw new Exception(string.Format("{0} does not exist", loadProfile));
+            }
+
+            var azureFunctionsTest = new AzureBlobTriggerTest(functionName, blobs, srcBlobContainer, targetBlobContainer);
+            var perfResult = azureFunctionsTest.Run(profile);
+
+            //print perf results
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;;
+            Console.WriteLine(perfResult);
+            Console.ForegroundColor = originalColor;
         }
 
         public static void ShowCloudPlatformCompeteTable(IEnumerable<KeyValuePair<string, PerfTestResult>> results)
@@ -77,20 +88,6 @@ namespace SampleUsages
             var s3Test = new AmazonS3TriggerTest("ImageResizerV2", blobs, defaultSrcContainer, defaultDstContainer);
             //var result = s3Test.Run();
             return null;
-        }
-
-        public static PerfTestResult AzureBlobTest()
-        {
-            var blobs = new List<string>();
-            const string defaultSrcContainer = "input-image";
-            const string defaultDstContainer = "output-images";
-            for (int i = 0; i < 50; i++)
-            {
-                blobs.Add(@"C:\Users\hawfor\Pictures\original-image.jpg");
-            }
-            var azureFunctionsTest = new AzureBlobTriggerTest("ImageResizer", blobs, defaultSrcContainer, defaultDstContainer);
-            var perfResult = azureFunctionsTest.Run(new LinearLoad(TimeSpan.FromMinutes(5), blobs.Count));
-            return perfResult;
         }
 
         static int tableWidth = 120;

@@ -20,6 +20,7 @@ namespace SampleUsages
         {
             //var result = AmazonS3Test();
             var result5 = AzureBlobTest();
+            Console.WriteLine(result5);
             Console.ReadKey();
             return;
             var t1 = Task.Run(() => AmazonS3Test());

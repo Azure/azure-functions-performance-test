@@ -1,0 +1,104 @@
+﻿{
+  "$schema": "http://schemas.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountType": {
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_ZRS",
+        "Premium_LRS"
+      ],
+      "defaultValue": "Standard_LRS",
+      "metadata": {
+        "description": "Storage Account type"
+      },
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('storageAccountName')]",
+      "properties": {
+        "accountType": "[parameters('storageAccountType')]"
+      },
+      "type": "Microsoft.Storage/storageAccounts"
+    },
+    {
+      "apiVersion": "2015-04-01",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('hostingPlanName')]",
+      "properties": {
+        "computeMode": "Dynamic",
+        "name": "[variables('hostingPlanName')]",
+        "sku": "Dynamic"
+      },
+      "type": "Microsoft.Web/serverfarms"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "kind": "functionapp",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('functionAppName')]",
+      "properties": {
+        "name": "[variables('functionAppName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          ],
+          "name": "appsettings",
+          "properties": {
+            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" : "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
+            "WEBSITE_CONTENTSHARE" : "[concat(variables('functionAppName'))]",
+            "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
+            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
+            "FUNCTIONS_EXTENSION_VERSION": "~0.3"
+          },
+          "type": "config"
+        },
+        {
+          "apiVersion": "2016-03-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          ],
+          "name": "[concat(variables('functionAppName'), '/', variables('functionName'))]",
+          "type": "Microsoft.Web/sites/functions",
+          "properties": {
+            "files": {
+              "index.js": "// function has low usage gets message, reads it count to 1000 and finishes\r\n\r\nmodule.exports = function (context, req) {\r\n    context.log(\"Function started with input \" + req.rawBody);\r\n\r\n    for(var i = 0; i < 1000; i++){\r\n        context.log(i);\r\n    }\r\n    \r\n    context.done();\r\n}\r\n"
+            },
+            "config": {
+            "bindings": [
+              {
+                "type": "httpTrigger",
+                "name": "req",
+                "authLevel": "function",
+                "direction": "in"
+              }
+            ] 
+            }
+          }
+        }
+      ],
+      "type": "Microsoft.Web/sites"
+    }
+  ],
+    "variables": {
+        "functionAppName": "[concat('http-nodejs-low-usage', uniquestring(resourceGroup().id))]",
+        "functionName":  "function",
+        "hostingPlanName": "[concat('http-nodejs-low-usage', uniquestring(resourceGroup().id))]",
+        "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'azfunctions')]"
+    }
+}

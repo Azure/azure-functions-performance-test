@@ -43,12 +43,15 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="TestSamples\Queue-NodeJs-CPUIntensive\azuredeploy.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
     <None Include="TestSamples\Queue-NodeJs-CPUIntensive\function.json" />
+    <None Include="TestSamples\Queue-NodeJs-HighMemory\azuredeploy.json" />
     <None Include="TestSamples\Queue-NodeJs-HighMemory\function.json" />
+    <None Include="TestSamples\Queue-NodeJs-LowUsage\azuredeploy.json" />
     <None Include="TestSamples\Queue-NodeJs-LowUsage\function.json" />
   </ItemGroup>
   <ItemGroup>

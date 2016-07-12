@@ -46,12 +46,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
+    <None Include="TestSamples\Queue-NodeJs-CPUIntensive\function.json" />
+    <None Include="TestSamples\Queue-NodeJs-HighMemory\function.json" />
+    <None Include="TestSamples\Queue-NodeJs-LowUsage\function.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ServerlessBenchmark\ServerlessBenchmark.csproj">
       <Project>{582cc16b-6c75-494b-b27f-7a769dec0c30}</Project>
       <Name>ServerlessBenchmark</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestSamples\Queue-NodeJs-CPUIntensive\index.js" />
+    <Content Include="TestSamples\Queue-NodeJs-HighMemory\index.js" />
+    <Content Include="TestSamples\Queue-NodeJs-LowUsage\index.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

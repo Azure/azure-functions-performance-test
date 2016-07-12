@@ -66,13 +66,13 @@
     <None Include="TestSamples\Queue-NodeJs-LowUsage\function.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MiniCommandLineHelper\MiniCommandLineHelper.csproj">
+      <Project>{600ba962-07ea-46ec-b8f5-9bc5933c5533}</Project>
+      <Name>MiniCommandLineHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServerlessBenchmark\ServerlessBenchmark.csproj">
       <Project>{582cc16b-6c75-494b-b27f-7a769dec0c30}</Project>
       <Name>ServerlessBenchmark</Name>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\hawfor\Desktop\MiniCommandLineHelper\MiniCommandLineHelper.csproj">
-      <Project>{600ba962-07ea-46ec-b8f5-9bc5933c5533}</Project>
-      <Name>MiniCommandLineHelper</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

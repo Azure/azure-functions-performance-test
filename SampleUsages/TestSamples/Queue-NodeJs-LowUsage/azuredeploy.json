@@ -59,33 +59,35 @@
           ],
           "name": "appsettings",
           "properties": {
+            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" : "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
+            "WEBSITE_CONTENTSHARE" : "[concat(variables('functionAppName'))]",
             "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
             "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
-            "FUNCTIONS_EXTENSION_VERSION": "latest"
+            "FUNCTIONS_EXTENSION_VERSION": "~0.3"
           },
           "type": "config"
         },
         {
           "apiVersion": "2016-03-01",
-           "dependsOn": [
+          "dependsOn": [
             "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
           ],
           "name": "[concat(variables('functionAppName'), '/', variables('functionName'))]",
           "type": "Microsoft.Web/sites/functions",
           "properties": {
-            "files": 
-            {
+            "files": {
               "index.js": "// function has low usage gets message, reads it count to 1000 and finishes\r\n\r\nmodule.exports = function (context, size) {\r\n    context.log(\"Function started with input \" + size);\r\n\r\n    for(var i = 0; i < 1000; i++){\r\n        context.log(i);\r\n    }\r\n    \r\n    context.done();\r\n}\r\n"
             },
             "config": {
-                "bindings": [
+              "bindings": [
                 {
-                    "type": "queueTrigger",
-                    "name": "input",
-                    "direction": "in",
-                    "queueName": "samples-node-js-low-usage-test"
-                }]
+                  "type": "queueTrigger",
+                  "name": "input",
+                  "direction": "in",
+                  "queueName": "samples-node-js-low-usage-test"
+                }
+              ]
             }
           }
         }

@@ -87,6 +87,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LoadProfiles\LinearLoad.cs" />
+    <Compile Include="LoadProfiles\TriggerTestLoadProfile.cs" />
     <Compile Include="MetricInfo\PerfMetrics.cs" />
     <Compile Include="PerfResultProviders\AzureGenericPerformanceResultsProvider.cs" />
     <Compile Include="PerfResultProviders\AzurePerformanceResultProviderBase.cs" />
@@ -116,6 +118,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

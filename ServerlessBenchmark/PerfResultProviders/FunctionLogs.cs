@@ -15,26 +15,23 @@ namespace ServerlessBenchmark.PerfResultProviders
         private static List<AzureFunctionLogs> _azurefunctionLogs; 
         public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, DateTime? endTime, bool update = false, int expectedExecutionCount = 0)
         {
-            if (_azurefunctionLogs == null || update)
+            Console.WriteLine("Get Azure Function logs from Azure Storage Tables..");
+            var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+            if (!string.IsNullOrEmpty(connectionString))
             {
-                Console.WriteLine("Get Azure Function logs from Azure Storage Tables..");
-                var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
-                if (!string.IsNullOrEmpty(connectionString))
+                var storageAccount = CloudStorageAccount.Parse(connectionString);
+                var tableClient = storageAccount.CreateCloudTableClient();
+                var table = tableClient.GetTableReference("AzureFunctionsLogTable");
+                var query = new TableQuery<AzureFunctionLogs>();
+                int size = 0;
+                do
                 {
-                    var storageAccount = CloudStorageAccount.Parse(connectionString);
-                    var tableClient = storageAccount.CreateCloudTableClient();
-                    var table = tableClient.GetTableReference("AzureFunctionsLogTable");
-                    var query = new TableQuery<AzureFunctionLogs>();
-                    int size = 0;
-                    do
-                    {
-                        _azurefunctionLogs = table.ExecuteQuery(query).Where(log => !string.IsNullOrEmpty(log.FunctionName) &&
-                            log.FunctionName.Equals(functionName, StringComparison.CurrentCultureIgnoreCase) && !string.IsNullOrEmpty(log.ContainerName)).ToList();
-                        size = _azurefunctionLogs.Count();
-                        Console.WriteLine("Log count - " + size);
-                        Thread.Sleep(1000);
-                    } while (size < expectedExecutionCount);
-                }
+                    _azurefunctionLogs = table.ExecuteQuery(query).Where(log => !string.IsNullOrEmpty(log.FunctionName) &&
+                        log.FunctionName.Equals(functionName, StringComparison.CurrentCultureIgnoreCase) && !string.IsNullOrEmpty(log.ContainerName)).ToList();
+                    size = _azurefunctionLogs.Count();
+                    Console.WriteLine("Log count - " + size);
+                    Thread.Sleep(1000);
+                } while (size < expectedExecutionCount);
             }
             return _azurefunctionLogs;
         }

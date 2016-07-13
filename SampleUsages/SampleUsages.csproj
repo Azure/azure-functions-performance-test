@@ -47,6 +47,10 @@
     <Compile Include="TestDescription.cs" />
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\azuredeploy.json" />
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\function.json" />
+    <None Include="TestSamples\Blob-NodeJs-HighMemory\azuredeploy.json" />
+    <None Include="TestSamples\Blob-NodeJs-HighMemory\function.json" />
+    <None Include="TestSamples\Blob-NodeJs-LowUsage\azuredeploy.json" />
+    <None Include="TestSamples\Blob-NodeJs-LowUsage\function.json" />
     <None Include="TestSamples\Http-NodeJs-CPUIntensive\azuredeploy.json" />
     <None Include="TestSamples\Http-NodeJs-CPUIntensive\function.json" />
     <None Include="TestSamples\Http-NodeJs-HighMemory\azuredeploy.json" />
@@ -77,6 +81,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestSamples\Blob-NodeJs-CPUIntensive\index.js" />
+    <Content Include="TestSamples\Blob-NodeJs-HighMemory\index.js" />
+    <Content Include="TestSamples\Blob-NodeJs-LowUsage\index.js" />
     <Content Include="TestSamples\Http-NodeJs-CPUIntensive\index.js" />
     <Content Include="TestSamples\Http-NodeJs-HighMemory\index.js" />
     <Content Include="TestSamples\Http-NodeJs-LowUsage\index.js" />
@@ -84,10 +90,7 @@
     <Content Include="TestSamples\Queue-NodeJs-HighMemory\index.js" />
     <Content Include="TestSamples\Queue-NodeJs-LowUsage\index.js" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TestSamples\Blob-NodeJs-HighMemory\" />
-    <Folder Include="TestSamples\Blob-NodeJs-LowUsage\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

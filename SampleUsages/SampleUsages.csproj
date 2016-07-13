@@ -44,7 +44,6 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestDescription.cs" />
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\azuredeploy.json" />
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\function.json" />
     <None Include="TestSamples\Blob-NodeJs-HighMemory\azuredeploy.json" />
@@ -58,7 +57,6 @@
     <None Include="TestSamples\Http-NodeJs-LowUsage\azuredeploy.json" />
     <None Include="TestSamples\Http-NodeJs-LowUsage\function.json" />
     <None Include="TestSamples\Queue-NodeJs-CPUIntensive\azuredeploy.json" />
-    <Compile Include="TestScenarioOrchestrator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

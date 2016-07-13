@@ -5,6 +5,11 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerlessBenchmark", "ServerlessBenchmark\ServerlessBenchmark.csproj", "{582CC16B-6C75-494B-B27F-7A769DEC0C30}"
 EndProject
+<<<<<<< HEAD
+=======
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniCommandLineHelper", "MiniCommandLineHelper\MiniCommandLineHelper.csproj", "{600BA962-07EA-46EC-B8F5-9BC5933C5533}"
+EndProject
+>>>>>>> d822009e58f83639fa34afbef8846dfe57a8d46d
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleUsages", "SampleUsages\SampleUsages.csproj", "{6B65B2D7-6344-4B15-A428-483E74E9AF51}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniCommandLineHelper", "MiniCommandLineHelper\MiniCommandLineHelper.csproj", "{600BA962-07EA-46EC-B8F5-9BC5933C5533}"

@@ -47,3 +47,94 @@ Function has low usage gets message, reads it count to 1000 and finishes.
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
+
+
+#### Blob-Node-Js-CPU-Intensive
+
+<p>
+Function is triggered by queue input. Input ia a number and function generates to random square matixes of input x input size
+then in multiplies matrixes, prints "Finish." when calculation is done.
+This operation is very heavily using CPU resources, concurrent executions on single container cause function to execute slower
+</p>
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FBlob-NodeJs-CPUIntensive%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FBlob-NodeJs-CPUIntensive%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
+
+#### Blob-Node-Js-High-Memory
+
+<p>
+Function is designed to allocate big array depending on input size.
+</p>
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FBlob-NodeJs-HighMemory%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FBlob-NodeJs-HighMemory%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
+
+#### Blob-Node-Js-Low-Usage
+
+<p>
+Function has low usage gets message, reads it count to 1000 and finishes.
+</p>
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FBlob-NodeJs-LowUsage%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FBlob-NodeJs-LowUsage%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
+
+
+
+#### Http-Node-Js-CPU-Intensive
+
+<p>
+Function is triggered by queue input. Input ia a number and function generates to random square matixes of input x input size
+then in multiplies matrixes, prints "Finish." when calculation is done.
+This operation is very heavily using CPU resources, concurrent executions on single container cause function to execute slower
+</p>
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FHttp-NodeJs-CPUIntensive%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FHttp-NodeJs-CPUIntensive%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
+
+#### Http-Node-Js-High-Memory
+
+<p>
+Function is designed to allocate big array depending on input size.
+</p>
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FHttp-NodeJs-HighMemory%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FHttp-NodeJs-HighMemory%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+
+
+#### Http-Node-Js-Low-Usage
+
+<p>
+Function has low usage gets message, reads it count to 1000 and finishes.
+</p>
+
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FHttp-NodeJs-LowUsage%2Fazuredeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-functions-performance-test%2Fmaster%2FSampleUsages%2FTestSamples%2FHttp-NodeJs-LowUsage%2Fazuredeploy.json" target="_blank">
+    <img src="http://armviz.io/visualizebutton.png"/>
+</a>
+

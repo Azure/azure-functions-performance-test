@@ -64,7 +64,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
     <None Include="TestSamples\Queue-NodeJs-CPUIntensive\function.json" />
     <None Include="TestSamples\Queue-NodeJs-HighMemory\azuredeploy.json" />
     <None Include="TestSamples\Queue-NodeJs-HighMemory\function.json" />

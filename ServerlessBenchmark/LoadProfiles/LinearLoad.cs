@@ -28,7 +28,7 @@ namespace ServerlessBenchmark.LoadProfiles
         /// </summary>
         /// <param name="totalNumberOfPostItems"></param>
         /// <param name="eps">This is target executions per second</param>
-        public LinearLoad(int totalNumberOfPostItems, int eps) : base(TimeSpan.MaxValue)
+        public LinearLoad(int totalNumberOfPostItems, int eps) : base(TimeSpan.FromMilliseconds(Int32.MaxValue))
         {
             _targetEps = eps;
             _totalNumberOfPostItems = totalNumberOfPostItems;
@@ -39,7 +39,7 @@ namespace ServerlessBenchmark.LoadProfiles
             if (_totalNumberOfPostItems > 0 && _targetEps > 0)
             {
                 _totalNumberOfPostItems = Math.Max(_targetEps, _totalNumberOfPostItems) - Math.Min(_targetEps, _totalNumberOfPostItems);
-                if (_totalNumberOfPostItems < 0)
+                if (_totalNumberOfPostItems <= 0)
                 {
                     Interlocked.Increment(ref _isFinished);
                 }

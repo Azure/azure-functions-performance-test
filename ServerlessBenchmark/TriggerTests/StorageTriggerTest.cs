@@ -119,13 +119,13 @@ namespace ServerlessBenchmark.TriggerTests
             }
             else
             {
-                var tmpBlobList = new List<string>();
+                var tmpList = new List<string>();
                 do
                 {
-                    tmpBlobList.AddRange(SourceItems.Take(targetNumberOfItems));
+                    tmpList.AddRange(SourceItems.Take(targetNumberOfItems));
                     targetNumberOfItems -= srcNumberOfItems;
                 } while (targetNumberOfItems >= 0);
-                selectedItems = tmpBlobList;
+                selectedItems = tmpList;
             }
             UploadItems(selectedItems);
             Console.WriteLine("EPS = {0} {1}", selectedItems.Count(), DateTime.Now);

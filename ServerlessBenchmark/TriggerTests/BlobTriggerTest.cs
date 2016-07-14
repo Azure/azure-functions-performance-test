@@ -93,36 +93,17 @@ namespace ServerlessBenchmark.TriggerTests
 
             Console.WriteLine("Blog Trigger Warmup - Posting {0} to cloud platform", WarmUpBlob);
 
-            using (FileStream stream = new FileStream(WarmUpBlob, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                CloudPlatformController.PostBlob(new CloudPlatformRequest()
-                {
-                    Key = Guid.NewGuid().ToString(),
-                    Source = SrcBlobContainer,
-                    DataStream = stream
-                });
-            }
+            UploadBlobs(new[] { WarmUpBlob });
 
             Console.WriteLine("Blog Trigger Warmup - Verify test blob is there:");
 
-            IEnumerable<object> blobs;
-            do
-            {
-                blobs = (IEnumerable<object>)CloudPlatformController.ListBlobs(new CloudPlatformRequest()
-                {
-                    Source = DstBlobContainer
-                }).Data;
-                Console.WriteLine("Blog Trigger Warmup - waiting...");
-                Thread.Sleep(1 * 1000);
-            } while (blobs.Count() != 1);
+            bool isWarmUpSuccess = VerifyBlobItemsExistInTargetDestination(1);
 
             sw.Stop();
 
             Console.WriteLine("Blog Trigger Warmup - Clean Up");
 
             SetUp();
-
-            var isWarmUpSuccess = blobs.Count() == 1;
 
             Console.WriteLine(isWarmUpSuccess ? "Blog Trigger Warmup - Done!" : "Blog Trigger Warmup - Done with failures");
             Console.WriteLine("Blog Trigger Warmup - Elapsed Time: {0}ms", sw.ElapsedMilliseconds);
@@ -167,29 +148,26 @@ namespace ServerlessBenchmark.TriggerTests
             }
 
             Console.WriteLine("Verify all blobs are there:");
-            IEnumerable<object> blobs;
-            do
-            {
-                blobs = (IEnumerable<object>)CloudPlatformController.ListBlobs(new CloudPlatformRequest()
-                {
-                    Source = DstBlobContainer
-                }).Data;
-                Console.WriteLine("Destination Blobs - Number Of Blobs:     {0}", blobs.Count());
-                Thread.Sleep(1 * 1000);
-            } while (blobs.Count() < blobCount);
+            VerifyBlobItemsExistInTargetDestination(blobCount);
+
             clientEndTime = DateTime.Now;
-            var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, clientStartTime, clientEndTime, expectedExecutionCount: blobs.Count());
+            var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, clientStartTime, clientEndTime, expectedExecutionCount: blobCount);
             return perfResult;
         }
 
-        private void UploadBlobs(int numberOfBlobItems)
+        private void UploadBlobs(int numberOfBlobItems = 0)
         {
-            var selectedBlobs = BlobPaths.Take(numberOfBlobItems);
+            var selectedBlobs = numberOfBlobItems != 0 ? BlobPaths.Take(numberOfBlobItems) : BlobPaths;
             var blobList = BlobPaths.ToList();
             blobList.RemoveRange(0, numberOfBlobItems > blobList.Count ? blobList.Count : numberOfBlobItems);
             BlobPaths = blobList.ToArray();
+            UploadBlobs(selectedBlobs);
+            Console.WriteLine("EPS = {0} {1}", selectedBlobs.Count(), DateTime.Now);
+        }
 
-            Parallel.ForEach(selectedBlobs, blobPath =>
+        private void UploadBlobs(IEnumerable<string> blobs)
+        {
+            Parallel.ForEach(blobs, blobPath =>
             {
                 using (FileStream stream = new FileStream(blobPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
@@ -201,6 +179,21 @@ namespace ServerlessBenchmark.TriggerTests
                     });
                 }
             });
+        }
+
+        private bool VerifyBlobItemsExistInTargetDestination(int expected)
+        {
+            IEnumerable<object> blobs;
+            do
+            {
+                blobs = (IEnumerable<object>)CloudPlatformController.ListBlobs(new CloudPlatformRequest()
+                {
+                    Source = DstBlobContainer
+                }).Data;
+                Console.WriteLine("Destination Blobs - Number Of Blobs:     {0}", blobs.Count());
+                Thread.Sleep(1 * 1000);
+            } while (blobs.Count() < expected);
+            return true;
         }
     }
 }

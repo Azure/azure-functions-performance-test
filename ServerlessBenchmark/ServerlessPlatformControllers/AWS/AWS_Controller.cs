@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using Amazon.CloudWatchLogs;
 using Amazon.CloudWatchLogs.Model;
 using Amazon.Runtime;
@@ -26,8 +27,8 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                 throw new ArgumentException(String.Format("Missing args: "), String.Join(" ", missingParams.ToArray()));
             }
 
-            var topic = request.Data[Constants.Topic];
-            var message = request.Data[Constants.Message];
+            var topic = request.Data[Constants.Topic] as string;
+            var message = request.Data[Constants.Message] as string;
             var response = SNS_PublishMessage(topic, message);
             var requestResponse = new CloudPlatformResponse()
             {
@@ -69,7 +70,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             {
                 try
                 {
-                    var response = sqsClient.PurgeQueue(request.Data[Constants.Queue]);
+                    var response = sqsClient.PurgeQueue(request.Data[Constants.Queue] as string);
                     cpResponse.HttpStatusCode = response.HttpStatusCode;
                     Thread.Sleep(TimeSpan.FromSeconds(60));
                     break;
@@ -107,6 +108,11 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                 }
             }
             return AwsCloudPlatformResponse.PopulateFrom(response);
+        }
+
+        public Task<CloudPlatformResponse> PostBlobAsync(CloudPlatformRequest request)
+        {
+            throw new NotImplementedException();
         }
 
         public CloudPlatformResponse ListBlobs(CloudPlatformRequest request)

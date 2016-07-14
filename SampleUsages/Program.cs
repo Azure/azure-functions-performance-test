@@ -58,6 +58,40 @@ namespace SampleUsages
             Console.ForegroundColor = originalColor;
         }
 
+        [Command]
+        [CommandLineAttribute("QueueTest <platform> <functionName> <messages> <srcQueue> <targetQueue> <loadProfile> [-eps:] [-repeat:] [-durationMinutes:]")]
+        public void QueueTest(string platform, string functionName, string messages, string srcQueue, string targetQueue, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        {
+            TriggerTestLoadProfile profile;
+            var queueMessages = File.ReadAllLines(messages);
+
+            if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && repeat)
+            {
+                if (durationMinutes <= 0)
+                {
+                    throw new ArgumentException("No parameter to specify how long to repeat this load. Indicate how long in minutes to repeat load.", "durationMinutes");
+                }
+                profile = new LinearLoad(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
+            }
+            else if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && !repeat)
+            {
+                profile = new LinearLoad(queueMessages.Count(), eps == 0 ? 1 : eps);
+            }
+            else
+            {
+                throw new Exception(string.Format("{0} does not exist", loadProfile));
+            }
+
+            var azureFunctionsTest = new AzureQueueTriggerTest(functionName, queueMessages, srcQueue, targetQueue);
+            var perfResult = azureFunctionsTest.RunAsync(profile).Result;
+
+            //print perf results
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green; ;
+            Console.WriteLine(perfResult);
+            Console.ForegroundColor = originalColor;
+        }
+
         public static void ShowCloudPlatformCompeteTable(IEnumerable<KeyValuePair<string, PerfTestResult>> results)
         {
             var originalColor = Console.ForegroundColor;

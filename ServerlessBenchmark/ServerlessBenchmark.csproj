@@ -100,6 +100,7 @@
     <Compile Include="ServerlessPlatformControllers\AWS\AWS_CloudPlatformResponse.cs" />
     <Compile Include="ServerlessPlatformControllers\AWS\AWS_Controller.cs" />
     <Compile Include="TriggerTests\AzureBlobTriggerTest.cs" />
+    <Compile Include="TriggerTests\AzureQueueTriggerTest.cs" />
     <Compile Include="TriggerTests\AzureStorageTriggerTestsBase.cs" />
     <Compile Include="TriggerTests\BlobTriggerTest.cs" />
     <Compile Include="ServerlessPlatformControllers\CloudPlatformController.cs" />
@@ -113,6 +114,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupplementalPerfTestResult.cs" />
     <Compile Include="TestRequest.cs" />
+    <Compile Include="TriggerTests\QueueTriggerTest.cs" />
+    <Compile Include="TriggerTests\StorageTriggerTest.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

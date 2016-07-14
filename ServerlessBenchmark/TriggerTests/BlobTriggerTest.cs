@@ -1,39 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using ServerlessBenchmark.LoadProfiles;
-using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 
 namespace ServerlessBenchmark.TriggerTests
 {
-    public abstract class BlobTriggerTest:IFunctionsTest
+    public abstract class BlobTriggerTest:StorageTriggerTest
     {
-        protected string[] BlobPaths;
         protected readonly string SrcBlobContainer;
         protected readonly string DstBlobContainer;
-        protected readonly string FunctionName;
-        private readonly string _tmpBlobContent = "Hi this is a warm up test";
-        private int expectedDestinationBlobContainerCount = 0;
+        protected readonly string _functionName;
 
         protected abstract bool TestSetup();
-        protected abstract ICloudPlatformController CloudPlatformController { get; }
-        protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
 
-        protected virtual string WarmUpBlob
-        {
-            get
-            {
-                return BlobPaths.First();
-            }
-        }
-
-        protected BlobTriggerTest(string functionName, string[] blobs, string sourceBlobContainer, string destinationBlobContainer)
+        protected BlobTriggerTest(string functionName, string[] blobs, string sourceBlobContainer, string destinationBlobContainer):base(functionName, blobs)
         {
             if (string.IsNullOrEmpty(functionName) || string.IsNullOrEmpty(sourceBlobContainer) || string.IsNullOrEmpty(destinationBlobContainer)
                 || blobs == null)
@@ -41,139 +24,44 @@ namespace ServerlessBenchmark.TriggerTests
                 throw new ArgumentException("Not all of the arguments are met");
             }
 
-            BlobPaths = blobs;
             DstBlobContainer = destinationBlobContainer;
             SrcBlobContainer = sourceBlobContainer;
-            FunctionName = functionName;
+            _functionName = functionName;
         }
 
-        protected BlobTriggerTest()
-        {
-            
-        }
+        public BlobTriggerTest():base(null, null) { }
 
-        protected virtual bool SetUp(int retries = 3)
+        protected virtual string WarmUpBlob
         {
-            bool successfulSetup;
-            Console.WriteLine("Blog trigger tests - setup");
-            try
+            get
             {
-                Console.WriteLine("Deleting blobs");
-                var cloudPlatformResponses = new List<CloudPlatformResponse>
+                return SourceItems.First();
+            }
+        }
+
+        protected override string StorageType
+        {
+            get { return "Blob"; }
+        }
+
+        protected override List<CloudPlatformResponse> CleanUpStorageResources()
+        {
+            var cloudPlatformResponses = new List<CloudPlatformResponse>
                 {
                     {CloudPlatformController.DeleteBlobs(new CloudPlatformRequest() {Source = SrcBlobContainer})},
                     {CloudPlatformController.DeleteBlobs(new CloudPlatformRequest() {Source = DstBlobContainer})}
                 };
-                var undoneJobs = cloudPlatformResponses.Where(response => response != null && response.HttpStatusCode != HttpStatusCode.OK);
-                successfulSetup = !undoneJobs.Any();
-                if (!successfulSetup && retries > 0)
-                {
-                    retries = retries - 1;
-                    SetUp(retries);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new Exception(String.Format("Could not setup {0} Test", "Blob Trigger"), e);
-            }
-            var isSuccessTestSetup = TestSetup();
-            return successfulSetup & isSuccessTestSetup;
+            return cloudPlatformResponses;
         }
 
-        protected virtual void TestWarmUp()
+        protected override void UploadItems(IEnumerable<string> items)
         {
-            Console.WriteLine("Blog Trigger Warmup - Starting");
-
-            if (CloudPlatformController == null)
-            {
-                throw new NullReferenceException("Make sure the cloud platform is initialized");
-            }
-
-            Console.WriteLine("Blog Trigger Warmup - using first item in blobs {0}", WarmUpBlob);
-
-            var sw = Stopwatch.StartNew();
-
-            Console.WriteLine("Blog Trigger Warmup - Posting {0} to cloud platform", WarmUpBlob);
-
-            UploadBlobs(new[] { WarmUpBlob });
-
-            Console.WriteLine("Blog Trigger Warmup - Verify test blob is there:");
-
-            bool isWarmUpSuccess = VerifyBlobItemsExistInTargetDestination(1);
-
-            sw.Stop();
-
-            Console.WriteLine("Blog Trigger Warmup - Clean Up");
-
-            SetUp();
-
-            Console.WriteLine(isWarmUpSuccess ? "Blog Trigger Warmup - Done!" : "Blog Trigger Warmup - Done with failures");
-            Console.WriteLine("Blog Trigger Warmup - Elapsed Time: {0}ms", sw.ElapsedMilliseconds);
-
-            if (!isWarmUpSuccess)
-            {
-                throw new Exception("Could not find temporary blob file in target container");
-            }
+            UploadBlobs(items);
         }
 
-        public async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
+        protected override bool VerifyTargetDestinationStorageCount(int expectedCount)
         {
-            int blobCount = BlobPaths.Count();
-            DateTime clientStartTime, clientEndTime;
-
-            if (CloudPlatformController == null)
-            {
-                throw new NullReferenceException("Make sure the cloud platform is initialized");
-            }
-            if (SetUp())
-            {
-                if (warmup)
-                {
-                    TestWarmUp();
-                }
-
-                Console.WriteLine("Posting Blobs");
-                clientStartTime = DateTime.Now;
-                var sw = Stopwatch.StartNew();
-                await loadProfile.ExecuteRateAsync(UploadBlobs);
-                loadProfile.Dispose();
-                sw.Stop();
-                Console.WriteLine("Elapsed time to post blobs:      {0}", sw.Elapsed);
-            }
-            else
-            {
-                throw new Exception("Could not successfully setup Blob Trigger Test");
-            }
-
-            Console.WriteLine("Verify all blobs are there:");
-            VerifyBlobItemsExistInTargetDestination(expectedDestinationBlobContainerCount);
-
-            clientEndTime = DateTime.Now;
-            var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, clientStartTime, clientEndTime, expectedExecutionCount: blobCount);
-            return perfResult;
-        }
-
-        private void UploadBlobs(int targetNumberOfBlobItems)
-        {
-            int srcNumberOfBlobItems = BlobPaths.Count();
-            IEnumerable<string> selectedBlobs;
-            if (targetNumberOfBlobItems <= srcNumberOfBlobItems)
-            {
-                selectedBlobs = BlobPaths.Take(targetNumberOfBlobItems);
-            }
-            else
-            {
-                var tmpBlobList = new List<string>();
-                do
-                {
-                    tmpBlobList.AddRange(BlobPaths.Take(targetNumberOfBlobItems));
-                    targetNumberOfBlobItems -= srcNumberOfBlobItems;
-                } while (targetNumberOfBlobItems >= 0);
-                selectedBlobs = tmpBlobList;
-            }
-            UploadBlobs(selectedBlobs);
-            Console.WriteLine("EPS = {0} {1}", selectedBlobs.Count(), DateTime.Now);
-            Interlocked.Add(ref expectedDestinationBlobContainerCount, selectedBlobs.Count());
+            return VerifyBlobItemsExistInTargetDestination(expectedCount);
         }
 
         private void UploadBlobs(IEnumerable<string> blobs)

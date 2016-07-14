@@ -146,7 +146,7 @@ namespace ServerlessBenchmark.TriggerTests
             }
 
             Console.WriteLine("Verify all blobs are there:");
-            VerifyBlobItemsExistInTargetDestination(blobCount);
+            VerifyBlobItemsExistInTargetDestination(expectedDestinationBlobContainerCount);
 
             clientEndTime = DateTime.Now;
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, clientStartTime, clientEndTime, expectedExecutionCount: blobCount);

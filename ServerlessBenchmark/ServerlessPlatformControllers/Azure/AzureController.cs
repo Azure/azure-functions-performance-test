@@ -24,6 +24,10 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             if (!string.IsNullOrEmpty(connectionString))
             {
                 storageAccount = CloudStorageAccount.Parse(connectionString);
+                var servicePoint = ServicePointManager.FindServicePoint(storageAccount.QueueEndpoint);
+                servicePoint.UseNagleAlgorithm = false;
+                servicePoint.ConnectionLimit = 15000;
+                servicePoint.Expect100Continue = false;
             }
             else
             {

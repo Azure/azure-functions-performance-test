@@ -19,6 +19,7 @@ namespace ServerlessBenchmark.TriggerTests
         protected readonly string DstBlobContainer;
         protected readonly string FunctionName;
         private readonly string _tmpBlobContent = "Hi this is a warm up test";
+        private int expectedDestinationBlobContainerCount = 0;
 
         protected abstract bool TestSetup();
         protected abstract ICloudPlatformController CloudPlatformController { get; }
@@ -57,6 +58,7 @@ namespace ServerlessBenchmark.TriggerTests
             Console.WriteLine("Blog trigger tests - setup");
             try
             {
+                Console.WriteLine("Deleting blobs");
                 var cloudPlatformResponses = new List<CloudPlatformResponse>
                 {
                     {CloudPlatformController.DeleteBlobs(new CloudPlatformRequest() {Source = SrcBlobContainer})},
@@ -114,7 +116,7 @@ namespace ServerlessBenchmark.TriggerTests
             }
         }
 
-        public PerfTestResult Run(TriggerTestLoadProfile loadProfile, bool warmup = true)
+        public async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
         {
             int blobCount = BlobPaths.Count();
             DateTime clientStartTime, clientEndTime;
@@ -133,11 +135,7 @@ namespace ServerlessBenchmark.TriggerTests
                 Console.WriteLine("Posting Blobs");
                 clientStartTime = DateTime.Now;
                 var sw = Stopwatch.StartNew();
-                loadProfile.ExecuteRate(UploadBlobs);
-                while (BlobPaths.Any())
-                {
-                    //wait until no blobs are left
-                }
+                await loadProfile.ExecuteRateAsync(UploadBlobs);
                 loadProfile.Dispose();
                 sw.Stop();
                 Console.WriteLine("Elapsed time to post blobs:      {0}", sw.Elapsed);
@@ -155,14 +153,27 @@ namespace ServerlessBenchmark.TriggerTests
             return perfResult;
         }
 
-        private void UploadBlobs(int numberOfBlobItems = 0)
+        private void UploadBlobs(int targetNumberOfBlobItems)
         {
-            var selectedBlobs = numberOfBlobItems != 0 ? BlobPaths.Take(numberOfBlobItems) : BlobPaths;
-            var blobList = BlobPaths.ToList();
-            blobList.RemoveRange(0, numberOfBlobItems > blobList.Count ? blobList.Count : numberOfBlobItems);
-            BlobPaths = blobList.ToArray();
+            int srcNumberOfBlobItems = BlobPaths.Count();
+            IEnumerable<string> selectedBlobs;
+            if (targetNumberOfBlobItems <= srcNumberOfBlobItems)
+            {
+                selectedBlobs = BlobPaths.Take(targetNumberOfBlobItems);
+            }
+            else
+            {
+                var tmpBlobList = new List<string>();
+                do
+                {
+                    tmpBlobList.AddRange(BlobPaths.Take(targetNumberOfBlobItems));
+                    targetNumberOfBlobItems -= srcNumberOfBlobItems;
+                } while (targetNumberOfBlobItems >= 0);
+                selectedBlobs = tmpBlobList;
+            }
             UploadBlobs(selectedBlobs);
             Console.WriteLine("EPS = {0} {1}", selectedBlobs.Count(), DateTime.Now);
+            Interlocked.Add(ref expectedDestinationBlobContainerCount, selectedBlobs.Count());
         }
 
         private void UploadBlobs(IEnumerable<string> blobs)

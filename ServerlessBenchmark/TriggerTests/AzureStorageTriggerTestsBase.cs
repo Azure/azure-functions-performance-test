@@ -67,5 +67,10 @@ namespace ServerlessBenchmark.TriggerTests
         {
             throw new NotImplementedException();
         }
+
+        public Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

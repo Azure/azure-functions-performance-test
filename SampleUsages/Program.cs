@@ -25,14 +25,23 @@ namespace SampleUsages
         }
 
         [Command]
-        [CommandLineAttribute("BlobTest <functionName> <blobPath> <srcBlobContainer> <targetBlobContainer> <loadProfile> [<eps>]")]
-        public void BlobTest(string functionName, string blobPath, string srcBlobContainer, string targetBlobContainer, string loadProfile, int eps = 1)
-        {            
-            var blobs = Directory.GetFiles(blobPath);
+        [CommandLineAttribute("BlobTest <platform> <functionName> <blobPath> <srcBlobContainer> <targetBlobContainer> <loadProfile> [-eps:] [-repeat:] [-durationMinutes:]")]
+        public void BlobTest(string platform, string functionName, string blobPath, string srcBlobContainer, string targetBlobContainer, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        {
             TriggerTestLoadProfile profile;
-            if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase))
+            var blobs = Directory.GetFiles(blobPath);
+
+            if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && repeat)
             {
-                profile = new LinearLoad(TimeSpan.FromMinutes(1), blobs.Count());
+                if (durationMinutes <= 0)
+                {
+                    throw new ArgumentException("No parameter to specify how long to repeat this load. Indicate how long in minutes to repeat load.", "durationMinutes");
+                }
+                profile = new LinearLoad(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
+            }
+            else if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && !repeat)
+            {
+                profile = new LinearLoad(blobs.Count(), eps == 0 ? 1 : eps);
             }
             else
             {
@@ -40,7 +49,7 @@ namespace SampleUsages
             }
 
             var azureFunctionsTest = new AzureBlobTriggerTest(functionName, blobs, srcBlobContainer, targetBlobContainer);
-            var perfResult = azureFunctionsTest.Run(profile);
+            var perfResult = azureFunctionsTest.RunAsync(profile).Result;
 
             //print perf results
             var originalColor = Console.ForegroundColor;

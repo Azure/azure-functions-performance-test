@@ -1,9 +1,10 @@
-﻿using ServerlessBenchmark.LoadProfiles;
+﻿using System.Threading.Tasks;
+using ServerlessBenchmark.LoadProfiles;
 
 namespace ServerlessBenchmark.TriggerTests
 {
     interface IFunctionsTest
     {
-        PerfTestResult Run(TriggerTestLoadProfile loadProfile, bool warmup = true);
+        Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true);
     }
 }

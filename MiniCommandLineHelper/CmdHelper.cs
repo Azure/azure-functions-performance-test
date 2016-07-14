@@ -28,10 +28,14 @@ namespace MiniCommandLineHelper
                 var commandArgs = Utility.CombineParameters(userCommandArgs, methodInfo.GetParameters());
                 methodInfo.Invoke(this, commandArgs);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 Console.WriteLine("Cannot execute arguments: {0}", String.Join(" ", args));
-                Console.Read();
+                var fgc = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                var exception = ex.InnerException ?? ex;
+                Console.WriteLine(exception.Message);
+                Console.ForegroundColor = fgc;
             }
         }
 

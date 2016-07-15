@@ -3,7 +3,7 @@ using ServerlessBenchmark.LoadProfiles;
 
 namespace ServerlessBenchmark.TriggerTests
 {
-    interface IFunctionsTest
+    public interface IFunctionsTest
     {
         Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true);
     }

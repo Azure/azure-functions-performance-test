@@ -43,7 +43,7 @@ namespace ServerlessBenchmark.LoadProfiles
                 }
             });
 
-            var loadDurationTimerTask = Task.Delay(LoadDuration);
+            var loadDurationTimerTask = Task.Delay(LoadDuration + TimeSpan.FromSeconds(1));
 
             await Task.WhenAny(loadDurationTimerTask, isLoadFinishedTask);
         }

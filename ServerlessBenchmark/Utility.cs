@@ -19,7 +19,7 @@ namespace ServerlessBenchmark
                 var operationContext = new OperationContext();
                 var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
-                var logs = FunctionLogs.GetAzureFunctionLogs(functionName);
+                var logs = FunctionLogs.GetAzureFunctionLogs(null);
                 var table = tableClient.GetTableReference("AzureFunctionsLogTable");
                 logs.ForEach(entity => table.Execute(TableOperation.Delete(entity)));
                 return true;

@@ -105,7 +105,7 @@ namespace ServerlessBenchmark.TriggerTests
             VerifyTargetDestinationStorageCount(_expectedDestinationBlobContainerCount);
 
             clientEndTime = DateTime.Now;
-            var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, clientStartTime, clientEndTime, expectedExecutionCount: blobCount);
+            var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, clientStartTime, clientEndTime, expectedExecutionCount: _expectedDestinationBlobContainerCount);
             return perfResult;
         }
 

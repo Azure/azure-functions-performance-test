@@ -7,6 +7,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
 using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.ServerlessPlatformControllers;
+using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
 namespace ServerlessBenchmark.TriggerTests
 {

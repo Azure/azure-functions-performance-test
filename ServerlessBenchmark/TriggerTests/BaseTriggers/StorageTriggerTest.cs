@@ -9,7 +9,7 @@ using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 
-namespace ServerlessBenchmark.TriggerTests
+namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class StorageTriggerTest : IFunctionsTest
     {

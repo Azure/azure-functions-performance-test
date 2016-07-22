@@ -2,6 +2,7 @@
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.Azure;
+using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
 namespace ServerlessBenchmark.TriggerTests
 {

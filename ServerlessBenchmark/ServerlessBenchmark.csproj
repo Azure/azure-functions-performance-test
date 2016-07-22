@@ -102,20 +102,20 @@
     <Compile Include="TriggerTests\AzureBlobTriggerTest.cs" />
     <Compile Include="TriggerTests\AzureQueueTriggerTest.cs" />
     <Compile Include="TriggerTests\AzureStorageTriggerTestsBase.cs" />
-    <Compile Include="TriggerTests\BlobTriggerTest.cs" />
+    <Compile Include="TriggerTests\BaseTriggers\BlobTriggerTest.cs" />
     <Compile Include="ServerlessPlatformControllers\CloudPlatformController.cs" />
     <Compile Include="ServerlessPlatformControllers\CloudPlatformRequest.cs" />
     <Compile Include="ServerlessPlatformControllers\CloudPlatformResponse.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="TriggerTests\IFunctionsTest.cs" />
+    <Compile Include="TriggerTests\BaseTriggers\IFunctionsTest.cs" />
     <Compile Include="MetricInfo\Metric.cs" />
     <Compile Include="PerfResultProviders\PerfResultProvider.cs" />
     <Compile Include="PerfTestResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupplementalPerfTestResult.cs" />
     <Compile Include="TestRequest.cs" />
-    <Compile Include="TriggerTests\QueueTriggerTest.cs" />
-    <Compile Include="TriggerTests\StorageTriggerTest.cs" />
+    <Compile Include="TriggerTests\BaseTriggers\QueueTriggerTest.cs" />
+    <Compile Include="TriggerTests\BaseTriggers\StorageTriggerTest.cs" />
     <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>

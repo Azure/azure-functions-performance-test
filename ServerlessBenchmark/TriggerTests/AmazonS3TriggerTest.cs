@@ -7,6 +7,7 @@ using Amazon.CloudWatchLogs.Model;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.AWS;
+using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
 namespace ServerlessBenchmark.TriggerTests
 {

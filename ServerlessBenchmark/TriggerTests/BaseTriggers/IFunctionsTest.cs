@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ServerlessBenchmark.LoadProfiles;
 
-namespace ServerlessBenchmark.TriggerTests
+namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public interface IFunctionsTest
     {

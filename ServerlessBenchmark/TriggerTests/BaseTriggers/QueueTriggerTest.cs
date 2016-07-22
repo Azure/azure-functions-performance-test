@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 
-namespace ServerlessBenchmark.TriggerTests
+namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class QueueTriggerTest:StorageTriggerTest
     {

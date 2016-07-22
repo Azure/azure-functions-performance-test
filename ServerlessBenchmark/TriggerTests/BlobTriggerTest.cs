@@ -54,9 +54,9 @@ namespace ServerlessBenchmark.TriggerTests
             return cloudPlatformResponses;
         }
 
-        protected override void UploadItems(IEnumerable<string> items)
+        protected override async Task UploadItems(IEnumerable<string> items)
         {
-            UploadBlobs(items);
+            await UploadBlobs(items);
         }
 
         protected override bool VerifyTargetDestinationStorageCount(int expectedCount)
@@ -64,13 +64,13 @@ namespace ServerlessBenchmark.TriggerTests
             return VerifyBlobItemsExistInTargetDestination(expectedCount);
         }
 
-        private void UploadBlobs(IEnumerable<string> blobs)
+        private async Task UploadBlobs(IEnumerable<string> blobs)
         {
-            Parallel.ForEach(blobs, blobPath =>
+            Parallel.ForEach(blobs, async blobPath =>
             {
                 using (FileStream stream = new FileStream(blobPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    CloudPlatformController.PostBlob(new CloudPlatformRequest()
+                    await CloudPlatformController.PostBlobAsync(new CloudPlatformRequest()
                     {
                         Key = Guid.NewGuid().ToString(),
                         Source = SrcBlobContainer,

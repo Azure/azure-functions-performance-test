@@ -24,6 +24,11 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             get { return storageAccount.CreateCloudQueueClient(); }
         }
 
+        private CloudBlobClient BlobClient
+        {
+            get { return storageAccount.CreateCloudBlobClient(); }
+        }
+
         public AzureController()
         {
             var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
@@ -75,6 +80,29 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
                 queue.AddMessage(new CloudQueueMessage(message), operationContext: operationContext);
             }
             var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 201);
+            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
+            return response;
+        }
+
+        public async Task<CloudPlatformResponse> PostMessagesAsync(CloudPlatformRequest request)
+        {
+            var response = new CloudPlatformResponse();
+            var messages = request.Data[Constants.Message] as IEnumerable<string>;
+            var queue = QueueClient.GetQueueReference(request.Source);
+            var tasks = new List<Task>();
+            var operationResultsByTask = new Dictionary<int, OperationContext>();
+
+            foreach (var message in messages)
+            {
+                var operationContext = new OperationContext();
+                var t = queue.AddMessageAsync(new CloudQueueMessage(message), null, null, null, operationContext);
+                tasks.Add(t);
+                operationResultsByTask.Add(t.Id, operationContext);
+            }
+
+            await Task.WhenAll(tasks);
+            var operationResults = operationResultsByTask.Values;
+            var successfulPost = operationResults.All(operationContext => operationContext.LastResult.HttpStatusCode == 201);
             response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
             return response;
         }
@@ -158,15 +186,19 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
 
         public async Task<CloudPlatformResponse> PostBlobAsync(CloudPlatformRequest request)
         {
-            OperationContext uploadContext = new OperationContext();
+            var uploadContext = new OperationContext();
             var response = new CloudPlatformResponse();
-            var client = storageAccount.CreateCloudBlobClient();
-            var blobContainer = client.GetContainerReference(request.Source);
+            var blobContainer = BlobClient.GetContainerReference(request.Source);
             var blob = blobContainer.GetBlockBlobReference(request.Key);
             await blob.UploadFromStreamAsync(request.DataStream, null, null, uploadContext);
-            var successfulPost = uploadContext.RequestResults.All(uploadRequest => uploadRequest.HttpStatusCode == 200);
+            var successfulPost = uploadContext.RequestResults.All(uploadRequest => uploadRequest.HttpStatusCode == 201);
             response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
             return response;
+        }
+
+        public Task<CloudPlatformResponse> PostBlobsAsync(CloudPlatformRequest request)
+        {
+            throw new NotImplementedException();
         }
 
         public CloudPlatformResponse ListBlobs(CloudPlatformRequest request)

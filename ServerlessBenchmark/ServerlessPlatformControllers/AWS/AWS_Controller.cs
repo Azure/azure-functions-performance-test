@@ -46,6 +46,11 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             throw new NotImplementedException();
         }
 
+        public Task<CloudPlatformResponse> PostMessagesAsync(CloudPlatformRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
         public CloudPlatformResponse GetMessage(CloudPlatformRequest request)
         {
             throw new NotImplementedException();
@@ -111,6 +116,11 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
         }
 
         public Task<CloudPlatformResponse> PostBlobAsync(CloudPlatformRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CloudPlatformResponse> PostBlobsAsync(CloudPlatformRequest request)
         {
             throw new NotImplementedException();
         }

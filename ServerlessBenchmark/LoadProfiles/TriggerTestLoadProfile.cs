@@ -25,13 +25,13 @@ namespace ServerlessBenchmark.LoadProfiles
         /// Given a duration and <see href="https://msdn.microsoft.com/en-us/library/018hxwa8(v=vs.110).aspx">action</see>, calculate rate of publishing items and execute the given action.
         /// </summary>
         /// <param name="action"></param>
-        public async Task ExecuteRateAsync(Action<int> action)
+        public async Task ExecuteRateAsync(Func<int, Task> action)
         {
-            TimerCallback callback = t =>
+            TimerCallback callback = async t =>
             {
                 Interlocked.Increment(ref _timeCounter);
                 int rate = ExecuteRate(_timeCounter);
-                action(rate);
+                await action(rate);
             };
             _calculateRateTimer = new Timer(callback, null, 0, 1000 * 1);
             var isLoadFinishedTask = Task.Run(() =>

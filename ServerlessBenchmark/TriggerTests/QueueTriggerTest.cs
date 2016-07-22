@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 
 namespace ServerlessBenchmark.TriggerTests
@@ -45,14 +46,27 @@ namespace ServerlessBenchmark.TriggerTests
             return VerifyQueueMessagesExistInTargetQueue(expectedCount);
         }
 
-        protected override void UploadItems(IEnumerable<string> items)
+        protected override async Task UploadItems(IEnumerable<string> items)
         {
-            UploadMessages(items);
+            await UploadMessagesAsync(items);
         }
 
         private void UploadMessages(IEnumerable<string> messages)
         {
             CloudPlatformController.PostMessages(new CloudPlatformRequest()
+            {
+                Key = Guid.NewGuid().ToString(),
+                Source = SourceQueue,
+                Data = new Dictionary<string, object>()
+                    {
+                        {Constants.Message, messages}
+                    }
+            });
+        }
+
+        private async Task UploadMessagesAsync(IEnumerable<string> messages)
+        {
+            await CloudPlatformController.PostMessagesAsync(new CloudPlatformRequest()
             {
                 Key = Guid.NewGuid().ToString(),
                 Source = SourceQueue,

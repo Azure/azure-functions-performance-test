@@ -19,7 +19,7 @@ namespace ServerlessBenchmark.TriggerTests
         protected abstract List<CloudPlatformResponse> CleanUpStorageResources();
         protected abstract bool VerifyTargetDestinationStorageCount(int expectedCount);
         protected List<string> SourceItems { get; set; }
-        protected abstract void UploadItems(IEnumerable<string> items);
+        protected abstract Task UploadItems(IEnumerable<string> items);
         protected abstract ICloudPlatformController CloudPlatformController { get; }
         protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
 
@@ -54,13 +54,13 @@ namespace ServerlessBenchmark.TriggerTests
             return successfulSetup;
         }
 
-        private void TestWarmUp()
+        private async Task TestWarmUp()
         {
             Console.WriteLine("{0} Trigger Warmup - Starting", StorageType);
 
             var sw = Stopwatch.StartNew();
 
-            UploadItems(new[] { SourceItems.First() });
+            await UploadItems(new[] { SourceItems.First() });
 
             Console.WriteLine("{0} Trigger Warmup - Verify test", StorageType);
 
@@ -85,7 +85,7 @@ namespace ServerlessBenchmark.TriggerTests
             {
                 if (warmup)
                 {
-                    TestWarmUp();
+                    await TestWarmUp();
                 }
 
                 Console.WriteLine("Posting Storage Items");
@@ -109,7 +109,7 @@ namespace ServerlessBenchmark.TriggerTests
             return perfResult;
         }
 
-        private void UploadStorageItems(int targetNumberOfItems)
+        private async Task UploadStorageItems(int targetNumberOfItems)
         {
             int srcNumberOfItems = SourceItems.Count();
             IEnumerable<string> selectedItems;
@@ -127,8 +127,8 @@ namespace ServerlessBenchmark.TriggerTests
                 } while (targetNumberOfItems >= 0);
                 selectedItems = tmpList;
             }
-            UploadItems(selectedItems);
             Console.WriteLine("EPS = {0} {1}", selectedItems.Count(), DateTime.Now);
+            await UploadItems(selectedItems);
             Interlocked.Add(ref _expectedDestinationBlobContainerCount, selectedItems.Count());
         }
     }

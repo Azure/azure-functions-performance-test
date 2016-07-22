@@ -2,14 +2,13 @@
 using System.Configuration;
 using System.Linq;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.Azure;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
-namespace ServerlessBenchmark.TriggerTests
+namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureBlobTriggerTest:BlobTriggerTest
     {

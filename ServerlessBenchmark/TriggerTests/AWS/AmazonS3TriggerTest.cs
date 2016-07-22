@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Amazon.CloudWatchLogs;
 using Amazon.CloudWatchLogs.Model;
@@ -9,7 +8,7 @@ using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.AWS;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
-namespace ServerlessBenchmark.TriggerTests
+namespace ServerlessBenchmark.TriggerTests.AWS
 {
     public class AmazonS3TriggerTest:BlobTriggerTest
     {

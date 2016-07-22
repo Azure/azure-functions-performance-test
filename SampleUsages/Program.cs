@@ -13,6 +13,8 @@ using MiniCommandLineHelper;
 using ServerlessBenchmark;
 using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.TriggerTests;
+using ServerlessBenchmark.TriggerTests.AWS;
+using ServerlessBenchmark.TriggerTests.Azure;
 
 namespace SampleUsages
 {
@@ -83,6 +85,39 @@ namespace SampleUsages
             }
 
             var azureFunctionsTest = new AzureQueueTriggerTest(functionName, queueMessages, srcQueue, targetQueue);
+            var perfResult = azureFunctionsTest.RunAsync(profile).Result;
+
+            //print perf results
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green; ;
+            Console.WriteLine(perfResult);
+            Console.ForegroundColor = originalColor;
+        }
+
+        [Command]
+        [CommandLineAttribute("HttpTest <platform> <functionName> <urlsFile> <loadProfile> [-eps:] [-repeat:] [-durationMinutes:]")]
+        public void HttpTest(string platform, string functionName, string urlsFile, string loadProfile, int eps = 0,
+            bool repeat = false, int durationMinutes = 0)
+        {
+            TriggerTestLoadProfile profile;
+            var urls = File.ReadAllLines(urlsFile);
+            if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && repeat)
+            {
+                if (durationMinutes <= 0)
+                {
+                    throw new ArgumentException("No parameter to specify how long to repeat this load. Indicate how long in minutes to repeat load.", "durationMinutes");
+                }
+                profile = new LinearLoad(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
+            }
+            else if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && !repeat)
+            {
+                profile = new LinearLoad(urls.Count(), eps == 0 ? 1 : eps);
+            }
+            else
+            {
+                throw new Exception(string.Format("{0} does not exist", loadProfile));
+            }
+            var azureFunctionsTest = new AzureHttpTriggerTest(functionName, urls);
             var perfResult = azureFunctionsTest.RunAsync(profile).Result;
 
             //print perf results

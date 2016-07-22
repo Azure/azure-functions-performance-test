@@ -9,7 +9,7 @@ using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
-namespace ServerlessBenchmark.TriggerTests
+namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public abstract class AzureStorageTriggerTestsBase: IFunctionsTest
     {

@@ -76,6 +76,8 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
@@ -94,14 +96,15 @@
     <Compile Include="PerfResultProviders\AzurePerformanceResultProviderBase.cs" />
     <Compile Include="PerfResultProviders\FunctionLogs.cs" />
     <Compile Include="ServerlessPlatformControllers\Azure\AzureController.cs" />
-    <Compile Include="TriggerTests\AmazonS3TriggerTest.cs" />
+    <Compile Include="TriggerTests\AWS\AmazonS3TriggerTest.cs" />
     <Compile Include="PerfResultProviders\AwsGenericPerformanceResultsProvider.cs" />
     <Compile Include="PerfResultProviders\AwsPerformanceResultProviderBase.cs" />
     <Compile Include="ServerlessPlatformControllers\AWS\AWS_CloudPlatformResponse.cs" />
     <Compile Include="ServerlessPlatformControllers\AWS\AWS_Controller.cs" />
-    <Compile Include="TriggerTests\AzureBlobTriggerTest.cs" />
-    <Compile Include="TriggerTests\AzureQueueTriggerTest.cs" />
-    <Compile Include="TriggerTests\AzureStorageTriggerTestsBase.cs" />
+    <Compile Include="TriggerTests\Azure\AzureBlobTriggerTest.cs" />
+    <Compile Include="TriggerTests\Azure\AzureHttpTriggerTest.cs" />
+    <Compile Include="TriggerTests\Azure\AzureQueueTriggerTest.cs" />
+    <Compile Include="TriggerTests\Azure\AzureStorageTriggerTestsBase.cs" />
     <Compile Include="TriggerTests\BaseTriggers\BlobTriggerTest.cs" />
     <Compile Include="ServerlessPlatformControllers\CloudPlatformController.cs" />
     <Compile Include="ServerlessPlatformControllers\CloudPlatformRequest.cs" />

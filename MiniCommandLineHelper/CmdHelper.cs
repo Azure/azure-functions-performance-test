@@ -34,7 +34,7 @@ namespace MiniCommandLineHelper
                 var fgc = Console.ForegroundColor;
                 Console.ForegroundColor = ConsoleColor.Red;
                 var exception = ex.InnerException ?? ex;
-                Console.WriteLine(exception.Message);
+                Console.WriteLine(exception);
                 Console.ForegroundColor = fgc;
             }
         }

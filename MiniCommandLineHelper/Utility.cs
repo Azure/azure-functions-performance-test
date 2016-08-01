@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace MiniCommandLineHelper
@@ -25,8 +26,8 @@ namespace MiniCommandLineHelper
         public static object[] CombineParameters(string[] userArgs, ParameterInfo[] methodParameters)
         {
             var joinedArgs = new List<object>();
-            var requiredArgs = new List<object>();
             var tempUserArgs = new Dictionary<string, object>();
+            int i = 0;
             try
             {
                 if (userArgs.Length > 0)
@@ -40,34 +41,37 @@ namespace MiniCommandLineHelper
                         }
                         else
                         {
-                            requiredArgs.Add(tmp);
+                            tempUserArgs.Add(methodParameters[i].Name.ToLower(), tmp);
                         }
+                        i++;
                     }
                 }
-                joinedArgs.AddRange(requiredArgs);
                 foreach (var parameter in methodParameters)
                 {
-                    if (parameter.HasDefaultValue)
+                    var val = parameter.DefaultValue;
+                    var key = parameter.Name.ToLower();
+                    if (tempUserArgs.ContainsKey(key))
                     {
-                        var val = parameter.DefaultValue;
-                        var key = parameter.Name.ToLower();
-                        if (tempUserArgs.ContainsKey(key))
-                        {
-                            val = tempUserArgs[key];
-                        }
-                        Type paramType = parameter.ParameterType;
-
-                        try
-                        {
-                            val = Convert.ChangeType(val, paramType);
-                        }
-                        catch (InvalidCastException)
-                        {
-                            
-                        }
-
-                        joinedArgs.Add(val);
+                        val = tempUserArgs[key];
                     }
+                    Type paramType = parameter.ParameterType;
+
+                    try
+                    {
+                        val = Convert.ChangeType(val, paramType);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        var constant =
+                            Enum.GetNames(paramType)
+                                .FirstOrDefault(s => s.Equals(val.ToString(), StringComparison.CurrentCultureIgnoreCase));
+                        if (constant != null)
+                        {
+                            val = Enum.Parse(paramType, constant);
+                        }
+                    }
+
+                    joinedArgs.Add(val);
                 }
             }
             catch (IndexOutOfRangeException)

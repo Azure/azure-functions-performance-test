@@ -46,7 +46,6 @@ namespace ServerlessBenchmark
                         }
                     }
                 }
-                //logs.ForEach(entity => table.Execute(TableOperation.Delete(entity)));
                 return true;
             }
             return false;

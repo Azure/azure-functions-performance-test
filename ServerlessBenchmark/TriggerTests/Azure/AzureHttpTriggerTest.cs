@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Net.Http;
@@ -45,15 +46,20 @@ namespace ServerlessBenchmark.TriggerTests.Azure
             var warmSite = SourceItems.First();
             var client = new HttpClient();
             var cs = new CancellationTokenSource(TimeoutInMilliseconds);
+            HttpResponseMessage response;
             try
             {
-                var response = await client.GetAsync(warmSite, cs.Token);
-                return response.IsSuccessStatusCode;
+                response = await client.GetAsync(warmSite, cs.Token);
             }
             catch (TaskCanceledException)
             {
                 throw new Exception(String.Format("Warm up passed timeout of {0}ms", TimeoutInMilliseconds));
             }
+
+            //cleanup previous logs
+            var isRemoved = Utility.RemoveAzureFunctionLogs(_functionName,
+                ConfigurationManager.AppSettings["AzureStorageConnectionString"]);
+            return response.IsSuccessStatusCode && isRemoved;
         }
 
         public async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
@@ -94,7 +100,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
                 } while (targetNumberOfSites >= 0);
                 selectedItems = tmpList;
             }
-            Console.WriteLine("EPS = {0} {1}", randomizedSites.Count(), DateTime.Now);
+            Console.WriteLine("EPS = {0} {1}", selectedItems.Count(), DateTime.Now);
             Interlocked.Add(ref _exepectedTotalExecutions, selectedItems.Count());
             await LoadSites(selectedItems);
         }

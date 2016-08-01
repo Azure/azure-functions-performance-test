@@ -115,9 +115,29 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             return AwsCloudPlatformResponse.PopulateFrom(response);
         }
 
-        public Task<CloudPlatformResponse> PostBlobAsync(CloudPlatformRequest request)
+        public async Task<CloudPlatformResponse> PostBlobAsync(CloudPlatformRequest request)
         {
-            throw new NotImplementedException();
+            AmazonWebServiceResponse response;
+            if (request == null)
+            {
+                throw new ArgumentException("Request is null");
+            }
+            using (var client = new AmazonS3Client())
+            {
+                response = await client.PutObjectAsync(new PutObjectRequest()
+                {
+                    BucketName = request.Source,
+                    InputStream = request.DataStream,
+                    AutoCloseStream = false,
+                    Key = request.Key
+                });
+                var insertionTime = DateTime.UtcNow;
+                if (!response.ResponseMetadata.Metadata.ContainsKey(ServerlessBenchmark.Constants.InsertionTime))
+                {
+                    response.ResponseMetadata.Metadata.Add(ServerlessBenchmark.Constants.InsertionTime, insertionTime.ToString("o"));
+                }
+            }
+            return AwsCloudPlatformResponse.PopulateFrom(response);
         }
 
         public Task<CloudPlatformResponse> PostBlobsAsync(CloudPlatformRequest request)

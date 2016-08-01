@@ -15,6 +15,7 @@ using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.TriggerTests;
 using ServerlessBenchmark.TriggerTests.AWS;
 using ServerlessBenchmark.TriggerTests.Azure;
+using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
 namespace SampleUsages
 {
@@ -28,7 +29,7 @@ namespace SampleUsages
 
         [Command]
         [CommandLineAttribute("BlobTest <platform> <functionName> <blobPath> <srcBlobContainer> <targetBlobContainer> <loadProfile> [-eps:] [-repeat:] [-durationMinutes:]")]
-        public void BlobTest(string platform, string functionName, string blobPath, string srcBlobContainer, string targetBlobContainer, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        public void BlobTest(ServerlessPlatforms platform, string functionName, string blobPath, string srcBlobContainer, string targetBlobContainer, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             TriggerTestLoadProfile profile;
             var blobs = Directory.GetFiles(blobPath);
@@ -50,19 +51,37 @@ namespace SampleUsages
                 throw new Exception(string.Format("{0} does not exist", loadProfile));
             }
 
-            var azureFunctionsTest = new AzureBlobTriggerTest(functionName, blobs, srcBlobContainer, targetBlobContainer);
-            var perfResult = azureFunctionsTest.RunAsync(profile).Result;
+            PerfTestResult functionResult;
+
+            switch (platform)
+            {
+                case ServerlessPlatforms.Aws:
+                    functionResult = AwsBlobTest(functionName, blobPath, srcBlobContainer, targetBlobContainer, profile, eps, repeat, durationMinutes);
+                    break;
+                default:
+                    var azureFunctionsTest = new AzureBlobTriggerTest(functionName, blobs, srcBlobContainer, targetBlobContainer);
+                    functionResult = azureFunctionsTest.RunAsync(profile).Result;
+                    break;
+            }
 
             //print perf results
             var originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;;
-            Console.WriteLine(perfResult);
+            Console.WriteLine(functionResult);
             Console.ForegroundColor = originalColor;
+        }
+
+        private PerfTestResult AwsBlobTest(string functionName, string blobPath, string srcBlobContainer, string targetBlobContainer, TriggerTestLoadProfile loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        {
+            var blobs = Directory.GetFiles(blobPath);
+            var azureFunctionsTest = new AmazonS3TriggerTest(functionName, blobs, srcBlobContainer, targetBlobContainer);
+            var perfResult = azureFunctionsTest.RunAsync(loadProfile).Result;
+            return perfResult;
         }
 
         [Command]
         [CommandLineAttribute("QueueTest <platform> <functionName> <messages> <srcQueue> <targetQueue> <loadProfile> [-eps:] [-repeat:] [-durationMinutes:]")]
-        public void QueueTest(string platform, string functionName, string messages, string srcQueue, string targetQueue, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        public void QueueTest(ServerlessPlatforms platform, string functionName, string messages, string srcQueue, string targetQueue, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             TriggerTestLoadProfile profile;
             var queueMessages = File.ReadAllLines(messages);
@@ -96,7 +115,7 @@ namespace SampleUsages
 
         [Command]
         [CommandLineAttribute("HttpTest <platform> <functionName> <urlsFile> <loadProfile> [-eps:] [-repeat:] [-durationMinutes:]")]
-        public void HttpTest(string platform, string functionName, string urlsFile, string loadProfile, int eps = 0,
+        public void HttpTest(ServerlessPlatforms platform, string functionName, string urlsFile, string loadProfile, int eps = 0,
             bool repeat = false, int durationMinutes = 0)
         {
             TriggerTestLoadProfile profile;

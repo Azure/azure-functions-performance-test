@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using ServerlessBenchmark.PerfResultProviders;
@@ -19,9 +15,38 @@ namespace ServerlessBenchmark
                 var operationContext = new OperationContext();
                 var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
-                var logs = FunctionLogs.GetAzureFunctionLogs(null);
+                var logs = FunctionLogs.GetAzureFunctionLogs(functionName);
                 var table = tableClient.GetTableReference("AzureFunctionsLogTable");
-                logs.ForEach(entity => table.Execute(TableOperation.Delete(entity)));
+                var partitions = logs.GroupBy(log => log.PartitionKey);
+                var count = 0;
+                const int batchLimit = 100;
+                foreach (var partition in partitions)
+                {
+                    var tb = new TableBatchOperation();
+                    var arr = partition.ToArray();
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        tb.Add(TableOperation.Delete(arr[i]));
+                        count += i;
+                        if (i % (batchLimit - 1) == 0 && i > 0 || arr.Length < batchLimit)
+                        {
+                            try
+                            {
+                                table.ExecuteBatch(tb, operationContext: operationContext);
+                                tb = new TableBatchOperation();
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                            }
+                            if (operationContext.RequestResults.All(rs => rs.HttpStatusCode == 202))
+                            {
+                                Console.WriteLine("Deleted {0}/{1} logs", count, logs.Count);
+                            }
+                        }
+                    }
+                }
+                //logs.ForEach(entity => table.Execute(TableOperation.Delete(entity)));
                 return true;
             }
             return false;

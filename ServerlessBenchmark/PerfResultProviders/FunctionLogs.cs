@@ -15,7 +15,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         private static List<AzureFunctionLogs> _azurefunctionLogs; 
         public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, DateTime? endTime, bool update = false, int expectedExecutionCount = 0)
         {
-            Console.WriteLine("Get Azure Function logs from Azure Storage Tables..");
+            Console.WriteLine("Getting Azure Function logs from Azure Storage Tables..");
             var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
             if (!string.IsNullOrEmpty(connectionString))
             {
@@ -30,6 +30,10 @@ namespace ServerlessBenchmark.PerfResultProviders
                         log.FunctionName.Equals(functionName, StringComparison.CurrentCultureIgnoreCase) && !string.IsNullOrEmpty(log.ContainerName)).ToList();
                     size = _azurefunctionLogs.Count();
                     Console.WriteLine("Log count - " + size);
+                    if (expectedExecutionCount == 0)
+                    {
+                        break;
+                    }
                     Thread.Sleep(1000);
                 } while (size < expectedExecutionCount);
             }

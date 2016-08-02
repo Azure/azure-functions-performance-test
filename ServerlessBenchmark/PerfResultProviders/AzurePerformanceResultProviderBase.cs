@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ServerlessBenchmark.MetricInfo;
+using System.IO;
+using System.Text;
 
 namespace ServerlessBenchmark.PerfResultProviders
 {
@@ -39,6 +41,83 @@ namespace ServerlessBenchmark.PerfResultProviders
             var executionCount = executionTimes.Count();
             return executionCount;
         }
+
+        [PerfMetric(PerfMetrics.Throughput)]
+        protected double CalculateThroughput(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);            
+            var processedLogs = new List<TrimmedFunctionLog>();
+            var throughputList = new List<int>();
+            foreach (var log in logs)
+            {
+                processedLogs.Add(new TrimmedFunctionLog
+                {
+                    Timestamp = TrimMilliseconds(log.EndTime),
+                    ContainerName = log.ContainerName
+                });
+            }
+
+            var stringBuffer = new StringBuilder();
+
+            var orderedLogs = processedLogs.OrderBy(l => l.Timestamp);
+            var actualStartTime = orderedLogs.First().Timestamp;
+            var actualEndTime = orderedLogs.Last().Timestamp;
+            for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
+            {
+                var count = processedLogs.Count(l => l.Timestamp == timeStamp);
+                throughputList.Add(count);
+                stringBuffer.AppendFormat("{0},{1}{2}", count, timeStamp, Environment.NewLine);
+            }
+            var fileName = string.Format("{0}-Throughput.txt", Guid.NewGuid().ToString());
+            File.WriteAllText(fileName, stringBuffer.ToString());
+
+            return throughputList.Average();
+        }
+
+        [PerfMetric(PerfMetrics.HostConcurrency)]
+        protected double CalculateHostConcurrency(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            const int concurrentTimeWindowInSeconds = 15;
+            var processedLogs = new List<TrimmedFunctionLog>();
+            var concurrencyList = new List<int>();
+            foreach (var log in logs)
+            {
+                processedLogs.Add(new TrimmedFunctionLog
+                {
+                    Timestamp = TrimMilliseconds(log.EndTime),
+                    ContainerName = log.ContainerName
+                });
+            }
+
+            var stringBuffer = new StringBuilder();
+
+            var orderedLogs = processedLogs.OrderBy(l => l.Timestamp);
+            var actualStartTime = orderedLogs.First().Timestamp;
+            var actualEndTime = orderedLogs.Last().Timestamp;
+            for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
+            {
+                var concurrency = processedLogs.Where(l => l.Timestamp > timeStamp.AddSeconds(-1 * concurrentTimeWindowInSeconds)
+                && l.Timestamp < timeStamp.AddSeconds(concurrentTimeWindowInSeconds)).Select(c => c.ContainerName).Distinct().Count();
+                concurrencyList.Add(concurrency);
+                stringBuffer.AppendFormat("{0},{1}{2}", concurrency, timeStamp, Environment.NewLine);
+            }
+            var fileName = string.Format("{0}-HostConcurrency.txt", Guid.NewGuid().ToString());
+            File.WriteAllText(fileName, stringBuffer.ToString());
+
+            return concurrencyList.Average();
+        }
+
+        private class TrimmedFunctionLog
+        {
+            public DateTime Timestamp { get; set; }
+            public string ContainerName { get; set; }
+        }
+        private static DateTime TrimMilliseconds(DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, 0);
+        }
+
 
         [PerfMetric(PerfMetrics.FunctionClockTime)]
         protected TimeSpan? CalculateFunctionClockTime(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)

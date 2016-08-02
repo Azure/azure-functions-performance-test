@@ -80,6 +80,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         private bool VerifyQueueMessagesExistInTargetQueue(int expected)
         {
             IEnumerable<object> messages;
+            var lastCountSeen = -1;
+            var lastTimeCountChanged = DateTime.MinValue;
             do
             {
                 messages = (IEnumerable<object>)CloudPlatformController.GetMessages(new CloudPlatformRequest()
@@ -88,7 +90,13 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 }).Data;
                 Console.WriteLine("Destination Messages - Number Of Messages:     {0}", messages.Count());
                 Thread.Sleep(1 * 1000);
-            } while (messages.Count() < expected);
+                var count = messages.Count();
+                if (count != lastCountSeen)
+                {
+                    lastCountSeen = count;
+                    lastTimeCountChanged = DateTime.UtcNow;
+                }
+            } while (messages.Count() < expected && DateTime.UtcNow < lastTimeCountChanged.AddMinutes(-4));
             return true;
         }
     }

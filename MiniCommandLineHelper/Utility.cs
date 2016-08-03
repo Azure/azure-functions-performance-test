@@ -62,12 +62,22 @@ namespace MiniCommandLineHelper
                     }
                     catch (InvalidCastException)
                     {
-                        var constant =
-                            Enum.GetNames(paramType)
-                                .FirstOrDefault(s => s.Equals(val.ToString(), StringComparison.CurrentCultureIgnoreCase));
-                        if (constant != null)
+                        if (paramType.IsEnum)
                         {
-                            val = Enum.Parse(paramType, constant);
+                            var enumValues = Enum.GetNames(paramType);
+                            var constant = enumValues.FirstOrDefault(s => s.Equals(val.ToString(), StringComparison.CurrentCultureIgnoreCase));
+                            if (constant != null)
+                            {
+                                val = Enum.Parse(paramType, constant);
+                            }
+                            else
+                            {
+                                var message = string.Format("Parameter {0} has unavailable value {1}! Available values are: {2}.",
+                                    parameter.Name,
+                                    val,
+                                    string.Join("|", enumValues));
+                                throw new ArgumentException(message);
+                            }
                         }
                     }
 
@@ -78,6 +88,7 @@ namespace MiniCommandLineHelper
             {
                 throw new Exception("Not enough arguments");
             }
+
             return joinedArgs.ToArray();
         }
     }

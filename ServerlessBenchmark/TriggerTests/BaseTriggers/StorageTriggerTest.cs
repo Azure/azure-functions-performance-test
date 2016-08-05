@@ -19,6 +19,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected abstract List<CloudPlatformResponse> CleanUpStorageResources();
         protected abstract bool VerifyTargetDestinationStorageCount(int expectedCount);
         protected List<string> SourceItems { get; set; }
+        protected abstract bool TestSetup();
         protected abstract Task UploadItems(IEnumerable<string> items);
         protected abstract ICloudPlatformController CloudPlatformController { get; }
         protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
@@ -40,7 +41,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 var undoneJobs =
                     cloudPlatformResponses.Where(
                         response => response != null && response.HttpStatusCode != HttpStatusCode.OK);
-                successfulSetup = !undoneJobs.Any();
+                successfulSetup = !undoneJobs.Any() && TestSetup();
                 if (!successfulSetup && retries > 0)
                 {
                     retries = retries - 1;

@@ -13,6 +13,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers
         public Stream DataStream { get; set; }
         public string Key { get; set; }
         public int MessageCount { get; set; }
-
+        public bool Retry { get; set; }
+        public int RetryAttempts { get; set; }
     }
 }

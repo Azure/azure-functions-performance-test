@@ -13,6 +13,7 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 
 namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
 {
@@ -88,6 +89,71 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                 }
             }
             return cpResponse;
+        }
+
+        public async Task<CloudPlatformResponse> EnqueueMessages(CloudPlatformRequest request)
+        {
+            var cResponse = new CloudPlatformResponse();
+            try
+            {
+                SendMessageBatchResponse response;
+                var messages = (IEnumerable<string>) request.Data[ServerlessBenchmark.Constants.Message];
+                var batchMessageEntry =
+                    messages.Select(message => new SendMessageBatchRequestEntry(Guid.NewGuid().ToString("N"), message))
+                        .ToList();
+                using (var client = new AmazonSQSClient())
+                {
+                    response = await client.SendMessageBatchAsync(request.Source, batchMessageEntry);
+                }
+                if (response.Failed.Any())
+                {
+                    var groupedFailures = response.Failed.GroupBy(failure => failure.Message);
+                    foreach (var group in groupedFailures)
+                    {
+                        cResponse.ErrorDetails.Add(group.Key, group.Count());
+                    }
+                    cResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
+                }
+                else
+                {
+                    cResponse.HttpStatusCode = HttpStatusCode.OK;                    
+                }
+            }
+            catch (InvalidCastException)
+            {
+                Console.WriteLine("Data needs to be IEnumberable of strings");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return cResponse;
+        }
+
+        public async Task<CloudPlatformResponse> DequeueMessages(CloudPlatformRequest request)
+        {
+            var cResponse = new CloudPlatformResponse();
+            try
+            {
+                ReceiveMessageResponse response;
+                using (var client = new AmazonSQSClient())
+                {
+                    response = await client.ReceiveMessageAsync(request.Source);
+                }
+                if (response.HttpStatusCode != HttpStatusCode.OK)
+                {
+                    cResponse.Data = response.Messages;
+                }
+                else
+                {
+                    cResponse.ErrorDetails.Add("unknown", 1);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            return cResponse;
         }
 
         public CloudPlatformResponse PostBlob(CloudPlatformRequest request)

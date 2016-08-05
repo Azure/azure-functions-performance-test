@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Amazon.CloudWatchLogs;
-using Amazon.CloudWatchLogs.Model;
+using System.Text;
+using System.Threading.Tasks;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.AWS;
@@ -10,10 +10,9 @@ using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
 namespace ServerlessBenchmark.TriggerTests.AWS
 {
-    public class AmazonS3TriggerTest:BlobTriggerTest
+    public class AmazonSqsTriggerTest:QueueTriggerTest
     {
-
-        public AmazonS3TriggerTest(string functionName, IEnumerable<string> blobs, string sourceBlobContainer,
+        public AmazonSqsTriggerTest(string functionName, IEnumerable<string> blobs, string sourceBlobContainer,
             string destinationBlobContainer)
             : base(functionName, blobs.ToArray(), sourceBlobContainer, destinationBlobContainer)
         {

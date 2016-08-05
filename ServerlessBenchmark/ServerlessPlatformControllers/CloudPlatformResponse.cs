@@ -10,5 +10,12 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers
         public DateTime TimeStamp { get; set; }
         public Dictionary<string, DateTime> TimeStamps { get; set; } 
         public object Data { get; set; }
+
+        public Dictionary<string, int> ErrorDetails { get; private set; }
+
+        public CloudPlatformResponse()
+        {
+            ErrorDetails = new Dictionary<string, int>();
+        }
     }
 }

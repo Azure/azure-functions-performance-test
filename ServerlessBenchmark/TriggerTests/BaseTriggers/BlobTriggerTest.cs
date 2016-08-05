@@ -14,8 +14,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected readonly string DstBlobContainer;
         protected readonly string _functionName;
 
-        protected abstract bool TestSetup();
-
         protected BlobTriggerTest(string functionName, string[] blobs, string sourceBlobContainer, string destinationBlobContainer):base(functionName, blobs)
         {
             if (string.IsNullOrEmpty(functionName) || string.IsNullOrEmpty(sourceBlobContainer) || string.IsNullOrEmpty(destinationBlobContainer)

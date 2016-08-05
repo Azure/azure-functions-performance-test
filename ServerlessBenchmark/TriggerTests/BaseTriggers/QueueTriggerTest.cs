@@ -9,7 +9,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class QueueTriggerTest:StorageTriggerTest
     {
-        protected abstract bool SetUp();
         private string SourceQueue { get; set; }
         private string TargetQueue { get; set; }
 
@@ -26,7 +25,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     {CloudPlatformController.DeleteMessages(new CloudPlatformRequest() {Source = SourceQueue})},
                     {CloudPlatformController.DeleteMessages(new CloudPlatformRequest() {Source = TargetQueue})}
                 };
-            if (SetUp())
+            if (TestSetup())
             {
                 return cloudPlatformResponses;
             }

@@ -171,6 +171,16 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             return response;
         }
 
+        public Task<CloudPlatformResponse> EnqueueMessages(CloudPlatformRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CloudPlatformResponse> DequeueMessages(CloudPlatformRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
         public CloudPlatformResponse PostBlob(CloudPlatformRequest request)
         {
             OperationContext uploadContext = new OperationContext();

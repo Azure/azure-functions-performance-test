@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.CloudWatchLogs;
+using Amazon.CloudWatchLogs.Model;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -69,6 +71,36 @@ namespace ServerlessBenchmark.PerfResultProviders
                 return GetAzureFunctionLogs(null, null);
             }
             return GetAzureFunctionLogs(functionName, null, null);
+        }
+
+        public static bool RemoveAllCLoudWatchLogs(string functionName)
+        {
+            bool isEmpty;
+            using (var cwClient = new AmazonCloudWatchLogsClient())
+            {
+                var logStreams = GetAllLogStreams(functionName, cwClient);
+                Console.WriteLine("Deleting Log Streams");
+                logStreams.ForEach(s => cwClient.DeleteLogStream(new DeleteLogStreamRequest("/aws/lambda/" + functionName, s.LogStreamName)));
+                isEmpty = GetAllLogStreams(functionName, cwClient).Count == 0;
+            }
+            return isEmpty;
+        }
+
+        private static List<LogStream> GetAllLogStreams(string functionName, AmazonCloudWatchLogsClient cwClient)
+        {
+            var logStreams = new List<LogStream>();
+            DescribeLogStreamsResponse lResponse;
+            string nextToken = null;
+            do
+            {
+                lResponse =
+                    cwClient.DescribeLogStreams(new DescribeLogStreamsRequest("/aws/lambda/" + functionName)
+                    {
+                        NextToken = nextToken
+                    });
+                logStreams.AddRange(lResponse.LogStreams);
+            } while (!string.IsNullOrEmpty(nextToken = lResponse.NextToken));
+            return logStreams;
         }
 
         public class AzureFunctionLogs : TableEntity

@@ -9,7 +9,5 @@
         public const int MaxDequeueAmount = 32;
     }
 
-    public enum ServerlessPlatforms { Azure, Aws }
-    public enum ServerlessTriggerTypes { Blob, Queue, Http}
-    public enum DataRequestKeys { Message, Other}
+    public enum TriggerTypes { Blob, Queue, Http}
 }

@@ -65,8 +65,7 @@ namespace MiniCommandLineHelper
                                  where type.Name == "Program"
                                  from method in type.GetMethods()
                                  where
-                                     Attribute.IsDefined(method, typeof(CommandAttribute)) &&
-                                     Attribute.IsDefined(method, typeof(CommandLineAttribute))
+                                     Attribute.IsDefined(method, typeof(CommandAttribute))
                                  select method;
             
             
@@ -80,8 +79,7 @@ namespace MiniCommandLineHelper
 
         protected void Help(MethodInfo method)
         {
-            if (Attribute.IsDefined(method, typeof (CommandAttribute)) &&
-                Attribute.IsDefined(method, typeof (CommandLineAttribute)))
+            if (Attribute.IsDefined(method, typeof (CommandAttribute)))
             {
                 Console.WriteLine(GetMethodInfoParsed(method));
                 Console.WriteLine();

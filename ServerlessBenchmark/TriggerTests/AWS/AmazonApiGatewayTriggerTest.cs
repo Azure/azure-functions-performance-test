@@ -1,22 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ServerlessBenchmark.PerfResultProviders;
+﻿using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.AWS;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
 namespace ServerlessBenchmark.TriggerTests.AWS
 {
-    public class AmazonSqsTriggerTest:QueueTriggerTest
+    public class AmazonApiGatewayTriggerTest:HttpTriggerTest
     {
-        public AmazonSqsTriggerTest(string functionName, IEnumerable<string> queueMessages, string sourceBlobContainer,
-            string destinationBlobContainer)
-            : base(functionName, queueMessages.ToArray(), sourceBlobContainer, destinationBlobContainer)
+        public AmazonApiGatewayTriggerTest(string functionName, string[] urls) : base(functionName, urls)
         {
-            
         }
 
         protected override bool TestSetup()

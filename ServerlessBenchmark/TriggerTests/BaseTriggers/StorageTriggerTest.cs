@@ -11,7 +11,7 @@ using ServerlessBenchmark.ServerlessPlatformControllers;
 
 namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
-    public abstract class StorageTriggerTest : IFunctionsTest
+    public abstract class StorageTriggerTest : FunctionTest
     {
         private int _expectedDestinationBlobContainerCount;
         protected abstract string StorageType { get; }
@@ -19,10 +19,10 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected abstract List<CloudPlatformResponse> CleanUpStorageResources();
         protected abstract bool VerifyTargetDestinationStorageCount(int expectedCount);
         protected List<string> SourceItems { get; set; }
-        protected abstract bool TestSetup();
+        protected abstract override bool TestSetup();
         protected abstract Task UploadItems(IEnumerable<string> items);
-        protected abstract ICloudPlatformController CloudPlatformController { get; }
-        protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
+        protected abstract override ICloudPlatformController CloudPlatformController { get; }
+        protected abstract override PerfResultProvider PerfmormanceResultProvider { get; }
 
         protected StorageTriggerTest(string functionName, string[] items)
         {
@@ -77,7 +77,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             Console.WriteLine("{1} Trigger Warmup - Elapsed Time: {0}ms", sw.ElapsedMilliseconds, StorageType);
         }
 
-        public async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
+        public override async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
         {
             int blobCount = SourceItems.Count();
             DateTime clientStartTime, clientEndTime;

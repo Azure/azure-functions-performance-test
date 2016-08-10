@@ -5,6 +5,12 @@
       "name": "myBlob",
       "path": "mycontainer/{name}",
       "direction": "in"
+    },
+    {
+      "type": "blobTrigger",
+      "name": "myQueue",
+      "path": "myresultcontainer/{name}",
+      "direction": "out"
     }
   ]
 } 

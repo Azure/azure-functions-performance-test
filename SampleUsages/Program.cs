@@ -33,7 +33,7 @@ namespace SampleUsages
             string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             var queueMessages = File.ReadAllLines(blobPath);
-            var test = new AmazonS3TriggerTest(functionName, queueMessages, srcQueue, targetQueue);
+            var test = new AmazonSqsTriggerTest(functionName, queueMessages, srcQueue, targetQueue);
             StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
         }
 

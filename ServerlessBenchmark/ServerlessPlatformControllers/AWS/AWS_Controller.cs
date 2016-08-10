@@ -64,34 +64,24 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
 
         public CloudPlatformResponse DeleteMessages(CloudPlatformRequest request)
         {
-            var requiredParams = new string[]{Constants.Queue};
-            var missingParams = requiredParams.Where(param => !request.Data.ContainsKey(param)).ToList();
-            if (missingParams.Any())
-            {
-                throw new ArgumentException(String.Format("Missing args: "), String.Join(" ", missingParams.ToArray()));
-            }
             var sqsClient = new AmazonSQSClient();
             var cpResponse = new CloudPlatformResponse();
-            while (true)
+            try
             {
-                try
-                {
-                    var response = sqsClient.PurgeQueue(request.Data[Constants.Queue] as string);
-                    cpResponse.HttpStatusCode = response.HttpStatusCode;
-                    Thread.Sleep(TimeSpan.FromSeconds(60));
-                    break;
-                }
-                catch (PurgeQueueInProgressException)
-                {
-                    //retry
-                    Thread.Sleep(TimeSpan.FromSeconds(60));
-                    cpResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
-                }
+                var queueUrl = sqsClient.GetQueueUrl(request.Source).QueueUrl;
+                var response = sqsClient.PurgeQueue(queueUrl);
+                cpResponse.HttpStatusCode = response.HttpStatusCode;
+            }
+            catch (PurgeQueueInProgressException)
+            {
+                //retry
+                Thread.Sleep(TimeSpan.FromSeconds(60));
+                cpResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
             }
             return cpResponse;
         }
 
-        public async Task<CloudPlatformResponse> EnqueueMessages(CloudPlatformRequest request)
+        public async Task<CloudPlatformResponse> EnqueueMessagesAsync(CloudPlatformRequest request)
         {
             var cResponse = new CloudPlatformResponse();
             try
@@ -103,7 +93,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                         .ToList();
                 using (var client = new AmazonSQSClient())
                 {
-                    response = await client.SendMessageBatchAsync(request.Source, batchMessageEntry);
+                    response = await client.SendMessageBatchAsync(client.GetQueueUrl(request.Source).QueueUrl, batchMessageEntry);
                 }
                 if (response.Failed.Any())
                 {
@@ -130,7 +120,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             return cResponse;
         }
 
-        public async Task<CloudPlatformResponse> DequeueMessages(CloudPlatformRequest request)
+        public async Task<CloudPlatformResponse> DequeueMessagesAsync(CloudPlatformRequest request)
         {
             var cResponse = new CloudPlatformResponse();
             try
@@ -138,15 +128,20 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                 ReceiveMessageResponse response;
                 using (var client = new AmazonSQSClient())
                 {
-                    response = await client.ReceiveMessageAsync(request.Source);
-                }
-                if (response.HttpStatusCode != HttpStatusCode.OK)
-                {
-                    cResponse.Data = response.Messages;
-                }
-                else
-                {
-                    cResponse.ErrorDetails.Add("unknown", 1);
+                    var queueUrl = client.GetQueueUrl(request.Source).QueueUrl;
+                    response = await client.ReceiveMessageAsync(queueUrl);
+                    if (response.HttpStatusCode == HttpStatusCode.OK)
+                    {
+                        cResponse.Data = response.Messages;
+                        foreach (var message in response.Messages)
+                        {
+                            await client.DeleteMessageAsync(new DeleteMessageRequest(queueUrl, message.ReceiptHandle));
+                        }
+                    }
+                    else
+                    {
+                        cResponse.ErrorDetails.Add("unknown", 1);
+                    }
                 }
             }
             catch (Exception ex)

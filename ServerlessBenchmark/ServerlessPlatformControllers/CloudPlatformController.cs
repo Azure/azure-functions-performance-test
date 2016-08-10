@@ -13,8 +13,8 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers
         CloudPlatformResponse GetMessage(CloudPlatformRequest request);
         CloudPlatformResponse GetMessages(CloudPlatformRequest request);
         CloudPlatformResponse DeleteMessages(CloudPlatformRequest request);
-        Task<CloudPlatformResponse> EnqueueMessages(CloudPlatformRequest request);
-        Task<CloudPlatformResponse> DequeueMessages(CloudPlatformRequest request);
+        Task<CloudPlatformResponse> EnqueueMessagesAsync(CloudPlatformRequest request);
+        Task<CloudPlatformResponse> DequeueMessagesAsync(CloudPlatformRequest request);
         CloudPlatformResponse PostBlob(CloudPlatformRequest request);
         Task<CloudPlatformResponse> PostBlobAsync(CloudPlatformRequest request);
         Task<CloudPlatformResponse> PostBlobsAsync(CloudPlatformRequest request);

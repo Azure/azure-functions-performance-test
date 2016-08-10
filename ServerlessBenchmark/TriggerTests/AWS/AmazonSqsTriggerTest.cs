@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.AWS;
@@ -19,7 +16,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
             
         }
 
-        protected override bool TestSetup()
+        protected override bool Setup()
         {
             return FunctionLogs.RemoveAllCLoudWatchLogs(FunctionName);
         }

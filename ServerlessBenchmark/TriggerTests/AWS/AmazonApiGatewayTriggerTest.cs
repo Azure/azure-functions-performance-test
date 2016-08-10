@@ -11,7 +11,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
         {
         }
 
-        protected override bool TestSetup()
+        protected override bool Setup()
         {
             return FunctionLogs.RemoveAllCLoudWatchLogs(FunctionName);
         }

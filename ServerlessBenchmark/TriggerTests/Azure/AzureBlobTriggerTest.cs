@@ -23,7 +23,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
             //todo find the input and output container given the container name
         }
 
-        protected override bool TestSetup()
+        protected override bool Setup()
         {
             return RemoveAzureFunctionLogs() && EnableLoggingIfDisabled();
         }

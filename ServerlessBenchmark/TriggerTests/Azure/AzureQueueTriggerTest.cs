@@ -22,7 +22,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
             get { return new AzureGenericPerformanceResultsProvider(); }
         }
 
-        protected override bool TestSetup()
+        protected override bool Setup()
         {
             return Utility.RemoveAzureFunctionLogs(FunctionName,
                 ConfigurationManager.AppSettings["AzureStorageConnectionString"]);

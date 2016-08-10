@@ -57,9 +57,9 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             await UploadBlobs(items);
         }
 
-        protected override bool VerifyTargetDestinationStorageCount(int expectedCount)
+        protected override Task<bool> VerifyTargetDestinationStorageCount(int expectedCount)
         {
-            return VerifyBlobItemsExistInTargetDestination(expectedCount);
+            return Task.FromResult(VerifyBlobItemsExistInTargetDestination(expectedCount));
         }
 
         private async Task UploadBlobs(IEnumerable<string> blobs)

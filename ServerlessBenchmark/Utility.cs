@@ -27,7 +27,7 @@ namespace ServerlessBenchmark
                     for (int i = 0; i < arr.Length; i++)
                     {
                         tb.Add(TableOperation.Delete(arr[i]));
-                        count += i;
+                        count += 1;
                         if (i % (batchLimit - 1) == 0 && i > 0 || arr.Length < batchLimit)
                         {
                             try

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.ServerlessPlatformControllers;
@@ -20,19 +22,28 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override List<CloudPlatformResponse> CleanUpStorageResources()
         {
-            var cloudPlatformResponses = new List<CloudPlatformResponse>
+            List<CloudPlatformResponse> cloudPlatformResponses = null;
+            try
+            {
+                cloudPlatformResponses = new List<CloudPlatformResponse>
                 {
                     {CloudPlatformController.DeleteMessages(new CloudPlatformRequest() {Source = SourceQueue})},
                     {CloudPlatformController.DeleteMessages(new CloudPlatformRequest() {Source = TargetQueue})}
                 };
-            if (TestSetup())
-            {
-                return cloudPlatformResponses;
             }
-            else
+            catch (Exception e)
             {
-                throw new Exception("Test Clean up failed");
+                var webException = e.InnerException as WebException;
+                if (webException != null)
+                {
+                    if (webException.Status == WebExceptionStatus.ProtocolError && webException.Message.Contains("400"))
+                    {
+                        throw new Exception(String.Format("Error: 404 when deleting message from queue. Check that queues exist: {0} {1}", SourceQueue, TargetQueue));
+                    }
+                }
+                throw;
             }
+            return cloudPlatformResponses;
         }
 
         protected override string StorageType
@@ -40,9 +51,9 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             get { return "Queue"; }
         }
 
-        protected override bool VerifyTargetDestinationStorageCount(int expectedCount)
+        protected async override Task<bool> VerifyTargetDestinationStorageCount(int expectedCount)
         {
-            return VerifyQueueMessagesExistInTargetQueue(expectedCount);
+            return await VerifyQueueMessagesExistInTargetQueue(expectedCount);
         }
 
         protected override async Task UploadItems(IEnumerable<string> items)
@@ -50,22 +61,9 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             await UploadMessagesAsync(items);
         }
 
-        private void UploadMessages(IEnumerable<string> messages)
-        {
-            CloudPlatformController.PostMessages(new CloudPlatformRequest()
-            {
-                Key = Guid.NewGuid().ToString(),
-                Source = SourceQueue,
-                Data = new Dictionary<string, object>()
-                    {
-                        {Constants.Message, messages}
-                    }
-            });
-        }
-
         private async Task UploadMessagesAsync(IEnumerable<string> messages)
         {
-            await CloudPlatformController.PostMessagesAsync(new CloudPlatformRequest()
+            await CloudPlatformController.EnqueueMessagesAsync(new CloudPlatformRequest()
             {
                 Key = Guid.NewGuid().ToString(),
                 Source = SourceQueue,
@@ -76,26 +74,36 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             });
         }
 
-        private bool VerifyQueueMessagesExistInTargetQueue(int expected)
+        private async Task<bool> VerifyQueueMessagesExistInTargetQueue(int expected)
         {
             IEnumerable<object> messages;
             var lastCountSeen = -1;
-            var lastTimeCountChanged = DateTime.MinValue;
+            int count = 0;
+            DateTime lastTimeCountChanged = new DateTime();
+            var timeout = TimeSpan.FromSeconds(45);
+            var startTime = DateTime.UtcNow;
             do
             {
-                messages = (IEnumerable<object>)CloudPlatformController.GetMessages(new CloudPlatformRequest()
+                var taskMesagesResponse = await CloudPlatformController.DequeueMessagesAsync(new CloudPlatformRequest()
                 {
                     Source = TargetQueue
-                }).Data;
-                Console.WriteLine("Destination Messages - Number Of Messages:     {0}", messages.Count());
+                });
+                messages = (IEnumerable<object>) taskMesagesResponse.Data;
+                count += messages == null ? 0 : messages.Count();
+                Console.WriteLine("Destination Messages - Number Of Messages:     {0}", count);
                 Thread.Sleep(1 * 1000);
-                var count = messages.Count();
                 if (count != lastCountSeen)
                 {
                     lastCountSeen = count;
                     lastTimeCountChanged = DateTime.UtcNow;
                 }
-            } while (messages.Count() < expected && DateTime.UtcNow < lastTimeCountChanged.AddMinutes(-4));
+
+                if ((startTime - lastTimeCountChanged) > timeout)
+                {
+                    Console.WriteLine("Waiting for destination queue to reach expected count timed out: {0}/{1}", count, ExpectedExecutionCount);
+                    break;
+                }
+            } while (count < expected);
             return true;
         }
     }

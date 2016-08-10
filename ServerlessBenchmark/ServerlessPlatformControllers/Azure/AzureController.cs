@@ -59,85 +59,27 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
 
         public CloudPlatformResponse PostMessage(CloudPlatformRequest request)
         {
-            var operationContext = new OperationContext();
-            var response = new CloudPlatformResponse();
-            var message = request.Data[Constants.Message] as string;
-            var queue = QueueClient.GetQueueReference(request.Source);
-            queue.AddMessage(new CloudQueueMessage(message), operationContext: operationContext);
-            var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 200);
-            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
-            return response;
+            throw new NotImplementedException("Use this for event hub");
         }
 
         public CloudPlatformResponse PostMessages(CloudPlatformRequest request)
         {
-            var operationContext = new OperationContext();
-            var response = new CloudPlatformResponse();
-            var messages = request.Data[Constants.Message] as IEnumerable<string>;
-            var queue = QueueClient.GetQueueReference(request.Source);
-            foreach (var message in messages)
-            {
-                queue.AddMessage(new CloudQueueMessage(message), operationContext: operationContext);
-            }
-            var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 201);
-            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
-            return response;
+            throw new NotImplementedException("Use this for event hub");
         }
 
-        public async Task<CloudPlatformResponse> PostMessagesAsync(CloudPlatformRequest request)
+        public Task<CloudPlatformResponse> PostMessagesAsync(CloudPlatformRequest request)
         {
-            var response = new CloudPlatformResponse();
-            var messages = request.Data[Constants.Message] as IEnumerable<string>;
-            var queue = QueueClient.GetQueueReference(request.Source);
-            var tasks = new List<Task>();
-            var operationResultsByTask = new Dictionary<int, OperationContext>();
-
-            foreach (var message in messages)
-            {
-                var operationContext = new OperationContext();
-                var t = queue.AddMessageAsync(new CloudQueueMessage(message), null, null, null, operationContext);
-                tasks.Add(t);
-                operationResultsByTask.Add(t.Id, operationContext);
-            }
-
-            await Task.WhenAll(tasks);
-            var operationResults = operationResultsByTask.Values;
-            var successfulPost = operationResults.All(operationContext => operationContext.LastResult.HttpStatusCode == 201);
-            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
-            return response;
+            throw new NotImplementedException("Use this for event hub");
         }
 
         public CloudPlatformResponse GetMessage(CloudPlatformRequest request)
         {
-            var operationContext = new OperationContext();
-            var response = new CloudPlatformResponse();
-            var queue = QueueClient.GetQueueReference(request.Source);
-            var cloudMessage = queue.GetMessage(operationContext: operationContext);
-            var messageString = cloudMessage.AsString;
-            var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 200);
-            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
-            response.Data = messageString;
-            return response;
+            throw new NotImplementedException("Use this for event hub");
         }
 
         public CloudPlatformResponse GetMessages(CloudPlatformRequest request)
         {
-            var operationContext = new OperationContext();
-            var response = new CloudPlatformResponse();
-            var messages = new List<CloudQueueMessage>();
-            var queue = QueueClient.GetQueueReference(request.Source);
-            queue.FetchAttributes();
-            var queueLength = queue.ApproximateMessageCount;
-            do
-            {
-                messages.AddRange(queue.GetMessages(Constants.MaxDequeueAmount));
-            } while (messages.Count < queueLength);
-
-            var messagesString = messages.Select(message => message.AsString);
-            var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 200);
-            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
-            response.Data = messagesString;
-            return response;
+            throw new NotImplementedException("Use this for event hub");
         }
 
         public CloudPlatformResponse DeleteMessages(CloudPlatformRequest request)
@@ -171,14 +113,47 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             return response;
         }
 
-        public Task<CloudPlatformResponse> EnqueueMessages(CloudPlatformRequest request)
+        public async Task<CloudPlatformResponse> EnqueueMessagesAsync(CloudPlatformRequest request)
         {
-            throw new NotImplementedException();
+            var response = new CloudPlatformResponse();
+            var messages = request.Data[Constants.Message] as IEnumerable<string>;
+            var queue = QueueClient.GetQueueReference(request.Source);
+            var tasks = new List<Task>();
+            var operationResultsByTask = new Dictionary<int, OperationContext>();
+
+            foreach (var message in messages)
+            {
+                var operationContext = new OperationContext();
+                var t = queue.AddMessageAsync(new CloudQueueMessage(message), null, null, null, operationContext);
+                tasks.Add(t);
+                operationResultsByTask.Add(t.Id, operationContext);
+            }
+
+            await Task.WhenAll(tasks);
+            var operationResults = operationResultsByTask.Values;
+            var successfulPost = operationResults.All(operationContext => operationContext.LastResult.HttpStatusCode == 201);
+            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
+            return response;
         }
 
-        public Task<CloudPlatformResponse> DequeueMessages(CloudPlatformRequest request)
+        public async Task<CloudPlatformResponse> DequeueMessagesAsync(CloudPlatformRequest request)
         {
-            throw new NotImplementedException();
+            var operationContext = new OperationContext();
+            var response = new CloudPlatformResponse();
+            var messages = new List<CloudQueueMessage>();
+            var queue = QueueClient.GetQueueReference(request.Source);
+            queue.FetchAttributes();
+            var queueLength = queue.ApproximateMessageCount;
+            do
+            {
+                messages.AddRange(await queue.GetMessagesAsync(Constants.MaxDequeueAmount));
+            } while (messages.Count < queueLength);
+
+            var messagesString = messages.Select(message => message.AsString);
+            var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 200);
+            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
+            response.Data = messagesString;
+            return response;
         }
 
         public CloudPlatformResponse PostBlob(CloudPlatformRequest request)

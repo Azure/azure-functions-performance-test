@@ -15,7 +15,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         }
 
-        protected override bool TestSetup()
+        protected override bool Setup()
         {
             return Utility.RemoveAzureFunctionLogs(FunctionName,
                 ConfigurationManager.AppSettings["AzureStorageConnectionString"]);

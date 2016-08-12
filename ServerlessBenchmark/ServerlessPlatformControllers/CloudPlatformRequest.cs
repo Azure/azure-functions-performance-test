@@ -15,5 +15,6 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers
         public int MessageCount { get; set; }
         public bool Retry { get; set; }
         public int RetryAttempts { get; set; }
+        public int? TimeoutMilliseconds { get; set; }
     }
 }

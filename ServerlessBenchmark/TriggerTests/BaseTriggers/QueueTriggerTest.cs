@@ -11,8 +11,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class QueueTriggerTest:StorageTriggerTest
     {
-        private string SourceQueue { get; set; }
-        private string TargetQueue { get; set; }
+        protected string SourceQueue { get; set; }
+        protected string TargetQueue { get; set; }
 
         protected QueueTriggerTest(string functionName, string[] messages, string sourceQueue, string targetQueue):base(functionName, messages)
         {

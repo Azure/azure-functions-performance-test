@@ -8,6 +8,7 @@ namespace MiniCommandLineHelper
 {
     public abstract class CmdHelper
     {
+        private ConsoleColor _originalConsoleColor;
         public void Main(string[] args)
         {
             RunCommand(args);
@@ -17,6 +18,7 @@ namespace MiniCommandLineHelper
 
         protected void RunCommand(string[] args)
         {
+            _originalConsoleColor = Console.ForegroundColor;
             MethodInfo methodInfo = null;
 
             try
@@ -33,13 +35,8 @@ namespace MiniCommandLineHelper
             }
             catch (Exception ex)
             {
-                WriteMethodData(methodInfo);
-                Console.WriteLine("Cannot execute arguments: {0}", String.Join(" ", args));
-                var fgc = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                var exception = ex.InnerException ?? ex;
-                Console.WriteLine(exception);
-                Console.ForegroundColor = fgc;
+                Console.ForegroundColor = _originalConsoleColor;
+                Console.WriteLine("Exiting benchmark");
             }
         }
 

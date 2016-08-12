@@ -102,6 +102,7 @@
     <Compile Include="PerfResultProviders\AwsPerformanceResultProviderBase.cs" />
     <Compile Include="ServerlessPlatformControllers\AWS\AWS_CloudPlatformResponse.cs" />
     <Compile Include="ServerlessPlatformControllers\AWS\AWS_Controller.cs" />
+    <Compile Include="TriggerTests\AWS\AmazonSnsToSqs.cs" />
     <Compile Include="TriggerTests\AWS\AmazonSqsTriggerTest.cs" />
     <Compile Include="TriggerTests\Azure\AzureBlobTriggerTest.cs" />
     <Compile Include="TriggerTests\Azure\AzureHttpTriggerTest.cs" />

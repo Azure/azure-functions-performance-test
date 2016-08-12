@@ -4,8 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.CloudWatchLogs;
-using Amazon.CloudWatchLogs.Model;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -13,33 +11,22 @@ using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
-using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 
 namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
 {
     public class AwsController: ICloudPlatformController
     {
+        protected AmazonSimpleNotificationServiceClient SnsClient
+        {
+            get
+            {
+                return new AmazonSimpleNotificationServiceClient();
+            }
+        }
+
         public CloudPlatformResponse PostMessage(CloudPlatformRequest request)
         {
-            var requiredParams = new string[] { Constants.Topic, Constants.Message};
-            var missingParams = requiredParams.Where(param => !request.Data.ContainsKey(param)).ToList();
-            if (missingParams.Any())
-            {
-                throw new ArgumentException(String.Format("Missing args: "), String.Join(" ", missingParams.ToArray()));
-            }
-
-            var topic = request.Data[Constants.Topic] as string;
-            var message = request.Data[Constants.Message] as string;
-            var response = SNS_PublishMessage(topic, message);
-            var requestResponse = new CloudPlatformResponse()
-            {
-                HttpStatusCode = response.HttpStatusCode,
-                TimeStamp = DateTime.Now
-            };
-            int temp;
-            Int32.TryParse(response.MessageId, out temp);
-            requestResponse.ResponseId = temp;
-            return requestResponse;
+            throw new NotImplementedException();
         }
 
         public CloudPlatformResponse PostMessages(CloudPlatformRequest request)
@@ -47,9 +34,41 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             throw new NotImplementedException();
         }
 
-        public Task<CloudPlatformResponse> PostMessagesAsync(CloudPlatformRequest request)
+        public async Task<CloudPlatformResponse> PostMessagesAsync(CloudPlatformRequest request)
         {
-            throw new NotImplementedException();
+            IEnumerable<PublishResponse> completedPublishJobs;
+            var topic = request.Data[Constants.Topic] as string;
+            var messages = request.Data[Constants.Message] as IEnumerable<string>;
+            var pendingPublishJobs = messages.Select(message => PublishMessage(topic, message, request.RetryAttempts)).ToList();
+            var completedPublishJobsTasks = Task.WhenAll(pendingPublishJobs);
+            var timeout = request.TimeoutMilliseconds ?? (int)TimeSpan.FromSeconds(60).TotalMilliseconds;
+            var timeoutTask = Task.Delay(timeout);
+
+            var aggregateTasks = new List<Task>()
+            {
+                {completedPublishJobsTasks},
+                {timeoutTask}
+            };
+
+            var doneTask = await Task.WhenAny(aggregateTasks);
+            if (doneTask.Id == timeoutTask.Id)
+            {
+                Console.WriteLine("--ERROR-- Reached timeout {0}ms", timeout);
+                throw new Exception();
+            }
+            else
+            {
+                //the only other task that we were waiting for were the publish jobs
+                completedPublishJobs = ((Task<PublishResponse[]>) doneTask).Result;
+            }
+
+            var areAnyFailed = completedPublishJobs.Any(publishJob => publishJob.HttpStatusCode != HttpStatusCode.OK);
+            var requestResponse = new CloudPlatformResponse()
+            {
+                HttpStatusCode = areAnyFailed ? HttpStatusCode.Conflict : HttpStatusCode.OK,
+                TimeStamp = DateTime.Now
+            };
+            return requestResponse;
         }
 
         public CloudPlatformResponse GetMessage(CloudPlatformRequest request)
@@ -270,55 +289,42 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             return AwsCloudPlatformResponse.PopulateFrom(response);
         }
 
-        public PublishResponse SNS_PublishMessage(string topic, string message)
+        private async Task<PublishResponse> PublishMessage(string topic, string message, int retries = 3)
         {
-            try
+            PublishResponse response = null;
+            bool isSuccessPublish = false;
+            do
             {
-                var snsClient = new AmazonSimpleNotificationServiceClient();
-                var response = snsClient.Publish(topic, message);
-                return response;
-            }
-            catch (InternalErrorException e)
-            {
-                Console.WriteLine("AWS let us down!");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Something went wrong");
-                Console.WriteLine(e);
-            }
-            return null;
-        }
-
-        public PerfTestResult PutPerfInfo(PerfTestResult perfTestResult, string functionInputContainer, string functionDestinationContainer)
-        {
-            using (var cwClient = new AmazonCloudWatchLogsClient())
-            {
-                var logStreams = new List<LogStream>();
-                DescribeLogStreamsResponse lResponse;
-                string nextToken = null;
-                do
+                try
                 {
-                    lResponse =
-                        cwClient.DescribeLogStreams(new DescribeLogStreamsRequest("/aws/lambda/ImageResizerV2")
-                        {
-                            NextToken = nextToken
-                        });
-                    logStreams.AddRange(lResponse.LogStreams);
-                } while (!string.IsNullOrEmpty(nextToken = lResponse.NextToken));
-                var logs =
-                    logStreams.Select(
-                        s =>
-                            cwClient.GetLogEvents(new GetLogEventsRequest("/aws/lambda/ImageResizerV2",
-                                s.LogStreamName)));
-            }
-            return perfTestResult;
-        }
-
-        public PerfTestResult PutPerfInfoAsync(PerfTestResult perfTestResult, string functionInputContainer,
-            string functionDestinationContainer)
-        {
-            return perfTestResult;
+                    var findTopicRequest = SnsClient.FindTopic(topic);
+                    if (findTopicRequest == null)
+                    {
+                        throw new Exception(String.Format("Topic {0} NotFound", topic));
+                    }
+                    response = await SnsClient.PublishAsync(findTopicRequest.TopicArn, message);
+                    isSuccessPublish = true;
+                }
+                catch (Exception e)
+                {
+                    var fg = Console.ForegroundColor;
+                    if (retries > 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("--WARNING-- Encountered error while publishing message to SNS topic: {0}",
+                            topic);
+                        Console.WriteLine("--EXCEPTION-- {0}", e);
+                        Console.WriteLine("Retrying...");
+                        Console.ForegroundColor = fg;
+                        retries -= 1;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            } while (retries > 0 && !isSuccessPublish);
+            return response;
         }
 
         public CloudPlatformResponse GetFunctionName(string inputContainerName)

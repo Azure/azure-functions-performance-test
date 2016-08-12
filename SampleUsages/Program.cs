@@ -29,10 +29,10 @@ namespace SampleUsages
         }
 
         [Command]
-        public void SqsTest(string functionName, string blobPath, string srcQueue, string targetQueue,
+        public void SqsTest(string functionName, string messages, string srcQueue, string targetQueue,
             string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
-            var queueMessages = File.ReadAllLines(blobPath);
+            var queueMessages = File.ReadAllLines(messages);
             var test = new AmazonSqsTriggerTest(functionName, queueMessages, srcQueue, targetQueue);
             StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
         }
@@ -43,6 +43,15 @@ namespace SampleUsages
             var urls = File.ReadAllLines(urlsFile);
             var test = new AmazonApiGatewayTriggerTest(functionName, urls);
             HttpTriggerTest(test, urls, loadProfile, eps, repeat, durationMinutes);
+        }
+
+        [Command]
+        public void SnsToSqsTest(string functionName, string messages, string srcTopic, string targetQueue,
+            string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        {
+            var queueMessages = File.ReadAllLines(messages);
+            var test = new AmazonSnsToSqs(functionName, queueMessages, srcTopic, targetQueue);
+            StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
         }
         #endregion
 

@@ -11,6 +11,11 @@ namespace MiniCommandLineHelper
         private ConsoleColor _originalConsoleColor;
         public void Main(string[] args)
         {
+            if (args.Any((arg) => arg.Equals("-h", StringComparison.CurrentCultureIgnoreCase)) || args.Length == 0)
+            {
+                Help();
+                return;
+            }
             RunCommand(args);
         }
 
@@ -28,10 +33,19 @@ namespace MiniCommandLineHelper
 
                 var assembly = Assembly.GetEntryAssembly();
                 var mainProgram = (from type in assembly.GetTypes() where type.Name == "Program" select type).First();
-                methodInfo = mainProgram.GetMethods().First(method => method.Name.ToLower() == command.ToLower() && method.IsDefined(typeof(CommandAttribute)));
+                methodInfo =
+                    mainProgram.GetMethods()
+                        .First(
+                            method =>
+                                method.Name.ToLower() == command.ToLower() &&
+                                method.IsDefined(typeof (CommandAttribute)));
 
                 var commandArgs = Utility.CombineParameters(userCommandArgs, methodInfo.GetParameters());
                 methodInfo.Invoke(this, commandArgs);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                Help();
             }
             catch (Exception ex)
             {

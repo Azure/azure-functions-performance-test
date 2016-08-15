@@ -7,6 +7,16 @@
         public const string Message = "Message";
         public const string Queue = "QueueUrl";
         public const int MaxDequeueAmount = 32;
+
+        /// <summary>
+        /// The name of the table where all of the azure function execution logs are stored.
+        /// </summary>
+        public const string AzureFunctionLogTableName = "AzureFunctionsLogTable";
+
+        /// <summary>
+        /// Partition key of the execution logs that carries information such as container and etc.
+        /// </summary>
+        public const string AzureFunctionLogExecutionPartitionKey = "R";
     }
 
     public enum TriggerTypes { Blob, Queue, Http}

@@ -95,6 +95,46 @@ namespace ServerlessBenchmark.PerfResultProviders
             return TimeSpan.FromMilliseconds(avgExecutionTime);
         }
 
+        [PerfMetric("Host used count")]
+        protected string CalculateHostUseCount(string functionName, DateTime testStartTime, DateTime testEndTime)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime);
+            var hostNames = RetrieveHostNames(logs);
+            var hostNamesCount = hostNames.Distinct().Count();
+            return hostNamesCount.ToString();
+        }
+
+        [PerfMetric("Host used at maximum")]
+        protected string CalculateHostUsedAtMaximum(string functionName, DateTime testStartTime, DateTime testEndTime)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime);
+            var max = 0;
+
+            var logByMinute = logs.GroupBy(l => (l.Timestamp - TimeSpan.FromMilliseconds(l.Timestamp.Millisecond)));
+
+            foreach (var logGroup in logByMinute)
+            {
+                var hosts = RetrieveHostNames(logGroup.ToList());
+                max = Math.Max(max, hosts.Distinct().Count());
+            }
+
+            return max.ToString();
+        }
+
+        private IEnumerable<string> RetrieveHostNames(List<OutputLogEvent> logs)
+        {
+            var hostNames = new ConcurrentBag<string>();
+            Parallel.ForEach(logs, log =>
+            {
+                if (log.Message.ToLower().Contains("machine name"))
+                {
+                    var hostName = Regex.Matches(log.Message, "machine name (?<machinename>.*)")[0].Groups["machinename"].Captures[0].Value;
+                    hostNames.Add(hostName);
+                }
+            });
+            return hostNames.ToList();
+        }
+
         private TimeSpan? CalculateAggregateComputeTime(List<OutputLogEvent> logs)
         {
             var executionTimes = RetrieveExecutionTimes(logs);

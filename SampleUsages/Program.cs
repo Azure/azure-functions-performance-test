@@ -5,13 +5,14 @@ using System.Linq;
 using MiniCommandLineHelper;
 using ServerlessBenchmark;
 using ServerlessBenchmark.LoadProfiles;
+using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.TriggerTests.AWS;
 using ServerlessBenchmark.TriggerTests.Azure;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 
 namespace SampleUsages
 {
-    public class Program:CmdHelper
+    public class Program : CmdHelper
     {
         public new static void Main(string[] args)
         {
@@ -52,6 +53,18 @@ namespace SampleUsages
             var queueMessages = File.ReadAllLines(messages);
             var test = new AmazonSnsToSqs(functionName, queueMessages, srcTopic, targetQueue);
             StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
+        }
+
+        [Command]
+        public void AnalyzeAwsTest(string functionName, DateTime startTime, DateTime endTime)
+        {
+            var resultsProvider = new AwsGenericPerformanceResultsProvider();
+            var results = resultsProvider.GetPerfMetrics(functionName, startTime, endTime);
+            //print perf results
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(results);
+            Console.ForegroundColor = originalColor;
         }
         #endregion
 

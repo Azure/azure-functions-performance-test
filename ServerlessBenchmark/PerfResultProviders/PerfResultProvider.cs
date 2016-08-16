@@ -8,7 +8,6 @@ namespace ServerlessBenchmark.PerfResultProviders
 {
     public abstract class PerfResultProvider
     {
-
         protected abstract Dictionary<string, string> ObtainAdditionalPerfMetrics(PerfTestResult genericPerfTestResult, string functionName, DateTime testStartTime, DateTime testEndTime);
         
         public virtual PerfTestResult GetPerfMetrics(string functionName, DateTime testStartTime, DateTime testEndTime,string inputTriggerName = null, string outputTriggerName = null, int expectedExecutionCount = 0)

@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Amazon.CloudWatchLogs;
 using Amazon.CloudWatchLogs.Model;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
 using ServerlessBenchmark.MetricInfo;
 
 namespace ServerlessBenchmark.PerfResultProviders
@@ -42,7 +47,8 @@ namespace ServerlessBenchmark.PerfResultProviders
                     _logs = logs;
                 }                
             }
-            return _logs;
+
+            return _logs.Where(l => l.Timestamp >= start && l.Timestamp <= end).ToList();
         }
 
         private IEnumerable<TimeSpan?> RetrieveExecutionTimes(List<OutputLogEvent> logs)
@@ -121,6 +127,59 @@ namespace ServerlessBenchmark.PerfResultProviders
             return max.ToString();
         }
 
+        [PerfMetric("Throughput (avg items/second)")]
+        protected string CalculateThroughput(string functionName, DateTime testStartTime, DateTime testEndTime)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime).Where(l => l.Message.Contains("Duration:"));
+            var logByMinute = logs.GroupBy(l => (l.Timestamp - TimeSpan.FromMilliseconds(l.Timestamp.Millisecond)));
+            var stringBuffer = new StringBuilder();
+
+            foreach (var log in logByMinute.OrderBy(l => l.Key))
+            {
+                stringBuffer.AppendFormat("{0},{1}{2}", log.Count(), log.Key, Environment.NewLine);
+            }
+
+            var fileName = string.Format("AWS-{0}-Throughput.txt", Guid.NewGuid().ToString());
+            File.WriteAllText(fileName, stringBuffer.ToString());
+
+            return logByMinute.Select(q => q.Count()).Average().ToString();
+        }
+
+        [PerfMetric("Throuput graph")]
+        protected string CalculateThroughputGraph(string functionName, DateTime testStartTime, DateTime testEndTime)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime).Where(l => l.Message.Contains("Duration:"));
+            var secondsInGroup = 15;
+            var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
+            var stringBuffer = new StringBuilder();
+            
+            var model = new PlotModel { Title = "Aws throuput in time" };
+            var timeAxis = new DateTimeAxis
+            {
+                StringFormat = "hh:mm:ss"
+            };
+
+            model.Axes.Add(timeAxis);
+            var series = new LineSeries();
+
+            foreach (var log in logGroupped.OrderBy(l => l.Key))
+            {
+                stringBuffer.AppendFormat("{0},{1}{2}", log.Value / secondsInGroup, log.Key, Environment.NewLine);
+                series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(log.Key), log.Value / secondsInGroup));
+            }
+
+            model.Series.Add(series);
+            var fileName = string.Format("AWS-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
+
+            using (var stream = File.Create(fileName))
+            {
+                var pdfExporter = new PdfExporter {Width = 600, Height = 400};
+                pdfExporter.Export(model, stream);
+            }
+
+            return string.Format("Plot can be found at {0}", fileName);
+        }
+
         private IEnumerable<string> RetrieveHostNames(List<OutputLogEvent> logs)
         {
             var hostNames = new ConcurrentBag<string>();
@@ -133,6 +192,25 @@ namespace ServerlessBenchmark.PerfResultProviders
                 }
             });
             return hostNames.ToList();
+        }
+
+        private Dictionary<DateTime, double> GetAverageLogCountInTimeWindow(List<OutputLogEvent> logs, int windowTimespanInSeconds)
+        {
+            var orderedLogs = logs.OrderBy(l => l.Timestamp);
+            var actualStartTime = orderedLogs.First().Timestamp;
+            var actualEndTime = orderedLogs.Last().Timestamp;
+            var result = new Dictionary<DateTime, double>();
+
+            for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(windowTimespanInSeconds))
+            {
+                var startTime = timeStamp.AddSeconds(-1*windowTimespanInSeconds);
+                var logsCount = logs.Count(
+                    l => l.Timestamp > startTime &&
+                         l.Timestamp < timeStamp.AddSeconds(windowTimespanInSeconds));
+                result[startTime.AddSeconds(windowTimespanInSeconds/2)] = logsCount;
+            }
+
+            return result;
         }
 
         private TimeSpan? CalculateAggregateComputeTime(List<OutputLogEvent> logs)

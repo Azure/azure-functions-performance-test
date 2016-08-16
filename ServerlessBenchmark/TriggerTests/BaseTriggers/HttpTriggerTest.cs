@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -15,6 +16,13 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
     {
         protected override sealed IEnumerable<string> SourceItems { get; set; }
         private const int TimeoutInMilliseconds = 30 * 1000;
+        private int _totalSuccessRequestsPerSecond;
+        private int _totalFailedRequestsPerSecond;
+        private int _totalTimedOutRequestsPerSecond;
+        private int _totalActiveRequests;
+        private int _totalLatency;
+        private int _totalRequestsPerSecond;
+
         protected abstract bool Setup();
 
         protected HttpTriggerTest(string functionName, string[] urls):base(functionName)
@@ -73,22 +81,60 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var loadRequests = new List<Task>();
             foreach (var site in sites)
             {
-                //var t = client.GetAsync(site, cs.Token);
                 var t = Task.Run(async () =>
                 {
                     try
                     {
                         var cs = new CancellationTokenSource(TimeoutInMilliseconds);
-                        await client.GetAsync(site, cs.Token);
+                        var request = client.GetAsync(site, cs.Token);
+                        var requestSent = DateTime.Now;
+                        Interlocked.Increment(ref _totalActiveRequests);
+                        var response = await request;
+                        var responseReceived = DateTime.Now;
+                        Interlocked.Decrement(ref _totalActiveRequests);
+                        Interlocked.Add(ref _totalLatency, (int)(responseReceived - requestSent).TotalMilliseconds);
+                        Interlocked.Increment(ref _totalRequestsPerSecond);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            _totalSuccessRequestsPerSecond += 1;
+                        }
+                        else
+                        {
+                            _totalFailedRequestsPerSecond += 1;
+                        }
                     }
                     catch (TaskCanceledException)
                     {
-                        //ignore
+                        _totalTimedOutRequestsPerSecond += 1;
                     }
                 });
                 loadRequests.Add(t);
             }
             await Task.WhenAll(loadRequests);
+        }
+
+        protected override IDictionary<string, string> CurrentTestProgress()
+        {
+            var testProgressData = base.CurrentTestProgress();
+            testProgressData.Add("Success", _totalSuccessRequestsPerSecond.ToString());
+            testProgressData.Add("Failed", _totalFailedRequestsPerSecond.ToString());
+            testProgressData.Add("TimedOut", _totalTimedOutRequestsPerSecond.ToString());
+            //testProgressData.Add("Active", _totalActiveRequests.ToString());
+            testProgressData.Add("AvgLatency", (_totalLatency / _totalRequestsPerSecond).ToString());
+
+            //reset values
+            ResetHttpCounters();
+
+            return testProgressData;
+        }
+
+        private void ResetHttpCounters()
+        {
+            _totalFailedRequestsPerSecond = 0;
+            _totalSuccessRequestsPerSecond = 0;
+            _totalTimedOutRequestsPerSecond = 0;
+            _totalLatency = 0;
+            _totalRequestsPerSecond = 0;
         }
     }
 }

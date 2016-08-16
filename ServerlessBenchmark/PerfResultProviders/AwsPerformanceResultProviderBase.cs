@@ -48,7 +48,7 @@ namespace ServerlessBenchmark.PerfResultProviders
                 }                
             }
 
-            return _logs.Where(l => l.Timestamp >= start && l.Timestamp <= end).ToList();
+            return _logs;
         }
 
         private IEnumerable<TimeSpan?> RetrieveExecutionTimes(List<OutputLogEvent> logs)
@@ -92,7 +92,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             return std.ToString();
         }
 
-        [PerfMetric("Average Execution Time")]
+        [PerfMetric(PerfMetrics.AverageExecutionTime)]
         protected TimeSpan? CalculateAverageExecutionTime(string functionName, DateTime testStartTime, DateTime testEndTime)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime);
@@ -101,59 +101,49 @@ namespace ServerlessBenchmark.PerfResultProviders
             return TimeSpan.FromMilliseconds(avgExecutionTime);
         }
 
-        [PerfMetric("Host used count")]
-        protected string CalculateHostUseCount(string functionName, DateTime testStartTime, DateTime testEndTime)
-        {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime);
-            var hostNames = RetrieveHostNames(logs);
-            var hostNamesCount = hostNames.Distinct().Count();
-            return hostNamesCount.ToString();
-        }
-
-        [PerfMetric("Host used at maximum")]
+        [PerfMetric(PerfMetrics.HostConcurrency)]
         protected string CalculateHostUsedAtMaximum(string functionName, DateTime testStartTime, DateTime testEndTime)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime);
-            var max = 0;
-
             var logByMinute = logs.GroupBy(l => (l.Timestamp - TimeSpan.FromMilliseconds(l.Timestamp.Millisecond)));
 
+            var sum = 0;
             foreach (var logGroup in logByMinute)
             {
                 var hosts = RetrieveHostNames(logGroup.ToList());
-                max = Math.Max(max, hosts.Distinct().Count());
+                sum += hosts.Distinct().Count();
             }
 
-            return max.ToString();
+            return (sum / logByMinute.Count()).ToString();
         }
 
-        [PerfMetric("Throughput (avg items/second)")]
+        [PerfMetric(PerfMetrics.Throughput)]
         protected string CalculateThroughput(string functionName, DateTime testStartTime, DateTime testEndTime)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime).Where(l => l.Message.Contains("Duration:"));
-            var logByMinute = logs.GroupBy(l => (l.Timestamp - TimeSpan.FromMilliseconds(l.Timestamp.Millisecond)));
+            var logByMinute = GetAverageLogCountInTimeWindow(logs.ToList(), 1);
             var stringBuffer = new StringBuilder();
 
             foreach (var log in logByMinute.OrderBy(l => l.Key))
             {
-                stringBuffer.AppendFormat("{0},{1}{2}", log.Count(), log.Key, Environment.NewLine);
+                stringBuffer.AppendFormat("{0},{1}{2}", log, log.Key, Environment.NewLine);
             }
 
             var fileName = string.Format("AWS-{0}-Throughput.txt", Guid.NewGuid().ToString());
             File.WriteAllText(fileName, stringBuffer.ToString());
 
-            return logByMinute.Select(q => q.Count()).Average().ToString();
+            return logByMinute.Select(l => l.Value).Average().ToString();
         }
 
-        [PerfMetric("Throuput graph")]
+        [PerfMetric(PerfMetrics.ThroughputGraph)]
         protected string CalculateThroughputGraph(string functionName, DateTime testStartTime, DateTime testEndTime)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime).Where(l => l.Message.Contains("Duration:"));
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
             var stringBuffer = new StringBuilder();
-            
-            var model = new PlotModel { Title = "Aws throuput in time" };
+
+            var model = new PlotModel { Title = "AWS throuput in time (items finished/second)" };
             var timeAxis = new DateTimeAxis
             {
                 StringFormat = "hh:mm:ss"

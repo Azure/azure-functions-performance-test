@@ -1,13 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
 using ServerlessBenchmark.MetricInfo;
 
 namespace ServerlessBenchmark.PerfResultProviders
 {
     public abstract class PerfResultProvider
     {
+        protected void PrintThrouputGraph(Dictionary<DateTime, double> data, string fileName, int timeResolutionInSeconds)
+        {
+            var stringBuffer = new StringBuilder();
+
+            var model = new PlotModel { Title = "AWS throuput in time (items finished/second)" };
+            var timeAxis = new DateTimeAxis
+            {
+                StringFormat = "hh:mm:ss"
+            };
+
+            model.Axes.Add(timeAxis);
+            var series = new LineSeries();
+
+            foreach (var log in data.OrderBy(l => l.Key))
+            {
+                stringBuffer.AppendFormat("{0},{1}{2}", log.Value / timeResolutionInSeconds, log.Key, Environment.NewLine);
+                series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(log.Key), log.Value / timeResolutionInSeconds));
+            }
+
+            model.Series.Add(series);
+
+            using (var stream = File.Create(fileName))
+            {
+                var pdfExporter = new PdfExporter { Width = 600, Height = 400 };
+                pdfExporter.Export(model, stream);
+            }
+        }
+
         protected abstract Dictionary<string, string> ObtainAdditionalPerfMetrics(PerfTestResult genericPerfTestResult, string functionName, DateTime testStartTime, DateTime testEndTime);
         
         public virtual PerfTestResult GetPerfMetrics(string functionName, DateTime testStartTime, DateTime testEndTime,string inputTriggerName = null, string outputTriggerName = null, int expectedExecutionCount = 0)

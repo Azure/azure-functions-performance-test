@@ -5,6 +5,7 @@ using System.Reflection;
 using ServerlessBenchmark.MetricInfo;
 using System.IO;
 using System.Text;
+using Amazon.CloudWatchLogs.Model;
 
 namespace ServerlessBenchmark.PerfResultProviders
 {
@@ -12,7 +13,7 @@ namespace ServerlessBenchmark.PerfResultProviders
     {
         private List<FunctionLogs.AzureFunctionLogs> _logs;
         
-        [PerfMetric("Average Execution Time")]
+        [PerfMetric(PerfMetrics.AverageExecutionTime)]
         protected TimeSpan? CalculateAverageExecutionTime(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
@@ -21,7 +22,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             return TimeSpan.FromMilliseconds(avgExecutionTime);
         }
 
-        [PerfMetric("Execution Time Standard Deviation")]
+        [PerfMetric(PerfMetrics.ExecutionTimeStandardDeviation)]
         protected string CalculateExecutionTimeStandardDeviation(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
@@ -33,7 +34,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             return std.ToString();
         }
 
-        [PerfMetric("Execution Count")]
+        [PerfMetric(PerfMetrics.ExecutionCount)]
         protected int CalculateExecutionCount(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
@@ -72,6 +73,18 @@ namespace ServerlessBenchmark.PerfResultProviders
             File.WriteAllText(fileName, stringBuffer.ToString());
 
             return throughputList.Average();
+        }
+
+        [PerfMetric(PerfMetrics.ThroughputGraph)]
+        
+        protected string GenerateThroughputGraph(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            var secondsInGroup = 15;
+            var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
+            var fileName = string.Format("Azure-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
+            PrintThrouputGraph(logGroupped, fileName, secondsInGroup);
+            return string.Format("Plot can be found at {0}", fileName);
         }
 
         [PerfMetric(PerfMetrics.HostConcurrency)]
@@ -113,6 +126,26 @@ namespace ServerlessBenchmark.PerfResultProviders
             public DateTime Timestamp { get; set; }
             public string ContainerName { get; set; }
         }
+
+        private Dictionary<DateTime, double> GetAverageLogCountInTimeWindow(List<FunctionLogs.AzureFunctionLogs> logs, int windowTimespanInSeconds)
+        {
+            var orderedLogs = logs.OrderBy(l => l.Timestamp);
+            var actualStartTime = orderedLogs.First().Timestamp;
+            var actualEndTime = orderedLogs.Last().Timestamp;
+            var result = new Dictionary<DateTime, double>();
+
+            for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(windowTimespanInSeconds))
+            {
+                var startTime = timeStamp.AddSeconds(-1 * windowTimespanInSeconds);
+                var logsCount = logs.Count(
+                    l => l.Timestamp > startTime &&
+                         l.Timestamp <= timeStamp.AddSeconds(windowTimespanInSeconds));
+                result[startTime.DateTime.AddSeconds(windowTimespanInSeconds / 2)] = logsCount;
+            }
+
+            return result;
+        }
+
         private static DateTime TrimMilliseconds(DateTime dt)
         {
             return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, 0);

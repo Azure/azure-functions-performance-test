@@ -80,7 +80,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             return TimeSpan.FromMilliseconds(clockTime.TotalMilliseconds);
         }
 
-        [PerfMetric("Execution Time Standard Deviation")]
+        [PerfMetric(PerfMetrics.ExecutionTimeStandardDeviation)]
         protected string CalculateExecutionTimeStandardDeviation(string functionName, DateTime testStartTime, DateTime testEndTime)
         {
             var logs = FunctionLogs(functionName, testStartTime, testEndTime);
@@ -90,6 +90,15 @@ namespace ServerlessBenchmark.PerfResultProviders
                 executionTimes.Select(t => (t.GetValueOrDefault().TotalMilliseconds - avgExecutionTime)*(t.GetValueOrDefault().TotalMilliseconds - avgExecutionTime)).Sum();
             var std = Math.Sqrt(sumOfSquaredDifferences/executionTimes.Count());
             return std.ToString();
+        }
+
+        [PerfMetric(PerfMetrics.ExecutionCount)]
+        protected int CalculateExecutionCount(string functionName, DateTime testStartTime, DateTime testEndTime)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime);
+            var executionTimes = RetrieveExecutionTimes(logs);
+            var executionCount = executionTimes.Count();
+            return executionCount;
         }
 
         [PerfMetric(PerfMetrics.AverageExecutionTime)]
@@ -141,32 +150,8 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, testEndTime).Where(l => l.Message.Contains("Duration:"));
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
-            var stringBuffer = new StringBuilder();
-
-            var model = new PlotModel { Title = "AWS throuput in time (items finished/second)" };
-            var timeAxis = new DateTimeAxis
-            {
-                StringFormat = "hh:mm:ss"
-            };
-
-            model.Axes.Add(timeAxis);
-            var series = new LineSeries();
-
-            foreach (var log in logGroupped.OrderBy(l => l.Key))
-            {
-                stringBuffer.AppendFormat("{0},{1}{2}", log.Value / secondsInGroup, log.Key, Environment.NewLine);
-                series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(log.Key), log.Value / secondsInGroup));
-            }
-
-            model.Series.Add(series);
             var fileName = string.Format("AWS-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
-
-            using (var stream = File.Create(fileName))
-            {
-                var pdfExporter = new PdfExporter {Width = 600, Height = 400};
-                pdfExporter.Export(model, stream);
-            }
-
+            PrintThrouputGraph(logGroupped, fileName, secondsInGroup);
             return string.Format("Plot can be found at {0}", fileName);
         }
 
@@ -196,8 +181,8 @@ namespace ServerlessBenchmark.PerfResultProviders
                 var startTime = timeStamp.AddSeconds(-1*windowTimespanInSeconds);
                 var logsCount = logs.Count(
                     l => l.Timestamp > startTime &&
-                         l.Timestamp < timeStamp.AddSeconds(windowTimespanInSeconds));
-                result[startTime.AddSeconds(windowTimespanInSeconds/2)] = logsCount;
+                         l.Timestamp <= timeStamp.AddSeconds(windowTimespanInSeconds));
+                result[startTime.AddSeconds(windowTimespanInSeconds / 2)] = logsCount;
             }
 
             return result;
@@ -217,15 +202,6 @@ namespace ServerlessBenchmark.PerfResultProviders
             var aggregateExecutionTime = CalculateAggregateComputeTime(logs);
             double scaleFactor = aggregateExecutionTime.GetValueOrDefault().TotalMilliseconds/executionCount;
             return scaleFactor;
-        }
-
-        [PerfMetric("Execution Count")]
-        protected int CalculateExecutionCount(string functionName, DateTime testStartTime, DateTime testEndTime)
-        {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime);
-            var executionTimes = RetrieveExecutionTimes(logs);
-            var executionCount = executionTimes.Count();
-            return executionCount;
         }
 
         protected abstract Dictionary<string, string> ObtainAdditionalPerfMetrics(PerfTestResult genericPerfTestResult, string functionName, DateTime testStartTime, DateTime testEndTime, List<OutputLogEvent> lambdaExecutionLogs);

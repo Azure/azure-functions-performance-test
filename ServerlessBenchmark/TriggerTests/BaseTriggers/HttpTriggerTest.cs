@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -15,7 +14,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
     public abstract class HttpTriggerTest : FunctionTest
     {
         protected override sealed IEnumerable<string> SourceItems { get; set; }
-        private const int TimeoutInMilliseconds = 30 * 1000;
         private int _totalSuccessRequestsPerSecond;
         private int _totalFailedRequestsPerSecond;
         private int _totalTimedOutRequestsPerSecond;
@@ -43,7 +41,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         {
             var warmSite = SourceItems.First();
             var client = new HttpClient();
-            var cs = new CancellationTokenSource(TimeoutInMilliseconds);
+            var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
             HttpResponseMessage response;
             try
             {
@@ -51,7 +49,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             }
             catch (TaskCanceledException)
             {
-                throw new Exception(String.Format("Warm up passed timeout of {0}ms", TimeoutInMilliseconds));
+                throw new Exception(String.Format("Warm up passed timeout of {0}ms", Constants.HttpTriggerTimeoutMilliseconds));
             }
 
             var isSuccessfulSetup = response.IsSuccessStatusCode;
@@ -85,7 +83,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 {
                     try
                     {
-                        var cs = new CancellationTokenSource(TimeoutInMilliseconds);
+                        var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
                         var request = client.GetAsync(site, cs.Token);
                         var requestSent = DateTime.Now;
                         Interlocked.Increment(ref _totalActiveRequests);
@@ -118,9 +116,9 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var testProgressData = base.CurrentTestProgress();
             testProgressData.Add("Success", _totalSuccessRequestsPerSecond.ToString());
             testProgressData.Add("Failed", _totalFailedRequestsPerSecond.ToString());
-            testProgressData.Add("TimedOut", _totalTimedOutRequestsPerSecond.ToString());
-            //testProgressData.Add("Active", _totalActiveRequests.ToString());
-            testProgressData.Add("AvgLatency", (_totalLatency / _totalRequestsPerSecond).ToString());
+            testProgressData.Add("Timeout", _totalTimedOutRequestsPerSecond.ToString());
+            testProgressData.Add("Active", _totalActiveRequests.ToString());
+            testProgressData.Add("AvgLatency(ms)", (_totalLatency / (_totalRequestsPerSecond != 0 ? _totalRequestsPerSecond : 1)).ToString());
 
             //reset values
             ResetHttpCounters();

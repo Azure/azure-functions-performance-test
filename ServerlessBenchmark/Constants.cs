@@ -1,4 +1,6 @@
-﻿namespace ServerlessBenchmark
+﻿using System;
+
+namespace ServerlessBenchmark
 {
     public static class Constants
     {
@@ -17,6 +19,13 @@
         /// Partition key of the execution logs that carries information such as container and etc.
         /// </summary>
         public const string AzureFunctionLogExecutionPartitionKey = "R";
+
+        /// <summary>
+        /// Timeout in milliseconds for each http request
+        /// </summary>
+        public const int HttpTriggerTimeoutMilliseconds = 300 * 1000;
+
+        public const int LoadCoolDownDurationMilliseconds = 180 * 1000;
     }
 
     public enum TriggerTypes { Blob, Queue, Http}

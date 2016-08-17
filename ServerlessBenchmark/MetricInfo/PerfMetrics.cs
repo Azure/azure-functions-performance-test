@@ -8,10 +8,13 @@ namespace ServerlessBenchmark.MetricInfo
 {
     public enum PerfMetrics
     {
+        ExecutionTimeStandardDeviation,
+        ExecutionCount,
         FunctionClockTime,
         AverageExecutionTime,
         Throughput,
-        HostConcurrency
+        HostConcurrency,
+        ThroughputGraph
     }
 
     [AttributeUsage(AttributeTargets.Method)]

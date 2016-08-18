@@ -19,9 +19,11 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         private int _executionsPerSecond;
         protected abstract bool TestSetupWithRetry();
         protected abstract Task TestWarmup();
+        protected abstract Task TestCoolDown();
         protected abstract Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime);
         protected abstract ICloudPlatformController CloudPlatformController { get; }
         protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
+        private bool onTestCoolDown = false;
 
         protected FunctionTest(string functionName)
         {
@@ -48,6 +50,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var sw = Stopwatch.StartNew();
             await loadProfile.ExecuteRateAsync(GenerateLoad);
             loadProfile.Dispose();
+            onTestCoolDown = true;
+            await TestCoolDown();
             sw.Stop();
             var clientEndTime = DateTime.Now;
             Console.WriteLine("--END-- Elapsed time:      {0}", sw.Elapsed);
@@ -83,10 +87,10 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             await Load(selectedItems);
         }
 
-        protected virtual string PrintTestProgress()
+        protected virtual string PrintTestProgress(Dictionary<string, string> testProgress = null)
         {
             var sb = new StringBuilder();
-            var progressData = CurrentTestProgress();
+            var progressData = testProgress ?? CurrentTestProgress();
             sb.Append(DateTime.Now);
             foreach (var data in progressData)
             {
@@ -98,10 +102,14 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected virtual IDictionary<string, string> CurrentTestProgress()
         {
-            var progressData = new Dictionary<string,string>
+            Dictionary<string, string> progressData = null;
+            if (!onTestCoolDown)
             {
-                {"EPS", _executionsPerSecond.ToString()}
-            };
+                progressData = new Dictionary<string, string>
+                {
+                    {"EPS", _executionsPerSecond.ToString()}
+                };
+            }
             return progressData;
         } 
     }

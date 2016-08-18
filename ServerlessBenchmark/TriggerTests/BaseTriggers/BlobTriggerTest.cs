@@ -78,6 +78,11 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             });
         }
 
+        protected override Task TestCoolDown()
+        {
+            return Task.FromResult(true);
+        }
+
         private bool VerifyBlobItemsExistInTargetDestination(int expected)
         {
             IEnumerable<object> blobs;

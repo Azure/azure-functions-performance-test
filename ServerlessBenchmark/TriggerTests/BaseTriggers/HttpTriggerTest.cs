@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.NetworkInformation;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.PerfResultProviders;
@@ -20,6 +23,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         private int _totalActiveRequests;
         private int _totalLatency;
         private int _totalRequestsPerSecond;
+        private ConcurrentDictionary<int, Task<HttpResponseMessage>> _runningTasks;
 
         protected abstract bool Setup();
 
@@ -35,6 +39,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             }
 
             SourceItems = urls.ToList();
+            _runningTasks = new ConcurrentDictionary<int, Task<HttpResponseMessage>>();
         }
 
         protected override Task TestWarmup()
@@ -79,41 +84,91 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var loadRequests = new List<Task>();
             foreach (var site in sites)
             {
-                var t = Task.Run(async () =>
+                try
                 {
-                    try
+                    var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
+                    var request = client.GetAsync(site, cs.Token);
+                    var requestSent = DateTime.Now;
+                    Interlocked.Increment(ref _totalActiveRequests);
+                    loadRequests.Add(request);
+                    if (!_runningTasks.TryAdd(request.Id, request))
                     {
-                        var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
-                        var request = client.GetAsync(site, cs.Token);
-                        var requestSent = DateTime.Now;
-                        Interlocked.Increment(ref _totalActiveRequests);
-                        var response = await request;
-                        var responseReceived = DateTime.Now;
-                        Interlocked.Decrement(ref _totalActiveRequests);
-                        Interlocked.Add(ref _totalLatency, (int)(responseReceived - requestSent).TotalMilliseconds);
-                        Interlocked.Increment(ref _totalRequestsPerSecond);
-                        if (response.IsSuccessStatusCode)
-                        {
-                            _totalSuccessRequestsPerSecond += 1;
-                        }
-                        else
-                        {
-                            _totalFailedRequestsPerSecond += 1;
-                        }
+                        Console.WriteLine("Error on tracking this task");
                     }
-                    catch (TaskCanceledException)
+                    var response = await request;
+                    var responseReceived = DateTime.Now;
+                    Interlocked.Decrement(ref _totalActiveRequests);
+                    Interlocked.Add(ref _totalLatency, (int)(responseReceived - requestSent).TotalMilliseconds);
+                    Interlocked.Increment(ref _totalRequestsPerSecond);
+                    if (response.IsSuccessStatusCode)
                     {
-                        _totalTimedOutRequestsPerSecond += 1;
+                        _totalSuccessRequestsPerSecond += 1;
                     }
-                });
-                loadRequests.Add(t);
+                    else
+                    {
+                        _totalFailedRequestsPerSecond += 1;
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    _totalTimedOutRequestsPerSecond += 1;
+                    Interlocked.Decrement(ref _totalActiveRequests);
+                }
             }
             await Task.WhenAll(loadRequests);
         }
 
+        protected override async Task TestCoolDown()
+        {
+            if (_runningTasks.Any())
+            {
+                var lastSize = 0;
+                DateTime lastNewSize = new DateTime();
+                while (true)
+                {
+                    try
+                    {
+                        var outStandingTasks = _runningTasks.Values.Where(t => !t.IsCompleted);
+                        if (!outStandingTasks.Any())
+                        {
+                            Console.WriteLine("Finished Outstanding Requests");
+                            break;
+                        }
+
+                        var testProgressString = PrintTestProgress();
+                        testProgressString = $"OutStanding:    {outStandingTasks.Count()}     {testProgressString}";
+
+                        if (outStandingTasks.Count() != lastSize)
+                        {
+                            lastSize = outStandingTasks.Count();
+                            lastNewSize = DateTime.Now;
+                        }
+                        else
+                        {
+                            var secondsSinceLastNewSize = (DateTime.Now - lastNewSize).TotalSeconds;
+                            var secondsLeft = TimeSpan.FromMilliseconds(Constants.LoadCoolDownTimeout).TotalSeconds - secondsSinceLastNewSize;
+                            Console.WriteLine("No new requests for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
+
+                            if (secondsLeft < 0)
+                            {
+                                break;
+                            }
+                        }
+                        
+                        Console.WriteLine(testProgressString);
+                        await Task.Delay(1000);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                }
+            }
+        }
+
         protected override IDictionary<string, string> CurrentTestProgress()
         {
-            var testProgressData = base.CurrentTestProgress();
+            var testProgressData = base.CurrentTestProgress() ?? new Dictionary<string, string>();
             testProgressData.Add("Success", _totalSuccessRequestsPerSecond.ToString());
             testProgressData.Add("Failed", _totalFailedRequestsPerSecond.ToString());
             testProgressData.Add("Timeout", _totalTimedOutRequestsPerSecond.ToString());

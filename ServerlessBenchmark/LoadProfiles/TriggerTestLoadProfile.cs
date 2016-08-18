@@ -6,10 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace ServerlessBenchmark.LoadProfiles
 {
@@ -33,7 +29,7 @@ namespace ServerlessBenchmark.LoadProfiles
         /// Given a duration and <see href="https://msdn.microsoft.com/en-us/library/018hxwa8(v=vs.110).aspx">action</see>, calculate rate of publishing items and execute the given action.
         /// </summary>
         /// <param name="action"></param>
-        public async Task ExecuteRateAsync(Func<int, Task> action, bool enableLoadCoolDown = false)
+        public async Task ExecuteRateAsync(Func<int, Task> action)
         {
             TimerCallback callback = async t =>
             {
@@ -56,22 +52,6 @@ namespace ServerlessBenchmark.LoadProfiles
             var loadDurationTimerTask = Task.Delay(LoadDuration + TimeSpan.FromSeconds(1));
 
             await Task.WhenAny(loadDurationTimerTask, isLoadFinishedTask);
-            if (enableLoadCoolDown)
-            {
-                Console.WriteLine("Cool down");
-                Dispose();
-                var outstandingTasks = _runningTasks.Where(t => !t.IsCompleted);
-                while (true)
-                {
-                    var tmp = outstandingTasks.Where(t => !t.IsCompleted);
-                    if (!tmp.Any())
-                    {
-                        break;
-                    }
-                    Console.WriteLine("Outstanding Requests:    {0}", tmp.Count());
-                    await Task.Delay(500);
-                }
-            }
         }
 
         protected abstract int ExecuteRate(int t);

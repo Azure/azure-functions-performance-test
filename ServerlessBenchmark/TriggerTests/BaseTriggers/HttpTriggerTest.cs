@@ -122,6 +122,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         {
             if (_runningTasks.Any())
             {
+                var lastSize = 0;
+                DateTime lastNewSize = new DateTime();
                 while (true)
                 {
                     try
@@ -135,8 +137,26 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
                         var testProgressString = PrintTestProgress();
                         testProgressString = $"OutStanding:    {outStandingTasks.Count()}     {testProgressString}";
+
+                        if (outStandingTasks.Count() != lastSize)
+                        {
+                            lastSize = outStandingTasks.Count();
+                            lastNewSize = DateTime.Now;
+                        }
+                        else
+                        {
+                            var secondsSinceLastNewSize = (DateTime.Now - lastNewSize).TotalSeconds;
+                            var secondsLeft = TimeSpan.FromMilliseconds(Constants.LoadCoolDownTimeout).TotalSeconds - secondsSinceLastNewSize;
+                            Console.WriteLine("No new requests for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
+
+                            if (secondsLeft < 0)
+                            {
+                                break;
+                            }
+                        }
+                        
                         Console.WriteLine(testProgressString);
-                        await Task.Delay(250);
+                        await Task.Delay(1000);
                     }
                     catch (Exception e)
                     {

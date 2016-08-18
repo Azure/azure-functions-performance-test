@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -72,6 +71,11 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         {Constants.Message, messages}
                     }
             });
+        }
+
+        protected override Task TestCoolDown()
+        {
+            return Task.FromResult(true);
         }
 
         private async Task<bool> VerifyQueueMessagesExistInTargetQueue(int expected)

@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.NetworkInformation;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.PerfResultProviders;
@@ -21,9 +20,9 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         private int _totalFailedRequestsPerSecond;
         private int _totalTimedOutRequestsPerSecond;
         private int _totalActiveRequests;
-        private int _totalLatency;
-        private int _totalRequestsPerSecond;
-        private ConcurrentDictionary<int, Task<HttpResponseMessage>> _runningTasks;
+        private readonly ConcurrentBag<int> _responseTimes;
+        private readonly ConcurrentDictionary<int, Task<HttpResponseMessage>> _runningTasks;
+        private readonly List<Task> _loadRequests;
 
         protected abstract bool Setup();
 
@@ -40,6 +39,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             SourceItems = urls.ToList();
             _runningTasks = new ConcurrentDictionary<int, Task<HttpResponseMessage>>();
+            _loadRequests = new List<Task>();
+            _responseTimes = new ConcurrentBag<int>();
         }
 
         protected override Task TestWarmup()
@@ -84,36 +85,38 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var loadRequests = new List<Task>();
             foreach (var site in sites)
             {
-                try
+                var t = Task.Run(async () =>
                 {
-                    var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
-                    var request = client.GetAsync(site, cs.Token);
-                    var requestSent = DateTime.Now;
-                    Interlocked.Increment(ref _totalActiveRequests);
-                    loadRequests.Add(request);
-                    if (!_runningTasks.TryAdd(request.Id, request))
+                    try
                     {
-                        Console.WriteLine("Error on tracking this task");
+                        var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
+                        var request = client.GetAsync(site, cs.Token);
+                        var requestSent = DateTime.Now;
+                        Interlocked.Increment(ref _totalActiveRequests);
+                        if (!_runningTasks.TryAdd(request.Id, request))
+                        {
+                            Console.WriteLine("Error on tracking this task");
+                        }
+                        var response = await request;
+                        var responseReceived = DateTime.Now;
+                        Interlocked.Decrement(ref _totalActiveRequests);
+                        _responseTimes.Add((int)(responseReceived - requestSent).TotalMilliseconds);
+                        if (response.IsSuccessStatusCode)
+                        {
+                            Interlocked.Increment(ref _totalSuccessRequestsPerSecond);
+                        }
+                        else
+                        {
+                            Interlocked.Increment(ref _totalFailedRequestsPerSecond);
+                        }
                     }
-                    var response = await request;
-                    var responseReceived = DateTime.Now;
-                    Interlocked.Decrement(ref _totalActiveRequests);
-                    Interlocked.Add(ref _totalLatency, (int)(responseReceived - requestSent).TotalMilliseconds);
-                    Interlocked.Increment(ref _totalRequestsPerSecond);
-                    if (response.IsSuccessStatusCode)
+                    catch (TaskCanceledException)
                     {
-                        _totalSuccessRequestsPerSecond += 1;
+                        Interlocked.Increment(ref _totalTimedOutRequestsPerSecond);
+                        Interlocked.Decrement(ref _totalActiveRequests);
                     }
-                    else
-                    {
-                        _totalFailedRequestsPerSecond += 1;
-                    }
-                }
-                catch (TaskCanceledException)
-                {
-                    _totalTimedOutRequestsPerSecond += 1;
-                    Interlocked.Decrement(ref _totalActiveRequests);
-                }
+                });
+                _loadRequests.Add(t);
             }
             await Task.WhenAll(loadRequests);
         }
@@ -128,7 +131,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 {
                     try
                     {
-                        var outStandingTasks = _runningTasks.Values.Where(t => !t.IsCompleted);
+                        var outStandingTasks = _runningTasks.Values.Where(t => t.Status != TaskStatus.RanToCompletion);
                         if (!outStandingTasks.Any())
                         {
                             Console.WriteLine("Finished Outstanding Requests");
@@ -173,8 +176,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             testProgressData.Add("Failed", _totalFailedRequestsPerSecond.ToString());
             testProgressData.Add("Timeout", _totalTimedOutRequestsPerSecond.ToString());
             testProgressData.Add("Active", _totalActiveRequests.ToString());
-            testProgressData.Add("AvgLatency(ms)", (_totalLatency / (_totalRequestsPerSecond != 0 ? _totalRequestsPerSecond : 1)).ToString());
-
+            testProgressData.Add("AvgLatency(ms)", _responseTimes.IsEmpty ? 0.ToString() : _responseTimes.Average().ToString());
             //reset values
             ResetHttpCounters();
 
@@ -183,11 +185,11 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         private void ResetHttpCounters()
         {
-            _totalFailedRequestsPerSecond = 0;
-            _totalSuccessRequestsPerSecond = 0;
-            _totalTimedOutRequestsPerSecond = 0;
-            _totalLatency = 0;
-            _totalRequestsPerSecond = 0;
+            int t;
+            while (!_responseTimes.IsEmpty)
+            {
+                _responseTimes.TryTake(out t);
+            }
         }
     }
 }

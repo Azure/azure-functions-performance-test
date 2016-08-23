@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,11 +86,12 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             {
                 var t = Task.Run(async () =>
                 {
+                    DateTime requestSent = new DateTime();
                     try
                     {
                         var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
                         var request = client.GetAsync(site, cs.Token);
-                        var requestSent = DateTime.Now;
+                        requestSent = DateTime.Now;
                         Interlocked.Increment(ref _totalActiveRequests);
                         if (!_runningTasks.TryAdd(request.Id, request))
                         {
@@ -112,6 +112,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     }
                     catch (TaskCanceledException)
                     {
+                        _responseTimes.Add((int)(DateTime.Now - requestSent).TotalMilliseconds);
                         Interlocked.Increment(ref _totalTimedOutRequestsPerSecond);
                         Interlocked.Decrement(ref _totalActiveRequests);
                     }
@@ -127,23 +128,24 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             {
                 var lastSize = 0;
                 DateTime lastNewSize = new DateTime();
+                string testProgressString;
                 while (true)
                 {
                     try
                     {
-                        var outStandingTasks = _runningTasks.Values.Where(t => t.Status != TaskStatus.RanToCompletion);
-                        if (!outStandingTasks.Any())
+                        testProgressString = PrintTestProgress();
+                        testProgressString = $"OutStanding:    {_totalActiveRequests}     {testProgressString}";
+
+                        if (_totalActiveRequests == 0)
                         {
+                            Console.WriteLine(testProgressString);
                             Console.WriteLine("Finished Outstanding Requests");
                             break;
                         }
 
-                        var testProgressString = PrintTestProgress();
-                        testProgressString = $"OutStanding:    {outStandingTasks.Count()}     {testProgressString}";
-
-                        if (outStandingTasks.Count() != lastSize)
+                        if (_totalActiveRequests != lastSize)
                         {
-                            lastSize = outStandingTasks.Count();
+                            lastSize = _totalActiveRequests;
                             lastNewSize = DateTime.Now;
                         }
                         else

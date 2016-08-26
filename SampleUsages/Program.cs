@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using MiniCommandLineHelper;
@@ -108,6 +110,18 @@ namespace SampleUsages
                     StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
                     break;
             }
+        }
+
+        [Command]
+        public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime)
+        {
+            var resultsProvider = new AzureGenericPerformanceResultsProvider();
+            var results = resultsProvider.GetPerfMetrics(functionName, startTime, endTime);
+            //print perf results
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(results);
+            Console.ForegroundColor = originalColor;
         }
         #endregion
 

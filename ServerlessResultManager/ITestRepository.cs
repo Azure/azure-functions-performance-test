@@ -4,10 +4,15 @@ using System.Collections.Generic;
 
 namespace ServerlessResultManager
 {
-    interface ITestRepository
+    public interface ITestRepository
     {
         Test GetTest(int id);
 
         ICollection<Test> GetTestsAfter(DateTime dateFrom);
+
+        Test AddTest(Test test);
+
+        TestResult AddTestResult(Test test, TestResult testResult);
+        void UpdateTest(Test testWithResults);
     }
 }

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
+using ServerlessResultManager;
 
 namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
@@ -21,13 +22,17 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected abstract Task TestWarmup();
         protected abstract Task TestCoolDown();
         protected abstract Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime);
+        protected abstract void SaveCurrentProgessToDb();
         protected abstract ICloudPlatformController CloudPlatformController { get; }
         protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
         private bool onTestCoolDown = false;
+        protected Test TestWithResults { get; set; }
+        protected ITestRepository TestRepository { get; set; }
 
         protected FunctionTest(string functionName)
         {
             FunctionName = functionName;
+            TestRepository = new TestRepository();
         }
 
         public async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
@@ -47,6 +52,16 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             Console.WriteLine("--START-- Running load");
             var startTime = DateTime.Now;
+
+            this.TestWithResults = new Test
+            {
+                StartTime = startTime,
+                Name = $"Testing {FunctionName}",
+                Platform = "?",
+                Description = "Description of the test"
+            };
+
+            this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
             var sw = Stopwatch.StartNew();
             await loadProfile.ExecuteRateAsync(GenerateLoad);
             loadProfile.Dispose();
@@ -54,6 +69,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             await TestCoolDown();
             sw.Stop();
             var clientEndTime = DateTime.Now;
+            this.TestWithResults.EndTime = clientEndTime;
+            this.TestRepository.UpdateTest(this.TestWithResults);
             Console.WriteLine("--END-- Elapsed time:      {0}", sw.Elapsed);
             await PreReportGeneration(startTime, clientEndTime);
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, startTime, clientEndTime, expectedExecutionCount: ExpectedExecutionCount);
@@ -82,6 +99,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 selectedItems = tmpList;
             }
             _executionsPerSecond = selectedItems.Count;
+            SaveCurrentProgessToDb();
             Console.WriteLine(PrintTestProgress());
             Interlocked.Add(ref ExpectedExecutionCount, selectedItems.Count());
             await Load(selectedItems);

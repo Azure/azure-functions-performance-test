@@ -12,6 +12,11 @@ namespace ServerlessBenchmark.TriggerTests.Azure
         {
         }
 
+        protected override void SaveCurrentProgessToDb()
+        {
+            //skip
+        }
+
         protected override ICloudPlatformController CloudPlatformController
         {
             get { return new AzureController(); }

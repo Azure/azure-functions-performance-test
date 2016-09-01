@@ -28,6 +28,11 @@ namespace ServerlessBenchmark.TriggerTests.Azure
             return RemoveAzureFunctionLogs() && EnableLoggingIfDisabled();
         }
 
+        protected override void SaveCurrentProgessToDb()
+        {
+            // skip
+        }
+
         protected override ICloudPlatformController CloudPlatformController
         {
             get { return new AzureController(); }

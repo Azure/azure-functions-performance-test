@@ -1,62 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity.Migrations;
 using System.Linq;
 
 namespace ServerlessResultManager
 {
     public class TestRepository : ITestRepository
     {
-        private readonly ServerlessTestModel model;
-
         public TestRepository()
         {
-            model = new ServerlessTestModel();
         }
 
         public Test GetTest(int id)
         {
-            return model.Tests.FirstOrDefault(t => t.Id == id);
+            using (var model = new ServerlessTestModel())
+            {
+                return model.Tests.FirstOrDefault(t => t.Id == id);
+            }
         }
 
         public ICollection<Test> GetTestsAfter(DateTime dateFrom)
         {
-            return model.Tests.Include("TestResults").Where(t => t.StartTime >= dateFrom).ToList();
+            using (var model = new ServerlessTestModel())
+            {
+                return model.Tests.Include("TestResults").Where(t => t.StartTime >= dateFrom).ToList();
+            }
         }
 
         public Test AddTest(Test test)
         {
-            return model.Tests.Add(test);
+            using (var model = new ServerlessTestModel())
+            {
+                var addedTest = model.Tests.Add(test);
+                model.SaveChanges();
+                return addedTest;
+            }
         }
 
         public TestResult AddTestResult(Test test, TestResult testResult)
         {
-            testResult.Test = test;
-            return model.TestResults.Add(testResult);
-        }
-
-        public void SaveChanges()
-        {
-            model.SaveChanges();
-        }
-
-        private bool disposed = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!this.disposed)
+            using (var model = new ServerlessTestModel())
             {
-                if (disposing)
-                {
-                    model.Dispose();
-                }
+                testResult.TestId = test.Id;
+                var addedTestResult = model.TestResults.Add(testResult);
+                model.SaveChanges();
+                return addedTestResult;
             }
-            this.disposed = true;
         }
 
-        public void Dispose()
+        public void UpdateTest(Test testWithResults)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            using (var model = new ServerlessTestModel())
+            {
+                model.Tests.AddOrUpdate(testWithResults);
+                model.SaveChanges();
+            }
         }
     }
 }

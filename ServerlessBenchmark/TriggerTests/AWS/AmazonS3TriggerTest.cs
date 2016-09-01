@@ -22,6 +22,11 @@ namespace ServerlessBenchmark.TriggerTests.AWS
             return FunctionLogs.RemoveAllCLoudWatchLogs(FunctionName);
         }
 
+        protected override void SaveCurrentProgessToDb()
+        {
+            //skip
+        }
+
         protected override ICloudPlatformController CloudPlatformController
         {
             get { return new AwsController(); }

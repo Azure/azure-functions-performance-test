@@ -2,10 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.PerfResultProviders;
+using ServerlessResultManager;
 
 namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
@@ -15,10 +17,17 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
     public abstract class HttpTriggerTest : FunctionTest
     {
         protected override sealed IEnumerable<string> SourceItems { get; set; }
-        private int _totalSuccessRequestsPerSecond;
-        private int _totalFailedRequestsPerSecond;
-        private int _totalTimedOutRequestsPerSecond;
+        private int _totalSuccessRequests;
+        private int _totalSuccessRequestsWithTick;
+        private int _totalFailedRequests;
+        private int _totalFailedRequestsWithTick;
+        private int _totalTimedOutRequests;
+        private int _totalTimedOutRequestsWithTick;
         private int _totalActiveRequests;
+        private int _totalActiveRequestsWithTick;
+        private int _totalRequests;
+        private int _totalRequestsWithTick;
+        private readonly int _tickTimeInMiliseconds = 1000;
         private readonly ConcurrentBag<int> _responseTimes;
         private readonly ConcurrentDictionary<int, Task<HttpResponseMessage>> _runningTasks;
         private readonly List<Task> _loadRequests;
@@ -44,6 +53,9 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override Task TestWarmup()
         {
+            // for dev environments skip certificate validation
+            ServicePointManager.ServerCertificateValidationCallback +=
+                (sender, cert, chain, sslPolicyErrors) => true;
             var warmSite = SourceItems.First();
             var client = new HttpClient();
             var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
@@ -82,6 +94,9 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         {
             var client = new HttpClient();
             var loadRequests = new List<Task>();
+            // for dev environments skip certificate validation
+            ServicePointManager.ServerCertificateValidationCallback +=
+                (sender, cert, chain, sslPolicyErrors) => true;
             foreach (var site in sites)
             {
                 var t = Task.Run(async () =>
@@ -93,6 +108,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         var request = client.GetAsync(site, cs.Token);
                         requestSent = DateTime.Now;
                         Interlocked.Increment(ref _totalActiveRequests);
+                        Interlocked.Increment(ref _totalRequests);
                         if (!_runningTasks.TryAdd(request.Id, request))
                         {
                             Console.WriteLine("Error on tracking this task");
@@ -103,17 +119,17 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         _responseTimes.Add((int)(responseReceived - requestSent).TotalMilliseconds);
                         if (response.IsSuccessStatusCode)
                         {
-                            Interlocked.Increment(ref _totalSuccessRequestsPerSecond);
+                            Interlocked.Increment(ref _totalSuccessRequests);
                         }
                         else
                         {
-                            Interlocked.Increment(ref _totalFailedRequestsPerSecond);
+                            Interlocked.Increment(ref _totalFailedRequests);
                         }
                     }
                     catch (TaskCanceledException)
                     {
                         _responseTimes.Add((int)(DateTime.Now - requestSent).TotalMilliseconds);
-                        Interlocked.Increment(ref _totalTimedOutRequestsPerSecond);
+                        Interlocked.Increment(ref _totalTimedOutRequests);
                         Interlocked.Decrement(ref _totalActiveRequests);
                     }
                 });
@@ -134,6 +150,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     try
                     {
                         testProgressString = PrintTestProgress();
+                        this.SaveCurrentProgessToDb();
                         testProgressString = $"OutStanding:    {_totalActiveRequests}     {testProgressString}";
 
                         if (_totalActiveRequests == 0)
@@ -161,7 +178,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         }
                         
                         Console.WriteLine(testProgressString);
-                        await Task.Delay(1000);
+                        await Task.Delay(_tickTimeInMiliseconds);
                     }
                     catch (Exception e)
                     {
@@ -171,12 +188,35 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             }
         }
 
+        protected override void SaveCurrentProgessToDb()
+        {
+            var totalRequests = _totalRequests;
+            var totalSuccessRequests = _totalSuccessRequests;
+            var totalFailedRequests = _totalFailedRequests;
+            var totalTimeoutRequests = _totalTimedOutRequests;
+
+            var progressResult = new TestResult
+            {
+                Timestamp = DateTime.UtcNow,
+                CallCount = totalRequests - _totalRequestsWithTick,
+                FailedCount = totalFailedRequests - _totalFailedRequestsWithTick,
+                SuccessCount = totalSuccessRequests - _totalSuccessRequestsWithTick,
+                TimeoutCount = totalTimeoutRequests - _totalTimedOutRequestsWithTick
+            };
+            Console.WriteLine("Current test is {0}", this.TestWithResults.Id);
+            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+            _totalRequestsWithTick = totalRequests;
+            _totalFailedRequestsWithTick = totalFailedRequests;
+            _totalSuccessRequestsWithTick = totalSuccessRequests;
+            _totalTimedOutRequestsWithTick = _totalTimedOutRequests;
+        }
+
         protected override IDictionary<string, string> CurrentTestProgress()
         {
             var testProgressData = base.CurrentTestProgress() ?? new Dictionary<string, string>();
-            testProgressData.Add("Success", _totalSuccessRequestsPerSecond.ToString());
-            testProgressData.Add("Failed", _totalFailedRequestsPerSecond.ToString());
-            testProgressData.Add("Timeout", _totalTimedOutRequestsPerSecond.ToString());
+            testProgressData.Add("Success", _totalSuccessRequests.ToString());
+            testProgressData.Add("Failed", _totalFailedRequests.ToString());
+            testProgressData.Add("Timeout", _totalTimedOutRequests.ToString());
             testProgressData.Add("Active", _totalActiveRequests.ToString());
             testProgressData.Add("AvgLatency(ms)", _responseTimes.IsEmpty ? 0.ToString() : _responseTimes.Average().ToString());
             //reset values

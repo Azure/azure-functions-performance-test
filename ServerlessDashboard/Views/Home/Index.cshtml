@@ -7,6 +7,12 @@
     <p class="lead">TODO</p>
 </div>
 
+Tests running: @ViewBag.Tests.Count
+@foreach (var test in ViewBag.Tests)
+{
+    <p>@test.Name</p>
+}
+
 <div class="jumbotron">
     Test1
 </div>

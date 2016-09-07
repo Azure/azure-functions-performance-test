@@ -7,6 +7,7 @@
     var successCountMetricName = "SuccessCount";
     var failedCountMetricName = "FailedCount";
     var timeoutCountMetricName = "TimeoutCount";
+    var averageLatencyMetricName = "AverageLatency";
 }
 
 <div id="test-@Model.Id">
@@ -84,6 +85,14 @@
         <dd class="timeoutExecutions">
             @Html.DisplayFor(model => model.TimeoutExecutions)
         </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AverageLatency)
+        </dt>
+
+        <dd class="averageLatency">
+            @Html.DisplayFor(model => model.AverageLatency)
+        </dd>
     </dl>
 
     <div id="@containerName" style="border: 1px solid black; width: 1300px; height: 400px;">
@@ -103,9 +112,13 @@
             series: {
                 shadowSize: 0	// Drawing is faster without shadows
             },
-            yaxis: {
-                min: 0
+            yaxis: [{
+                min: 0,
+                position: "left"
             },
+            {
+                position: "right"
+            }],
             xaxis: {
                 show: true,
                 mode: "time"
@@ -116,11 +129,13 @@
         var successCountMetricName = '@successCountMetricName';
         var failedCountMetricName = '@failedCountMetricName';
         var timeoutCountMetricName = '@timeoutCountMetricName';
+        var averageLatencyMetricName = '@averageLatencyMetricName';
 
         var totalRequestsCount = 0;
         var successRequestCount = 0;
         var failedRequestCount = 0;
         var timeoutRequestCount = 0;
+        var averageLatency = 0.0;
         // We use an inline data source in the example, usually data would
         // be fetched from a server
         var dataCache = [];
@@ -128,6 +143,7 @@
         dataCache.push({ label: successCountMetricName, data: [] });
         dataCache.push({ label: failedCountMetricName, data: [] });
         dataCache.push({ label: timeoutCountMetricName, data: [] });
+        dataCache.push({ label: averageLatencyMetricName, data: [], yaxis: 2 });
         var lastPoll = getUtcNow();
         lastPoll = lastPoll.setMinutes(lastPoll.getMinutes() - @viewTimespanInMinutes);
 
@@ -162,6 +178,10 @@
                         serie.data = serie.data.concat(data[timeoutCountMetricName]);
                         timeoutRequestCount += data[timeoutCountMetricName].reduce(getPlotValues, 0);
                         $("#test-@Model.Id" + " dd.timeoutExecutions").text(timeoutRequestCount);
+                    } else if (serie.label == averageLatencyMetricName) {
+                        serie.data = serie.data.concat(data[averageLatencyMetricName]);
+                        averageLatency = (serie.data.reduce(getPlotValues, 0)) / serie.data.length;
+                        $("#test-@Model.Id" + " dd.averageLatency").text(averageLatency);
                     }
                 }
 

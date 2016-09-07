@@ -13,6 +13,7 @@ namespace ServerlessDashboard.Models
         public long FailedExecutions { get; set; }
         public long TimeoutExecutions { get; set; }
         public int ViewTimespanInMinutes { get; set; }
+        public double AverageLatency { get; set; }
 
         public TestResultsModel(Test test, int viewTimeSpanInMinutes)
         {
@@ -20,6 +21,7 @@ namespace ServerlessDashboard.Models
             SucceededExecutions = test.TestResults.Sum(r => r.SuccessCount);
             FailedExecutions = test.TestResults.Sum(r => r.FailedCount);
             TimeoutExecutions = test.TestResults.Sum(r => r.TimeoutCount);
+            AverageLatency = test.TestResults.Any() ? test.TestResults.Average(r => r.AverageLatency) : 0.0;
             Id = test.Id;
             Name = test.Name;
             Description = test.Description;

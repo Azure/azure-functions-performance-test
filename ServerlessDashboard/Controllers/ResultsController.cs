@@ -25,6 +25,7 @@ namespace ServerlessDashboard.Controllers
                 { "SuccessCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.SuccessCount }).ToList() },
                 { "FailedCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.FailedCount }).ToList() },
                 { "TimeoutCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.TimeoutCount }).ToList() },
+                { "AverageLatency", results.Where(x => Math.Abs(x.AverageLatency) > 0.01).Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.AverageLatency }).ToList() },
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);

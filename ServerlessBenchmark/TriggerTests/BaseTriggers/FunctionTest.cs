@@ -55,10 +55,10 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             this.TestWithResults = new Test
             {
-                StartTime = startTime,
-                Name = $"Testing {FunctionName}",
-                Platform = "?",
-                Description = "Description of the test"
+                StartTime = startTime.ToUniversalTime(),
+                Name = $"Test function - {FunctionName}",
+                Platform = CloudPlatformController.PlatformName.ToString(),
+                Description = "Test manually run from console app."
             };
 
             this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
@@ -69,7 +69,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             await TestCoolDown();
             sw.Stop();
             var clientEndTime = DateTime.Now;
-            this.TestWithResults.EndTime = clientEndTime;
+            this.TestWithResults.EndTime = clientEndTime.ToUniversalTime();
             this.TestRepository.UpdateTest(this.TestWithResults);
             Console.WriteLine("--END-- Elapsed time:      {0}", sw.Elapsed);
             await PreReportGeneration(startTime, clientEndTime);

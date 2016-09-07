@@ -16,6 +16,8 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
 {
     public class AwsController: ICloudPlatformController
     {
+        public Platform PlatformName => Platform.Amazon;
+
         protected AmazonSimpleNotificationServiceClient SnsClient
         {
             get
@@ -149,6 +151,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                 {
                     var queueUrl = client.GetQueueUrl(request.Source).QueueUrl;
                     response = await client.ReceiveMessageAsync(queueUrl);
+
                     if (response.HttpStatusCode == HttpStatusCode.OK)
                     {
                         cResponse.Data = response.Messages;

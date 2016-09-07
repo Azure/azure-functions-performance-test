@@ -18,6 +18,8 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
     public class AzureController:ICloudPlatformController
     {
         private readonly CloudStorageAccount storageAccount;
+        
+        public Platform PlatformName => Platform.Azure;
 
         private CloudQueueClient QueueClient
         {
@@ -56,7 +58,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
                 throw new Exception("AzureStorageConnectionString does not exist in app config");
             }
         }
-
+        
         public CloudPlatformResponse PostMessage(CloudPlatformRequest request)
         {
             throw new NotImplementedException("Use this for event hub");

@@ -1,0 +1,5 @@
+﻿@model List<ServerlessDashboard.Models.TestResultsModel>
+@foreach (var test in Model)
+{
+    @Html.Partial("TestResultsPartial", (ServerlessDashboard.Models.TestResultsModel)test);
+}

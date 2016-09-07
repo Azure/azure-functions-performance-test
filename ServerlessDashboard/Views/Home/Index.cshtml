@@ -1,26 +1,60 @@
 ﻿@{
     ViewBag.Title = "Summary";
+    var defaultObservedTimespan = ViewBag.DefaultObservedTimespan;
 }
 
-<div class="jumbotron">
-    <h1>Testing serverless performance...</h1>
-    <p class="lead">TODO</p>
+<div class="">
+    <h5>Testing serverless performance. Monitoring last: </h5>
+    <input text="Time to observe in minutes" id="observedTimespan" value="@defaultObservedTimespan"/> min
 </div>
 
 Tests running: @ViewBag.Tests.Count
-@foreach (var test in ViewBag.Tests)
-{
-    <p>@test.Name</p>
-}
-
-<div class="jumbotron">
-    Test1
+<div id="allTests">
 </div>
 
-<div class="jumbotron">
-    Test2
-</div>
 
-<div class="jumbotron">
-    Test3
-</div>
+<script>
+    var currentMonitoredTests = [];
+
+    function getTestIdsForResultHtml(str) {
+        var result = [];
+        var myRe = /test-[0-9]*/g;
+        var myArray;
+
+        while ((myArray = myRe.exec(str)) !== null) {
+            var id = myArray[0].split("-")[1];
+            result.push(id);
+        }
+
+        return result;
+    }
+
+    function updateMonitoredTests() {
+        console.log("Updating list of runing tests", currentlyMonitoredIds, currentMonitoredTests);
+        var currentlyMonitoredIds = "";
+
+        for (var i = 0; i < currentMonitoredTests.length; i++) {
+            currentlyMonitoredIds += currentMonitoredTests[i];
+
+            if (i != currentMonitoredTests.length - 1) {
+                currentlyMonitoredIds += ",";
+            }
+        }
+
+        var url = "getRunningTests/" + $("#observedTimespan").val() + "/" + currentlyMonitoredIds;
+        $.get(
+            url,
+            function (data) {
+                $("#allTests").prepend(data);
+                var parseToTestIds = getTestIdsForResultHtml(data);
+                currentMonitoredTests = currentMonitoredTests.concat(parseToTestIds);
+            });
+
+        var updateInterval = 5000;
+        setTimeout(updateMonitoredTests, updateInterval);
+    }
+
+    $(function () {
+        updateMonitoredTests();
+    });
+</script>

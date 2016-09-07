@@ -1,0 +1,166 @@
+﻿@model ServerlessDashboard.Models.TestResultsModel
+@{
+    var containerName = "flot-" + Model.Id;
+    var dataPollUrl = @"getNewData/" + Model.Id;
+    var viewTimespanInMinutes = Model.ViewTimespanInMinutes;
+    var totalCountMetricName = "TotalCount";
+    var successCountMetricName = "SuccessCount";
+    var failedCountMetricName = "FailedCount";
+    var timeoutCountMetricName = "TimeoutCount";
+}
+
+<div id="test-@Model.Id">
+    <h4>Test</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.StartTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.StartTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EndTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EndTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Platform)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Platform)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TotalExecutionRequests)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TotalExecutionRequests)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SucceededExecutions)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SucceededExecutions)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.FailedExecutions)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FailedExecutions)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TimeoutExecutions)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TimeoutExecutions)
+        </dd>
+    </dl>
+
+    <div id="@containerName" style="border: 1px solid black; width: 1300px; height: 400px;">
+
+    </div>
+
+    <script type="text/javascript">
+    function getUtcNow() {
+        var now = new Date();
+        return new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    }
+
+    $(function() {
+        // Set up the control widget
+        var updateInterval = 1000;
+        var plot = $.plot("#@containerName", [ ], {
+            series: {
+                shadowSize: 0	// Drawing is faster without shadows
+            },
+            yaxis: {
+                min: 0
+            },
+            xaxis: {
+                show: true,
+                mode: "time"
+            }
+        });
+
+        var totalCountMetricName = '@totalCountMetricName';
+        var successCountMetricName = '@successCountMetricName';
+        var failedCountMetricName = '@failedCountMetricName';
+        var timeoutCountMetricName = '@timeoutCountMetricName';
+        // We use an inline data source in the example, usually data would
+        // be fetched from a server
+        var dataCache = [];
+        dataCache.push({ label: totalCountMetricName, data: [] });
+        dataCache.push({ label: successCountMetricName, data: [] });
+        dataCache.push({ label: failedCountMetricName, data: [] });
+        dataCache.push({ label: timeoutCountMetricName, data: [] });
+        var lastPoll = getUtcNow();
+        lastPoll = lastPoll.setMinutes(lastPoll.getMinutes() - @viewTimespanInMinutes);
+
+        function plotNewData(callback) {
+            var url = "@dataPollUrl" + "/" + escape(dateFormat(lastPoll, "yyyy-mm-dd HH!MM!ss"));
+            lastPoll = getUtcNow();
+            $.get(url, callback);
+        }
+
+        function update() {
+            plotNewData(function(data) {
+
+                for (var i = 0; i < dataCache.length; i++) {
+                    var serie = dataCache[i];
+                    if (serie.label == totalCountMetricName) {
+                        serie.data = serie.data.concat(data[totalCountMetricName]);
+                    } else if (serie.label == successCountMetricName) {
+                        serie.data = serie.data.concat(data[successCountMetricName]);
+                    } else if (serie.label == failedCountMetricName) {
+                        serie.data = serie.data.concat(data[failedCountMetricName]);
+                    } else if (serie.label == timeoutCountMetricName) {
+                        serie.data = serie.data.concat(data[timeoutCountMetricName]);
+                    }
+                }
+
+                plot.setData(dataCache);
+                plot.getOptions().xaxes[0].max = (getUtcNow()).getTime();
+                var minDateToShow = getUtcNow();
+                minDateToShow = minDateToShow.setMinutes(minDateToShow.getMinutes() - @viewTimespanInMinutes);
+                plot.getOptions().xaxes[0].min = minDateToShow;
+                plot.setupGrid();
+                plot.draw();
+            });
+
+            setTimeout(update, updateInterval);
+        }
+
+        update();
+    });
+    </script>
+</div>

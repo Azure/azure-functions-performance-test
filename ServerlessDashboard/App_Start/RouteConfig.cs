@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System.Configuration;
+using System.Web.Mvc;
 using System.Web.Routing;
 
 namespace ServerlessDashboard
@@ -14,6 +15,17 @@ namespace ServerlessDashboard
                 url: "",
                 defaults: new {controller = "Home", action = "Index", id = ""}
             );
+
+            routes.MapRoute(
+                name: "ResultPoll",
+                url: "getNewData/{testId}/{startDate}",
+                defaults: new { controller = "Results", action = "GetNewResults" }
+            );
+
+            routes.MapRoute(
+                name: "GetRunningTests",
+                url: "getRunningTests/{timespanInMinutes}/{monitoredTests}",
+                defaults: new { controller = "Results", action = "GetRunningTests", monitoredTests = UrlParameter.Optional });
 
             routes.MapRoute(
                 name: "Default",

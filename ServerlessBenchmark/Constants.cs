@@ -29,4 +29,6 @@ namespace ServerlessBenchmark
     }
 
     public enum TriggerTypes { Blob, Queue, Http}
+
+    public enum Platform { Azure, Amazon }
 }

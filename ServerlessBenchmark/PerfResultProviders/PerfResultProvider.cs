@@ -13,11 +13,11 @@ namespace ServerlessBenchmark.PerfResultProviders
 {
     public abstract class PerfResultProvider
     {
-        protected void PrintThrouputGraph(Dictionary<DateTime, double> data, string fileName, int timeResolutionInSeconds)
+        protected void PrintThroughputGraph(Dictionary<DateTime, double> data, string fileName, int timeResolutionInSeconds)
         {
             var stringBuffer = new StringBuilder();
 
-            var model = new PlotModel { Title = "AWS throuput in time (items finished/second)" };
+            var model = new PlotModel { Title = "Throughput in time (items finished/second)" };
             var timeAxis = new DateTimeAxis
             {
                 StringFormat = "hh:mm:ss"

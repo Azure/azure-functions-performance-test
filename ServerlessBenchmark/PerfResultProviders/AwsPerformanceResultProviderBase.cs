@@ -151,7 +151,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
             var fileName = string.Format("AWS-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
-            PrintThrouputGraph(logGroupped, fileName, secondsInGroup);
+            PrintThroughputGraph(logGroupped, fileName, secondsInGroup);
             return string.Format("Plot can be found at {0}", fileName);
         }
 

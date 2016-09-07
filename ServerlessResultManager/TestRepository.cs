@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
 
@@ -19,11 +20,19 @@ namespace ServerlessResultManager
             }
         }
 
-        public ICollection<Test> GetTestsAfter(DateTime dateFrom)
+        public IEnumerable<TestResult> GetResultsForTestAfter(int testId, DateTime startDate)
         {
             using (var model = new ServerlessTestModel())
             {
-                return model.Tests.Include("TestResults").Where(t => t.StartTime >= dateFrom).ToList();
+                return model.TestResults.Where(tr => tr.TestId == testId && tr.Timestamp >= startDate).ToList();
+            }
+        }
+
+        public IEnumerable<Test> GetTestsAfter(DateTime dateFrom)
+        {
+            using (var model = new ServerlessTestModel())
+            {
+                return model.Tests.Where(t => t.StartTime >= dateFrom).Include("TestResults").ToList();
             }
         }
 

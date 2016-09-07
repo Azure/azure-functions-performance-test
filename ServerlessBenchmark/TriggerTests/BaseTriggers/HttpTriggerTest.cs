@@ -203,7 +203,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 SuccessCount = totalSuccessRequests - _totalSuccessRequestsWithTick,
                 TimeoutCount = totalTimeoutRequests - _totalTimedOutRequestsWithTick
             };
-            Console.WriteLine("Current test is {0}", this.TestWithResults.Id);
+
             this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
             _totalRequestsWithTick = totalRequests;
             _totalFailedRequestsWithTick = totalFailedRequests;

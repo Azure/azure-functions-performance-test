@@ -201,7 +201,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 CallCount = totalRequests - _totalRequestsWithTick,
                 FailedCount = totalFailedRequests - _totalFailedRequestsWithTick,
                 SuccessCount = totalSuccessRequests - _totalSuccessRequestsWithTick,
-                TimeoutCount = totalTimeoutRequests - _totalTimedOutRequestsWithTick
+                TimeoutCount = totalTimeoutRequests - _totalTimedOutRequestsWithTick,
+                AverageLatency = _responseTimes.IsEmpty ? .0 : _responseTimes.Average()
             };
 
             this.TestRepository.AddTestResult(this.TestWithResults, progressResult);

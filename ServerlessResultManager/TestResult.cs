@@ -18,6 +18,8 @@ namespace ServerlessResultManager
 
         public long TimeoutCount { get; set; }
 
+        public double AverageLatency { get; set; }
+
         [Column(TypeName = "datetime2")]
         public DateTime Timestamp { get; set; }
 

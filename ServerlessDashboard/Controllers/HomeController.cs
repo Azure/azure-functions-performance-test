@@ -14,9 +14,6 @@ namespace ServerlessDashboard.Controllers
 
         public ActionResult Index()
         {
-            var testRepository = new TestRepository();
-            var tests = testRepository.GetTestsAfter(DateTime.UtcNow.AddMinutes(-DafaultObservedTimespanInMinutes)).OrderByDescending(x => x.StartTime);
-            ViewBag.Tests = tests.Select(t => new TestResultsModel(t, DafaultObservedTimespanInMinutes)).ToList();
             ViewBag.DefaultObservedTimespan = DafaultObservedTimespanInMinutes;
             return View();
         }

@@ -57,7 +57,7 @@
             @Html.DisplayNameFor(model => model.TotalExecutionRequests)
         </dt>
 
-        <dd>
+        <dd class="totalExecutions">
             @Html.DisplayFor(model => model.TotalExecutionRequests)
         </dd>
 
@@ -65,7 +65,7 @@
             @Html.DisplayNameFor(model => model.SucceededExecutions)
         </dt>
 
-        <dd>
+        <dd class="succededExecutions">
             @Html.DisplayFor(model => model.SucceededExecutions)
         </dd>
 
@@ -73,7 +73,7 @@
             @Html.DisplayNameFor(model => model.FailedExecutions)
         </dt>
 
-        <dd>
+        <dd class="failedExecutions">
             @Html.DisplayFor(model => model.FailedExecutions)
         </dd>
 
@@ -81,7 +81,7 @@
             @Html.DisplayNameFor(model => model.TimeoutExecutions)
         </dt>
 
-        <dd>
+        <dd class="timeoutExecutions">
             @Html.DisplayFor(model => model.TimeoutExecutions)
         </dd>
     </dl>
@@ -116,6 +116,11 @@
         var successCountMetricName = '@successCountMetricName';
         var failedCountMetricName = '@failedCountMetricName';
         var timeoutCountMetricName = '@timeoutCountMetricName';
+
+        var totalRequestsCount = 0;
+        var successRequestCount = 0;
+        var failedRequestCount = 0;
+        var timeoutRequestCount = 0;
         // We use an inline data source in the example, usually data would
         // be fetched from a server
         var dataCache = [];
@@ -132,6 +137,10 @@
             $.get(url, callback);
         }
 
+        function getPlotValues(a, b) {
+            return a + b[1];
+        }
+
         function update() {
             plotNewData(function(data) {
 
@@ -139,12 +148,20 @@
                     var serie = dataCache[i];
                     if (serie.label == totalCountMetricName) {
                         serie.data = serie.data.concat(data[totalCountMetricName]);
+                        totalRequestsCount += data[totalCountMetricName].reduce(getPlotValues, 0);
+                        $("#test-@Model.Id" + " dd.totalExecutions").text(totalRequestsCount);
                     } else if (serie.label == successCountMetricName) {
                         serie.data = serie.data.concat(data[successCountMetricName]);
+                        successRequestCount += data[successCountMetricName].reduce(getPlotValues, 0);
+                        $("#test-@Model.Id" + " dd.succededExecutions").text(successRequestCount);
                     } else if (serie.label == failedCountMetricName) {
                         serie.data = serie.data.concat(data[failedCountMetricName]);
+                        failedRequestCount += data[failedCountMetricName].reduce(getPlotValues, 0);
+                        $("#test-@Model.Id" + " dd.failedExecutions").text(failedRequestCount);
                     } else if (serie.label == timeoutCountMetricName) {
                         serie.data = serie.data.concat(data[timeoutCountMetricName]);
+                        timeoutRequestCount += data[timeoutCountMetricName].reduce(getPlotValues, 0);
+                        $("#test-@Model.Id" + " dd.timeoutExecutions").text(timeoutRequestCount);
                     }
                 }
 

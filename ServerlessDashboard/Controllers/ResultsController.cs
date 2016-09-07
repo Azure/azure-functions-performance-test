@@ -50,7 +50,10 @@ namespace ServerlessDashboard.Controllers
 
             var startDateTime = DateTime.UtcNow.AddMinutes(-timespanInMinutes);
             var repo = new TestRepository();
-            var results = repo.GetTestsAfter(startDateTime).Where(t => monitoredTestsIds.All(mt => mt != t.Id)).ToList();
+            var results = repo.GetTestsAfter(startDateTime).
+                Where(t => monitoredTestsIds.All(mt => mt != t.Id)).
+                OrderByDescending(x => x.StartTime).
+                ToList();
             // no need to pass all results with the test object
             foreach (var result in results)
             {

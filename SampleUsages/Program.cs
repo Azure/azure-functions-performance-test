@@ -141,7 +141,11 @@ namespace SampleUsages
             {
                 profile = new LinearLoad(urls.Count(), eps == 0 ? 1 : eps);
             }
-            else
+            else if (loadProfile.Equals("LinearRamp", StringComparison.CurrentCultureIgnoreCase))
+            {
+                profile = new LinearWithRumpUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
+            }
+        else
             {
                 throw new Exception(string.Format("{0} does not exist", loadProfile));
             }

@@ -103,6 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LoadProfiles\LinearLoad.cs" />
+    <Compile Include="LoadProfiles\LinearWithRumpUp.cs" />
     <Compile Include="LoadProfiles\TriggerTestLoadProfile.cs" />
     <Compile Include="MetricInfo\PerfMetrics.cs" />
     <Compile Include="PerfResultProviders\AzureGenericPerformanceResultsProvider.cs" />

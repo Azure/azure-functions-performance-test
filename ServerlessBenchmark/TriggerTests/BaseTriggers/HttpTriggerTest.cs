@@ -149,8 +149,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 {
                     try
                     {
-                        testProgressString = PrintTestProgress();
                         this.SaveCurrentProgessToDb();
+                        testProgressString = PrintTestProgress();
                         testProgressString = $"OutStanding:    {_totalActiveRequests}     {testProgressString}";
 
                         if (_totalActiveRequests == 0)

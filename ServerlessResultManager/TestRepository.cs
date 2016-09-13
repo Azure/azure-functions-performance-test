@@ -12,11 +12,18 @@ namespace ServerlessResultManager
         {
         }
 
-        public Test GetTest(int id)
+        public Test GetTest(int id, bool fetchResults = false)
         {
             using (var model = new ServerlessTestModel())
             {
-                return model.Tests.FirstOrDefault(t => t.Id == id);
+                if (fetchResults)
+                {
+                    return model.Tests.Include("TestResults").FirstOrDefault(t => t.Id == id);
+                }
+                else
+                {
+                    return model.Tests.FirstOrDefault(t => t.Id == id);
+                }
             }
         }
 
@@ -28,11 +35,27 @@ namespace ServerlessResultManager
             }
         }
 
-        public IEnumerable<Test> GetTestsAfter(DateTime dateFrom)
+        public IEnumerable<Test> GetTestsAfter(DateTime dateFrom, bool fetchResults = true)
         {
             using (var model = new ServerlessTestModel())
             {
-                return model.Tests.Where(t => t.StartTime >= dateFrom).Include("TestResults").ToList();
+                if (fetchResults)
+                {
+                    return model.Tests.Where(t => t.StartTime >= dateFrom).Include("TestResults").ToList();
+                }
+                else
+                {
+                    return model.Tests.Where(t => t.StartTime >= dateFrom).ToList();
+                }
+
+            }
+        }
+
+        public IEnumerable<Test> GetTestsByIds(IEnumerable<long> idsNumbers)
+        {
+            using (var model = new ServerlessTestModel())
+            {
+                return model.Tests.Where(t => idsNumbers.Contains(t.Id)).Include("TestResults").ToList();
             }
         }
 

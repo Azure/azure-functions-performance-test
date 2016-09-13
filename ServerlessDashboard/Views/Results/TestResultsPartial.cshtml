@@ -11,7 +11,6 @@
 }
 
 <div id="test-@Model.Id">
-    <h4>Test</h4>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -95,6 +94,9 @@
         </dd>
     </dl>
 
+    <div id="legend-@containerName">
+        
+    </div>
     <div id="@containerName" style="border: 1px solid black; width: 1300px; height: 400px;">
 
     </div>
@@ -114,14 +116,21 @@
             },
             yaxis: [{
                 min: 0,
-                position: "left"
+                position: "left",
+                alignTicksWithAxis: null
             },
             {
-                position: "right"
+                position: "right",
+                alignTicksWithAxis: 1
             }],
             xaxis: {
                 show: true,
                 mode: "time"
+            },
+            legend: {
+                show: true, 
+                placement: 'outsideGrid', 
+                container: $('#legend-@containerName')
             }
         });
 
@@ -185,6 +194,7 @@
                     }
                 }
 
+                console.log(dataCache);
                 plot.setData(dataCache);
                 plot.getOptions().xaxes[0].max = (getUtcNow()).getTime();
                 var minDateToShow = getUtcNow();

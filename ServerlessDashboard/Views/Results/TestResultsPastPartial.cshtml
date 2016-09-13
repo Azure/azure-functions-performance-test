@@ -1,0 +1,154 @@
+﻿@model ServerlessDashboard.Models.TestResultsModel
+@{
+    var containerName = "flot-" + Model.Id;
+    var dataPollUrl = @"/getAllData/" + Model.Id;
+    var viewTimespanInMinutes = Model.ViewTimespanInMinutes;
+    var totalCountMetricName = "TotalCount";
+    var successCountMetricName = "SuccessCount";
+    var failedCountMetricName = "FailedCount";
+    var timeoutCountMetricName = "TimeoutCount";
+    var averageLatencyMetricName = "AverageLatency";
+}
+
+<div id="test-@Model.Id">
+    <hr/>
+    <table>
+        <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StartTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EndTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Platform)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TotalExecutionRequests)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SucceededExecutions)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FailedExecutions)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TimeoutExecutions)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AverageLatency)
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => model.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.StartTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.EndTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Platform)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.TotalExecutionRequests)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.SucceededExecutions)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.FailedExecutions)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.TimeoutExecutions)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.AverageLatency)
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="legend-@containerName" style="float: left; padding: 15px 30px">
+
+    </div>
+    <div id="@containerName" style="border: 1px solid black; width: 1300px; height: 400px;">
+
+    </div>
+
+    <script type="text/javascript">
+    function getUtcNow() {
+        var now = new Date();
+        return new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+    }
+
+    $(function() {
+        // Set up the control widget
+        var plot = $.plot("#@containerName", [ ], {
+            series: {
+                shadowSize: 0	// Drawing is faster without shadows
+            },
+            yaxis: [{
+                min: 0,
+                position: "left",
+                alignTicksWithAxis: null
+            },
+            {
+                position: "right",
+                alignTicksWithAxis: 1
+            }],
+            xaxis: {
+                show: true,
+                mode: "time"
+            },
+            legend: {
+                show: true,
+                placement: 'outsideGrid',
+                container: $('#legend-@containerName')
+            }
+        });
+
+        var totalCountMetricName = '@totalCountMetricName';
+        var successCountMetricName = '@successCountMetricName';
+        var failedCountMetricName = '@failedCountMetricName';
+        var timeoutCountMetricName = '@timeoutCountMetricName';
+        var averageLatencyMetricName = '@averageLatencyMetricName';
+
+
+        function plotNewData(callback) {
+            var url = "@dataPollUrl";
+            $.get(url, callback);
+        }
+        
+        function update() {
+            plotNewData(function (data) {
+                var dataCache = [];
+                dataCache.push({ label: totalCountMetricName, data: data[totalCountMetricName] });
+                dataCache.push({ label: successCountMetricName, data: data[successCountMetricName] });
+                dataCache.push({ label: failedCountMetricName, data: data[failedCountMetricName] });
+                dataCache.push({ label: timeoutCountMetricName, data: data[timeoutCountMetricName] });
+                dataCache.push({ label: averageLatencyMetricName, data: data[averageLatencyMetricName], yaxis: 2 });
+                plot.setData(dataCache);
+                plot.setupGrid();
+                plot.draw();
+            });
+        }
+
+        update();
+    });
+    </script>
+</div>

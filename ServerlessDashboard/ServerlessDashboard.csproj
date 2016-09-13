@@ -183,6 +183,7 @@
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\wawsfunctions.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\dateformat.js" />
     <Content Include="Scripts\dateformat.min.js" />
@@ -246,6 +247,9 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Results\TestPartial.cshtml" />
     <Content Include="Views\Results\TestResultsPartial.cshtml" />
+    <None Include="Views\Home\List.cshtml" />
+    <None Include="Views\Results\OpenTests.cshtml" />
+    <Content Include="Views\Results\TestResultsPastPartial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -285,7 +289,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>4452</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:9022/</IISUrl>
+          <IISUrl>http://localhost:9024/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

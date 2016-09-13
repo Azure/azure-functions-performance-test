@@ -6,9 +6,9 @@ namespace ServerlessResultManager
 {
     public interface ITestRepository
     {
-        Test GetTest(int id);
+        Test GetTest(int id, bool fetchResults);
 
-        IEnumerable<Test> GetTestsAfter(DateTime dateFrom);
+        IEnumerable<Test> GetTestsAfter(DateTime dateFrom, bool fetchResults);
 
         Test AddTest(Test test);
 
@@ -17,5 +17,7 @@ namespace ServerlessResultManager
         void UpdateTest(Test testWithResults);
 
         IEnumerable<TestResult> GetResultsForTestAfter(int testId, DateTime startDate);
+
+        IEnumerable<Test> GetTestsByIds(IEnumerable<long> idsNumbers);
     }
 }

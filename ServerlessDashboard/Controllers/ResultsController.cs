@@ -18,19 +18,18 @@ namespace ServerlessDashboard.Controllers
             var startDateTime = DateTime.Parse(startDate.Replace("!", ":"));
             var repo = new TestRepository();
             var results = repo.GetResultsForTestAfter(testId, startDateTime).ToList();
-
-            var result = new Dictionary<string, List<object[]>>
-            {
-                { "TotalCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.CallCount }).ToList() },
-                { "SuccessCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.SuccessCount }).ToList() },
-                { "FailedCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.FailedCount }).ToList() },
-                { "TimeoutCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.TimeoutCount }).ToList() },
-                { "AverageLatency", results.Where(x => Math.Abs(x.AverageLatency) > 0.01).Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.AverageLatency }).ToList() },
-            };
-
+            var result = ParseResults(results);
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpGet]
+        public ActionResult GetAllResults(int testId)
+        {
+            var repo = new TestRepository();
+            var results = repo.GetTest(testId, fetchResults: true).TestResults;
+            var parsedResults = ParseResults(results);
+            return Json(parsedResults, JsonRequestBehavior.AllowGet);
+        }
 
         [HttpGet]
         public ActionResult GetRunningTests(int timespanInMinutes, string monitoredTests)
@@ -39,7 +38,7 @@ namespace ServerlessDashboard.Controllers
 
             if (!string.IsNullOrEmpty(monitoredTests))
             {
-                var monitoredTestsSplited = monitoredTests.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                var monitoredTestsSplited = monitoredTests.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
                 monitoredTestsIds = monitoredTestsSplited.Select(x =>
                 {
                     var temp = 0;
@@ -66,11 +65,37 @@ namespace ServerlessDashboard.Controllers
             //return Json(results, JsonRequestBehavior.AllowGet);
         }
 
+
+        public ActionResult OpenTests(string ids)
+        {
+            var idsNumbers = ids.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x =>
+            {
+                var id = 0L;
+                long.TryParse(x, out id);
+                return id;
+            });
+
+            var repo = new TestRepository();
+            var results = repo.GetTestsByIds(idsNumbers).Select(t => new TestResultsModel(t, withResults: true)).ToList();
+            return View(results);
+        }
+
         private long ToFlotTimestamp(DateTime timestamp)
         {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             var time = timestamp.ToUniversalTime().Subtract(new TimeSpan(epoch.Ticks));
             return (long)(time.Ticks / 10000);
+        }
+        private Dictionary<string, List<object[]>> ParseResults(ICollection<TestResult> results)
+        {
+            return new Dictionary<string, List<object[]>>
+            {
+                { "TotalCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.CallCount }).ToList() },
+                { "SuccessCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.SuccessCount }).ToList() },
+                { "FailedCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.FailedCount }).ToList() },
+                { "TimeoutCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.TimeoutCount }).ToList() },
+                { "AverageLatency", results.Where(x => Math.Abs(x.AverageLatency) > 0.01).Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.AverageLatency }).ToList() },
+            };
         }
     }
 }

@@ -17,9 +17,20 @@ namespace ServerlessDashboard
             );
 
             routes.MapRoute(
+                name: "OpenTests",
+                url: "openTests/{ids}",
+                defaults: new { controller = "Results", action = "OpenTests" });
+
+            routes.MapRoute(
                 name: "ResultPoll",
                 url: "getNewData/{testId}/{startDate}",
                 defaults: new { controller = "Results", action = "GetNewResults" }
+            );
+
+            routes.MapRoute(
+                name: "GetAllData",
+                url: "getAllData/{testId}",
+                defaults: new { controller = "Results", action = "GetAllResults" }
             );
 
             routes.MapRoute(

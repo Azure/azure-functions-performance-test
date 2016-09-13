@@ -18,6 +18,24 @@ namespace ServerlessDashboard.Controllers
             return View();
         }
 
+        public ActionResult List()
+        {
+            var repo = new TestRepository();
+            var fetchResults = true;
+            var tests = repo.GetTestsAfter(DateTime.MinValue, fetchResults: fetchResults)
+                .OrderByDescending(t => t.StartTime)
+                .Select(t =>
+                {
+                    var timeFrame = t.EndTime.HasValue
+                        ? (t.EndTime.Value - t.StartTime).TotalMinutes + DafaultObservedTimespanInMinutes
+                        : DafaultObservedTimespanInMinutes;
+                    return new TestResultsModel(t, (int)timeFrame, fetchResults);
+                })
+                .ToList();
+
+            return View(tests);
+        }
+
         public ActionResult Contact()
         {
             return View();

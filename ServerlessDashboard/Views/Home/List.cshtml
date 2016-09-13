@@ -1,0 +1,60 @@
+﻿@model List<ServerlessDashboard.Models.TestResultsModel>
+
+@{
+    ViewBag.Title = "Test list";
+}
+
+<table style="border: 1px solid black">
+        <thead style="border: 1px solid black">
+        <tr>
+            <th></th>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Start time</th>
+            <th>End time</th>
+            <th>Description</th>
+            <th>Average latency</th>
+            <th>Total execution</th>
+            <th>Succeeded execution</th>
+            <th>Failed execution</th>
+            <th>Timeout execution</th>
+        </tr>
+        </thead>
+    <tbody style="border: 1px solid black">
+        @foreach (var test in Model)
+        {
+            <tr style="border: 1px solid black">
+                <td class="test-checkbox"><input type="checkbox" class="test-id" value="@test.Id"/></td>
+                <td>@test.Id</td>
+                <td>@Html.RouteLink(test.Name, "OpenTests", new { ids = test.Id }) </td>
+                <td>@test.StartTime</td>
+                <td>@test.EndTime</td>
+                <td>@test.Description</td>
+                <td>@test.AverageLatency</td>
+                <td>@test.TotalExecutionRequests</td>
+                <td>@test.SucceededExecutions (@(((test.SucceededExecutions / (double)test.TotalExecutionRequests).ToString("P"))))</td>
+                <td>@test.FailedExecutions (@(((test.FailedExecutions / (double)test.TotalExecutionRequests).ToString("P"))))</td>
+                <td>@test.TimeoutExecutions (@(((test.TimeoutExecutions / (double)test.TotalExecutionRequests).ToString("P"))))</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<input type="button" id="select-tests" value="Show selected" />
+
+<script>
+    $(function() {
+        $("#select-tests").click(function () {
+            var ids = [];
+            $(".test-id:checkbox:checked").each(function() {
+                ids.push($(this).val());
+            });
+
+            var idsString = ids.reduce(function (a, b) {
+                return a + "," + b;
+            }, "");
+
+            idsString = idsString.substring(1, idsString.length);
+            window.location = "/openTests/" + idsString;
+        });
+    })
+</script>

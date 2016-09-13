@@ -37,6 +37,7 @@ namespace ServerlessDashboard.Models
             StartTime = test.StartTime;
             EndTime = test.EndTime;
             Platform = test.Platform;
+            Owner = test.Owner;
             ViewTimespanInMinutes = test.EndTime.HasValue ? (int)(test.EndTime.Value - test.StartTime).TotalMinutes : viewTimeSpanInMinutes;
         }
     }

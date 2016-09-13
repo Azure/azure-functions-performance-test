@@ -12,90 +12,86 @@
 
 <div id="test-@Model.Id">
     <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
 
-        <dd>
-            @Html.DisplayFor(model => model.Name)
-        </dd>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.StartTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.EndTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Platform)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Description)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TotalExecutionRequests)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.SucceededExecutions)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.FailedExecutions)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TimeoutExecutions)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.AverageLatency)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Owner)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => model.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.StartTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.EndTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Platform)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Description)
+                </td>
+                <td class="totalExecutions">
+                    @Html.DisplayFor(model => model.TotalExecutionRequests)
+                </td>
+                <td class="succededExecutions">
+                    @Html.DisplayFor(model => model.SucceededExecutions)
+                </td>
+                <td class="failedExecutions">
+                    @Html.DisplayFor(model => model.FailedExecutions)
+                </td>
+                <td class="timeoutExecutions">
+                    @Html.DisplayFor(model => model.TimeoutExecutions)
+                </td>
+                <td class="averageLatency">
+                    @Html.DisplayFor(model => model.AverageLatency)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Owner)
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-        <dt>
-            @Html.DisplayNameFor(model => model.StartTime)
-        </dt>
+<div id="legend-@containerName" style="float: left; padding: 15px 30px ">
 
-        <dd>
-            @Html.DisplayFor(model => model.StartTime)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.EndTime)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.EndTime)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Platform)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Platform)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-
-        <dd>
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.TotalExecutionRequests)
-        </dt>
-
-        <dd class="totalExecutions">
-            @Html.DisplayFor(model => model.TotalExecutionRequests)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.SucceededExecutions)
-        </dt>
-
-        <dd class="succededExecutions">
-            @Html.DisplayFor(model => model.SucceededExecutions)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.FailedExecutions)
-        </dt>
-
-        <dd class="failedExecutions">
-            @Html.DisplayFor(model => model.FailedExecutions)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.TimeoutExecutions)
-        </dt>
-
-        <dd class="timeoutExecutions">
-            @Html.DisplayFor(model => model.TimeoutExecutions)
-        </dd>
-
-        <dt>
-            @Html.DisplayNameFor(model => model.AverageLatency)
-        </dt>
-
-        <dd class="averageLatency">
-            @Html.DisplayFor(model => model.AverageLatency)
-        </dd>
-    </dl>
-
-    <div id="legend-@containerName">
-        
     </div>
     <div id="@containerName" style="border: 1px solid black; width: 1300px; height: 400px;">
 
@@ -174,23 +170,23 @@
                     if (serie.label == totalCountMetricName) {
                         serie.data = serie.data.concat(data[totalCountMetricName]);
                         totalRequestsCount += data[totalCountMetricName].reduce(getPlotValues, 0);
-                        $("#test-@Model.Id" + " dd.totalExecutions").text(totalRequestsCount);
+                        $("#test-@Model.Id" + " td.totalExecutions").text(totalRequestsCount);
                     } else if (serie.label == successCountMetricName) {
                         serie.data = serie.data.concat(data[successCountMetricName]);
                         successRequestCount += data[successCountMetricName].reduce(getPlotValues, 0);
-                        $("#test-@Model.Id" + " dd.succededExecutions").text(successRequestCount);
+                        $("#test-@Model.Id" + " td.succededExecutions").text(successRequestCount);
                     } else if (serie.label == failedCountMetricName) {
                         serie.data = serie.data.concat(data[failedCountMetricName]);
                         failedRequestCount += data[failedCountMetricName].reduce(getPlotValues, 0);
-                        $("#test-@Model.Id" + " dd.failedExecutions").text(failedRequestCount);
+                        $("#test-@Model.Id" + " td.failedExecutions").text(failedRequestCount);
                     } else if (serie.label == timeoutCountMetricName) {
                         serie.data = serie.data.concat(data[timeoutCountMetricName]);
                         timeoutRequestCount += data[timeoutCountMetricName].reduce(getPlotValues, 0);
-                        $("#test-@Model.Id" + " dd.timeoutExecutions").text(timeoutRequestCount);
+                        $("#test-@Model.Id" + " td.timeoutExecutions").text(timeoutRequestCount);
                     } else if (serie.label == averageLatencyMetricName) {
                         serie.data = serie.data.concat(data[averageLatencyMetricName]);
                         averageLatency = (serie.data.reduce(getPlotValues, 0)) / serie.data.length;
-                        $("#test-@Model.Id" + " dd.averageLatency").text(averageLatency);
+                        $("#test-@Model.Id" + " td.averageLatency").text(averageLatency);
                     }
                 }
 

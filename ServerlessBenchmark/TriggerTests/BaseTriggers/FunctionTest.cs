@@ -58,7 +58,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 StartTime = startTime.ToUniversalTime(),
                 Name = $"Test function - {FunctionName}",
                 Platform = CloudPlatformController.PlatformName.ToString(),
-                Description = "Test manually run from console app."
+                Description = "Test manually run from console app.",
+                Owner = System.Security.Principal.WindowsIdentity.GetCurrent().Name
             };
 
             this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);

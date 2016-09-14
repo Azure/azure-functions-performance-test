@@ -15,7 +15,7 @@ namespace ServerlessDashboard.Controllers
         [HttpGet]
         public ActionResult GetNewResults(int testId, string startDate)
         {
-            var startDateTime = DateTime.Parse(startDate.Replace("!", ":")).ToUniversalTime();
+            var startDateTime = DateTime.SpecifyKind(DateTime.Parse(startDate.Replace("!", ":")),  DateTimeKind.Utc);
             var repo = new TestRepository();
             var results = repo.GetResultsForTestAfter(testId, startDateTime).ToList();
             var result = ParseResults(results);

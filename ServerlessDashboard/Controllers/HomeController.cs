@@ -29,7 +29,7 @@ namespace ServerlessDashboard.Controllers
                     var timeFrame = t.EndTime.HasValue
                         ? (t.EndTime.Value - t.StartTime).TotalMinutes + DafaultObservedTimespanInMinutes
                         : DafaultObservedTimespanInMinutes;
-                    return new TestResultsModel(t, (int)timeFrame, fetchResults);
+                    return new TestResultsModel(t, (int) timeFrame, fetchResults);
                 })
                 .ToList();
 

@@ -154,7 +154,7 @@
         lastPoll = lastPoll.setMinutes(lastPoll.getMinutes() - @viewTimespanInMinutes);
 
         function plotNewData(callback) {
-            var url = "@dataPollUrl" + "/" + escape(dateFormat(lastPoll, "yyyy-mm-dd HH!MM!ss"));
+            var url = "@dataPollUrl" + "/" + escape(dateFormat(lastPoll, "UTC:yyyy-mm-dd HH!MM!ss"));
             lastPoll = getUtcNow();
             $.get(url, callback);
         }
@@ -191,7 +191,6 @@
                     }
                 }
 
-                console.log(dataCache);
                 plot.setData(dataCache);
                 plot.getOptions().xaxes[0].max = (getUtcNow()).getTime();
                 var minDateToShow = getUtcNow();

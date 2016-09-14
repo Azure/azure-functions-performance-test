@@ -15,7 +15,7 @@ namespace ServerlessDashboard.Controllers
         [HttpGet]
         public ActionResult GetNewResults(int testId, string startDate)
         {
-            var startDateTime = DateTime.Parse(startDate.Replace("!", ":"));
+            var startDateTime = DateTime.Parse(startDate.Replace("!", ":")).ToUniversalTime();
             var repo = new TestRepository();
             var results = repo.GetResultsForTestAfter(testId, startDateTime).ToList();
             var result = ParseResults(results);
@@ -65,7 +65,6 @@ namespace ServerlessDashboard.Controllers
             //return Json(results, JsonRequestBehavior.AllowGet);
         }
 
-
         public ActionResult OpenTests(string ids)
         {
             var idsNumbers = ids.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x =>
@@ -82,6 +81,7 @@ namespace ServerlessDashboard.Controllers
 
         private long ToFlotTimestamp(DateTime timestamp)
         {
+            timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             var time = timestamp.ToUniversalTime().Subtract(new TimeSpan(epoch.Ticks));
             return (long)(time.Ticks / 10000);

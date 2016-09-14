@@ -100,7 +100,7 @@
     <script type="text/javascript">
     function getUtcNow() {
         var now = new Date();
-        return new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+        return new Date(now.getTime());
     }
 
     $(function() {
@@ -121,7 +121,8 @@
             }],
             xaxis: {
                 show: true,
-                mode: "time"
+                mode: "time",
+                timezone: "UTC"
             },
             legend: {
                 show: true, 
@@ -199,7 +200,7 @@
                 plot.setupGrid();
                 plot.draw();
             });
-
+            
             setTimeout(update, updateInterval);
         }
 

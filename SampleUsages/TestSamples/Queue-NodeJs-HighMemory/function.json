@@ -1,11 +1,18 @@
-{ 
-    "bindings": [ 
-        { 
-            "type": "queueTrigger", 
-            "name": "input", 
-            "direction": "in", 
-            "queueName": "samples-node-js-memory-perf-test",
-            "connection": ""
-        }
-    ] 
-} 
+{
+  "bindings": [
+    {
+      "type": "queueTrigger",
+      "name": "size",
+      "direction": "in",
+      "queueName": "samples-node-js-memory-perf-test",
+      "connection": ""
+    },
+    {
+      "type": "queue",
+      "name": "output",
+      "queueName": "samples-node-js-memory-perf-test-output",
+      "connection": "",
+      "direction": "out"
+    }
+  ]
+}

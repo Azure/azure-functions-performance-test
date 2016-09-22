@@ -1,0 +1,105 @@
+﻿{
+  "$schema": "http://schemas.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountType": {
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_ZRS",
+        "Premium_LRS"
+      ],
+      "defaultValue": "Standard_LRS",
+      "metadata": {
+        "description": "Storage Account type"
+      },
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('storageAccountName')]",
+      "properties": {
+        "accountType": "[parameters('storageAccountType')]"
+      },
+      "type": "Microsoft.Storage/storageAccounts"
+    },
+    {
+      "apiVersion": "2015-04-01",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('hostingPlanName')]",
+      "properties": {
+        "computeMode": "Dynamic",
+        "name": "[variables('hostingPlanName')]",
+        "sku": "Dynamic"
+      },
+      "type": "Microsoft.Web/serverfarms"
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "kind": "functionapp",
+      "location": "[resourceGroup().location]",
+      "name": "[variables('functionAppName')]",
+      "properties": {
+        "name": "[variables('functionAppName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-03-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          ],
+          "name": "appsettings",
+          "properties": {
+            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" : "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
+            "WEBSITE_CONTENTSHARE" : "[concat(variables('functionAppName'))]",
+            "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
+            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2015-05-01-preview').key1,';')]",
+            "FUNCTIONS_EXTENSION_VERSION": "~0.3"
+          },
+          "type": "config"
+        },
+        {
+          "apiVersion": "2016-03-01",
+           "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          ],
+          "name": "[concat(variables('functionAppName'), '/', variables('functionName'))]",
+          "type": "Microsoft.Web/sites/functions",
+          "properties": {
+            "files": 
+            {
+              "index.js": "// function is triggered by queue input. Input ia a number and function generates to random square matixes of input x input size\r\n// then in multiplies matrixes, prints \"Finish.\" when calculation is done.\r\n// This operation is very heavily using CPU resources, concurrent executions on single container cause function to execute slower\r\n\r\nmodule.exports = function (context, req) {\r\n    main(context, req);\r\n    context.done();\r\n}\r\n\r\nvar multiple_row_and_column = function(row, column){\r\n    // assume same length of row and column\r\n    var result = 0;\r\n    for(var i = 0; i < row.length; i++)\r\n    {\r\n        result += row[i] * column[i];\r\n    }\r\n\r\n    return result;\r\n}\r\n\r\nvar create_random_matrix = function(size, seed, value_min, value_max) {\r\n    var matrix = [];\r\n\r\n    for (var i = 0; i < size; i++) {\r\n        var row = [];\r\n        for (var j = 0; j < size; j++){\r\n            var val = parseInt(Math.random(seed) * (value_max - value_min), 10);\r\n            row.push(val);\r\n        }\r\n\r\n        matrix.push(row);\r\n    }\r\n\r\n    return matrix;\r\n}\r\n\r\nvar get_row_from_matrix = function(matrix, i){\r\n    return matrix[i];\r\n}\r\n\r\nvar get_column_from_matrix = function(matrix, j){\r\n    var column = [];\r\n    for(var i = 0; i < matrix.length; i++){\r\n        column.push(matrix[i][j]);\r\n    }\r\n\r\n    return column;\r\n}\r\n\r\nvar multiple_matrix = function(matrixA, matrixB) {\r\n    var result = [];\r\n\r\n    for (var i = 0; i < matrixA.length; i++) {\r\n        var result_row = [];\r\n        for (var j = 0; j < matrixA[0].length; j++) {\r\n            var row = get_row_from_matrix(matrixA, i);\r\n            var column = get_column_from_matrix(matrixB, j);\r\n            result_row.push(multiple_row_and_column(row, column));\r\n        }\r\n        result.push(result_row);\r\n    }\r\n\r\n    return result;    \r\n}\r\n\r\nvar print_matrix = function(matrix){\r\n    for (var i = 0; i < matrix.length; i++) {\r\n        var row = '';\r\n        for (var j = 0; j < matrix[0].length; j++) {\r\n            row += (' ' + matrix[i][j]);\r\n        }\r\n\r\n        console.log(row);\r\n    }\r\n}\r\n\r\nvar main = function (context, req) {\r\n    var seed = 123;\r\n    var value_min = 0;\r\n    var value_max = 101;\r\n    var size = parseInt(req.body);\r\n\r\n    var matrix = create_random_matrix(size, seed, value_min, value_max);\r\n    seed = 2 * seed;\r\n    var matrix2 = create_random_matrix(size, seed, value_min, value_max);\r\n    multiple_matrix(matrix, matrix2);\r\n}\r\n"
+            },
+            "config": {
+              "bindings": [
+                {
+                  "type": "httpTrigger",
+                  "name": "req",
+                  "authLevel": "function",
+                  "direction": "in"
+                }
+              ] 
+            }
+          }
+        }
+      ],
+      "type": "Microsoft.Web/sites"
+    }
+  ],
+    "variables": {
+        "functionAppName": "[concat('http-csharp-cpu-intensive', uniquestring(resourceGroup().id))]",
+        "functionName":  "function",
+        "hostingPlanName": "[concat('http-csharp-cpu-intensive', uniquestring(resourceGroup().id))]",
+        "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'azfunctions')]"
+    }
+}

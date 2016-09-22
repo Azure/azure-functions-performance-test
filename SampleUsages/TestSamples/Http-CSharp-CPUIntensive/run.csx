@@ -77,10 +77,4 @@ public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceW
     seed = 2 * seed;
     int[,] matrix2 = CreateRandomMatrix(size, seed, valueMin, valueMax);
     int[,] result = MultiplyMatrix(matrix, matrix2);
-    //log.Info("Matrix1: ");
-    //PrintMatrix(log, matrix);
-    //log.Info("Matrix2: ");
-    //PrintMatrix(log, matrix2);
-    //log.Info("Result: ");
-    //PrintMatrix(log, result);
 }

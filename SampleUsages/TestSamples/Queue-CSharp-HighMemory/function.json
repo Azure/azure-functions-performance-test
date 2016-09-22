@@ -1,0 +1,18 @@
+{
+  "bindings": [
+    {
+      "type": "queueTrigger",
+      "name": "size",
+      "direction": "in",
+      "queueName": "samples-csharp-memory-perf-test",
+      "connection": ""
+    },
+    {
+      "type": "queue",
+      "name": "output",
+      "queueName": "samples-csharp-memory-perf-test-output",
+      "connection": "",
+      "direction": "out"
+    }
+  ]
+}

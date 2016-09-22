@@ -1,0 +1,18 @@
+{
+  "bindings": [
+    {
+      "type": "queueTrigger",
+      "name": "input",
+      "direction": "in",
+      "queueName": "samples-csharp-low-usage-test",
+      "connection": ""
+    },
+    {
+      "type": "queue",
+      "name": "output",
+      "queueName": "samples-csharp-low-usage-test-output",
+      "connection": "",
+      "direction": "out"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 ﻿using System;
 
-public static void Run(string input, out string output, TraceWriter log)
+public static void Run(string sizeMb, out string output, TraceWriter log)
 {
-    log.Info($"C# Queue trigger function processed: {input}");
-    output = input;
+    var bytes = new byte[sizeMb * 1024 * 1024];    
+    output = sizeMb;
 }

@@ -63,6 +63,10 @@
     <None Include="TestSamples\Blob-NodeJs-HighMemory\function.json" />
     <None Include="TestSamples\Blob-NodeJs-LowUsage\azuredeploy.json" />
     <None Include="TestSamples\Blob-NodeJs-LowUsage\function.json" />
+    <None Include="TestSamples\Http-CSharp-LowUsage\function.json" />
+    <None Include="TestSamples\Http-CSharp-LowUsage\run.csx" />
+    <None Include="TestSamples\Http-CSharp-HighMemory\function.json" />
+    <None Include="TestSamples\Http-CSharp-HighMemory\run.csx" />
     <None Include="TestSamples\Http-CSharp-CPUIntensive\function.json" />
     <None Include="TestSamples\Http-CSharp-CPUIntensive\run.csx" />
     <None Include="TestSamples\Http-NodeJs-CPUIntensive\azuredeploy.json" />

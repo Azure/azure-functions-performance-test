@@ -1,4 +1,4 @@
-// function has low usage gets message, reads it count to 1000 and finishes
+// function is designed to simply copy input to output
 
 module.exports = function (context, input) {
     context.log("Function started with input " + input);

@@ -2,7 +2,7 @@
   "bindings": [
     {
       "type": "queueTrigger",
-      "name": "size",
+      "name": "sizeMb",
       "direction": "in",
       "queueName": "samples-node-js-memory-perf-test",
       "connection": ""

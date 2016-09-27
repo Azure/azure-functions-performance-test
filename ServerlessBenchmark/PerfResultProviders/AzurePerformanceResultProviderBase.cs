@@ -46,28 +46,27 @@ namespace ServerlessBenchmark.PerfResultProviders
         [PerfMetric(PerfMetrics.Throughput)]
         protected double CalculateThroughput(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);            
-            var processedLogs = new List<TrimmedFunctionLog>();
-            var throughputList = new List<int>();
-            foreach (var log in logs)
-            {
-                processedLogs.Add(new TrimmedFunctionLog
-                {
-                    Timestamp = TrimMilliseconds(log.EndTime),
-                    ContainerName = log.ContainerName
-                });
-            }
+            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+
+            var grouped =
+                from l in logs
+                where l.RawStatus == "CompletedSuccess"
+                group l by TrimMilliseconds(l.EndTime) into g
+                select new { TimeStamp = g.Key, Count = g.Count() };           
+
+            var actualStartTime = grouped.Min(x => x.TimeStamp);
+            var actualEndTime = grouped.Max(x => x.TimeStamp);
+            var countByTimestamp = grouped.ToDictionary(x => x.TimeStamp, x => x.Count);
 
             var stringBuffer = new StringBuilder();
+            var throughputList = new List<int>();
 
-            var orderedLogs = processedLogs.OrderBy(l => l.Timestamp);
-            var actualStartTime = orderedLogs.First().Timestamp;
-            var actualEndTime = orderedLogs.Last().Timestamp;
             for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
             {
-                var count = processedLogs.Count(l => l.Timestamp == timeStamp);
+                int count = 0;
+                countByTimestamp.TryGetValue(timeStamp, out count);
                 throughputList.Add(count);
-                stringBuffer.AppendFormat("{0},{1}{2}", count, timeStamp, Environment.NewLine);
+                stringBuffer.AppendFormat("{0},{1}{2}", count, timeStamp, Environment.NewLine);                
             }
             var fileName = string.Format("{0}-Throughput.txt", Guid.NewGuid().ToString());
             File.WriteAllText(fileName, stringBuffer.ToString());

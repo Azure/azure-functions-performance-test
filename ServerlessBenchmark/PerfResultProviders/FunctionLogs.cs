@@ -52,16 +52,27 @@ namespace ServerlessBenchmark.PerfResultProviders
             {
                 var storageAccount = CloudStorageAccount.Parse(connectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
-                var table = tableClient.GetTableReference("AzureFunctionsLogTable");
-                var query = new TableQuery<AzureFunctionLogs>();
+                var table = tableClient.GetTableReference("AzureFunctionsLogTable");                
                 int size = 0;
                 var latestNewLog = DateTime.UtcNow;
                 var lastSize = 0;
 
                 do
                 {
-                    _azurefunctionLogs = table.ExecuteQuery(query).Where(log => string.IsNullOrEmpty(functionName) || (!string.IsNullOrEmpty(log.FunctionName) &&
-                        log.FunctionName.Equals(functionName, StringComparison.CurrentCultureIgnoreCase) && !string.IsNullOrEmpty(log.ContainerName))).ToList();
+                    var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == "R");                                
+
+                    if (!string.IsNullOrEmpty(functionName))
+                    {
+                        query = query.Where(x => x.FunctionName.Equals(functionName, StringComparison.CurrentCultureIgnoreCase));
+                    }
+
+                    if(startTime.HasValue)
+                    {
+                        query = query.Where(x => x.StartTime >= startTime.Value);
+                    }
+
+                    _azurefunctionLogs = query.ToList();
+
                     size = _azurefunctionLogs.Count();
 
                     if (lastSize != size)
@@ -123,6 +134,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             public DateTime StartTime { get; set; }
             public DateTime EndTime { get; set; }
             public string ContainerName { get; set; }
+            public string RawStatus { get; set; }
             public Int32 TotalFail { get; set; }
             public Int32 TotalPass { get; set; }
         }

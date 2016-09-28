@@ -13,21 +13,15 @@ using Microsoft.WindowsAzure.Storage.Table;
 namespace ServerlessBenchmark.PerfResultProviders
 {
     internal class FunctionLogs
-    {
-        private static List<AzureFunctionLogs> _azurefunctionLogs; 
-        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, DateTime? endTime, bool update = false, int expectedExecutionCount = 0)
+    {        
+        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, int expectedExecutionCount = 0, int waitForAllLogsTimeoutInMinutes = 5, bool includeIncomplete = false)
         {
-            return GetAzureFunctionLogsInternal(functionName, startTime, endTime, update, expectedExecutionCount);
-        }
+            return GetAzureFunctionLogsInternal(functionName, startTime, expectedExecutionCount, waitForAllLogsTimeoutInMinutes, includeIncomplete);
+        }        
 
-        public static List<AzureFunctionLogs> GetAzureFunctionLogs(DateTime? startTime, DateTime? endTime, bool update = false, int expectedExecutionCount = 0)
+        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName)
         {
-            return GetAzureFunctionLogsInternal(string.Empty, startTime, endTime, update, expectedExecutionCount);
-        }
-
-        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, bool allLogs = false)
-        {
-            return GetAzureFunctionLogsInternal(functionName, null, null);
+            return GetAzureFunctionLogs(functionName, null);
         }
 
         public static bool RemoveAllCLoudWatchLogs(string functionName)
@@ -43,10 +37,11 @@ namespace ServerlessBenchmark.PerfResultProviders
             return isEmpty;
         }
 
-        private static List<AzureFunctionLogs> GetAzureFunctionLogsInternal(string functionName, DateTime? startTime, DateTime? endTime, bool update = false, int expectedExecutionCount = 0, int waitForAllLogsTimeoutInMinutes = 5)
+        private static List<AzureFunctionLogs> GetAzureFunctionLogsInternal(string functionName, DateTime? startTime, int expectedExecutionCount, int waitForAllLogsTimeoutInMinutes, bool includeIncomplete)
         {
             Console.WriteLine("Getting Azure Function logs from Azure Storage Tables..");
             var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+            var _azurefunctionLogs = new List<AzureFunctionLogs>();
 
             if (!string.IsNullOrEmpty(connectionString))
             {
@@ -58,12 +53,17 @@ namespace ServerlessBenchmark.PerfResultProviders
                 var lastSize = 0;
 
                 do
-                {
-                    var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == "R");                                
+                {                    
+                    var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == "R");
 
                     if (!string.IsNullOrEmpty(functionName))
                     {
                         query = query.Where(x => x.FunctionName.Equals(functionName, StringComparison.CurrentCultureIgnoreCase));
+                    }
+
+                    if(!includeIncomplete)
+                    {
+                        query = query.Where(x => x.RawStatus == "CompletedSuccess" || x.RawStatus == "CompletedFailure");
                     }
 
                     if(startTime.HasValue)

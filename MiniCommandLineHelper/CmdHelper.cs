@@ -49,6 +49,8 @@ namespace MiniCommandLineHelper
             }
             catch (Exception ex)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(ex.ToString());
                 Console.ForegroundColor = _originalConsoleColor;
                 Console.WriteLine("Exiting benchmark");
             }

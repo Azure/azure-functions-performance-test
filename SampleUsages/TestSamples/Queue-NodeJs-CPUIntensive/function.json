@@ -1,11 +1,18 @@
-{ 
-    "bindings": [ 
-        { 
-            "type": "queueTrigger", 
-            "name": "input", 
-            "direction": "in", 
-            "queueName": "samples-node-js-cpu-perf-test",
-            "connection": ""
-        }
-    ] 
-} 
+{
+  "bindings": [
+    {
+      "type": "queueTrigger",
+      "name": "input",
+      "direction": "in",
+      "queueName": "samples-node-js-cpu-perf-test",
+      "connection": ""
+    },
+    {
+      "type": "queue",
+      "name": "output",
+      "queueName": "samples-node-js-cpu-perf-test-output",
+      "connection": "",
+      "direction": "out"
+    }
+  ]
+}

@@ -2,15 +2,15 @@
   "bindings": [
     {
       "type": "queueTrigger",
-      "name": "input",
+      "name": "sizeMb",
       "direction": "in",
-      "queueName": "samples-node-js-low-usage-test",
+      "queueName": "samples-csharp-memory-perf-test",
       "connection": ""
     },
     {
       "type": "queue",
       "name": "output",
-      "queueName": "samples-node-js-low-usage-test-output",
+      "queueName": "samples-csharp-memory-perf-test-output",
       "connection": "",
       "direction": "out"
     }

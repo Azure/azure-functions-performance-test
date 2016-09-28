@@ -16,7 +16,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         [PerfMetric(PerfMetrics.AverageExecutionTime)]
         protected TimeSpan? CalculateAverageExecutionTime(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var executionTimes = RetrieveExecutionTimes(logs);
             var avgExecutionTime = executionTimes.Average(e => e.TotalMilliseconds);
             return TimeSpan.FromMilliseconds(avgExecutionTime);
@@ -25,7 +25,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         [PerfMetric(PerfMetrics.ExecutionTimeStandardDeviation)]
         protected string CalculateExecutionTimeStandardDeviation(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var executionTimes = RetrieveExecutionTimes(logs);
             var avgExecutionTime = CalculateAverageExecutionTime(functionName, testStartTime, testEndTime, expectedExecutionCount).GetValueOrDefault().TotalMilliseconds;
             var sumOfSquaredDifferences =
@@ -37,7 +37,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         [PerfMetric(PerfMetrics.ExecutionCount)]
         protected int CalculateExecutionCount(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var executionTimes = RetrieveExecutionTimes(logs);
             var executionCount = executionTimes.Count();
             return executionCount;
@@ -46,28 +46,26 @@ namespace ServerlessBenchmark.PerfResultProviders
         [PerfMetric(PerfMetrics.Throughput)]
         protected double CalculateThroughput(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);            
-            var processedLogs = new List<TrimmedFunctionLog>();
-            var throughputList = new List<int>();
-            foreach (var log in logs)
-            {
-                processedLogs.Add(new TrimmedFunctionLog
-                {
-                    Timestamp = TrimMilliseconds(log.EndTime),
-                    ContainerName = log.ContainerName
-                });
-            }
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
+
+            var grouped =
+                from l in logs                
+                group l by TrimMilliseconds(l.EndTime) into g
+                select new { TimeStamp = g.Key, Count = g.Count() };           
+
+            var actualStartTime = grouped.Min(x => x.TimeStamp);
+            var actualEndTime = grouped.Max(x => x.TimeStamp);
+            var countByTimestamp = grouped.ToDictionary(x => x.TimeStamp, x => x.Count);
 
             var stringBuffer = new StringBuilder();
+            var throughputList = new List<int>();
 
-            var orderedLogs = processedLogs.OrderBy(l => l.Timestamp);
-            var actualStartTime = orderedLogs.First().Timestamp;
-            var actualEndTime = orderedLogs.Last().Timestamp;
             for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
             {
-                var count = processedLogs.Count(l => l.Timestamp == timeStamp);
+                int count = 0;
+                countByTimestamp.TryGetValue(timeStamp, out count);
                 throughputList.Add(count);
-                stringBuffer.AppendFormat("{0},{1}{2}", count, timeStamp, Environment.NewLine);
+                stringBuffer.AppendFormat("{0},{1}{2}", count, timeStamp, Environment.NewLine);                
             }
             var fileName = string.Format("{0}-Throughput.txt", Guid.NewGuid().ToString());
             File.WriteAllText(fileName, stringBuffer.ToString());
@@ -79,7 +77,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         
         protected string GenerateThroughputGraph(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
             var fileName = string.Format("Azure-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
@@ -90,7 +88,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         [PerfMetric(PerfMetrics.HostConcurrency)]
         protected double CalculateHostConcurrency(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             const int concurrentTimeWindowInSeconds = 15;
             var processedLogs = new List<TrimmedFunctionLog>();
             var concurrencyList = new List<int>();
@@ -155,7 +153,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         [PerfMetric(PerfMetrics.FunctionClockTime)]
         protected TimeSpan? CalculateFunctionClockTime(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {
-            var logs = FunctionLogs(functionName, testStartTime, testEndTime, expectedExecutionCount);
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var firstTime = logs.OrderBy(log => log.StartTime).First().StartTime;
             var endTime = logs.OrderBy(log => log.EndTime).Last().EndTime;
             var clockTime = endTime - firstTime;
@@ -163,11 +161,11 @@ namespace ServerlessBenchmark.PerfResultProviders
         }
 
         private IEnumerable<FunctionLogs.AzureFunctionLogs> _functionLogs;
-        private IEnumerable<FunctionLogs.AzureFunctionLogs> FunctionLogs(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutions)
+        private IEnumerable<FunctionLogs.AzureFunctionLogs> FunctionLogs(string functionName, DateTime testStartTime, int expectedExecutions)
         {
             if (_logs == null)
             {
-                _logs = PerfResultProviders.FunctionLogs.GetAzureFunctionLogs(functionName, testStartTime, testEndTime, true, expectedExecutions);                
+                _logs = PerfResultProviders.FunctionLogs.GetAzureFunctionLogs(functionName, testStartTime, expectedExecutions);                
             }
             return _logs;
         }

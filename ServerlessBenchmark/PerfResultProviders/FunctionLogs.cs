@@ -12,12 +12,42 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace ServerlessBenchmark.PerfResultProviders
 {
-    internal class FunctionLogs
-    {        
+    public class FunctionLogs
+    {
+        private static CloudTable _azureFunctionLogTable;
+        private static string _azureStorageConnectionString = null;
+        private static CloudTable AzureFunctionLogTable
+        {
+            get
+            {
+                if (_azureFunctionLogTable == null)
+                {
+                    var connectionString = _azureStorageConnectionString ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+                    if (!string.IsNullOrEmpty(connectionString))
+                    {
+                        try
+                        {
+                            var storageAccount = CloudStorageAccount.Parse(connectionString);
+                            var tableClient = storageAccount.CreateCloudTableClient();
+                            var table = tableClient.GetTableReference("AzureFunctionsLogTable");
+                            _azureFunctionLogTable = table;
+                            return table;
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine("Error in getting azure table");
+                            throw;
+                        }
+                    }
+                }
+                return _azureFunctionLogTable;
+            }
+        }
+
         public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, int expectedExecutionCount = 0, int waitForAllLogsTimeoutInMinutes = 5, bool includeIncomplete = false)
         {
             return GetAzureFunctionLogsInternal(functionName, startTime, expectedExecutionCount, waitForAllLogsTimeoutInMinutes, includeIncomplete);
-        }        
+        }
 
         public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName)
         {
@@ -37,6 +67,20 @@ namespace ServerlessBenchmark.PerfResultProviders
             return isEmpty;
         }
 
+        public static async Task<bool> PurgeAzureFunctionTableAsync(string storageConnectionString = null)
+        {
+            bool tablePurged = false;
+            Console.WriteLine("Purge Azure Function Table...");
+            var table = AzureFunctionLogTable;
+            var tableDeleted = await table.DeleteIfExistsAsync().ConfigureAwait(false);
+            await Task.Delay(2000);
+            await Utility.RetryHelperAsync(async () =>
+            {
+                tablePurged = await table.CreateIfNotExistsAsync().ConfigureAwait(false);
+            });
+            return tablePurged;
+        }
+
         private static List<AzureFunctionLogs> GetAzureFunctionLogsInternal(string functionName, DateTime? startTime, int expectedExecutionCount, int waitForAllLogsTimeoutInMinutes, bool includeIncomplete)
         {
             Console.WriteLine("Getting Azure Function logs from Azure Storage Tables..");
@@ -47,13 +91,13 @@ namespace ServerlessBenchmark.PerfResultProviders
             {
                 var storageAccount = CloudStorageAccount.Parse(connectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
-                var table = tableClient.GetTableReference("AzureFunctionsLogTable");                
+                var table = tableClient.GetTableReference("AzureFunctionsLogTable");
                 int size = 0;
                 var latestNewLog = DateTime.UtcNow;
                 var lastSize = 0;
 
                 do
-                {                    
+                {
                     var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == "R");
 
                     if (!string.IsNullOrEmpty(functionName))
@@ -61,12 +105,12 @@ namespace ServerlessBenchmark.PerfResultProviders
                         query = query.Where(x => x.FunctionName.Equals(functionName, StringComparison.CurrentCultureIgnoreCase));
                     }
 
-                    if(!includeIncomplete)
+                    if (!includeIncomplete)
                     {
                         query = query.Where(x => x.RawStatus == "CompletedSuccess" || x.RawStatus == "CompletedFailure");
                     }
 
-                    if(startTime.HasValue)
+                    if (startTime.HasValue)
                     {
                         query = query.Where(x => x.StartTime >= startTime.Value);
                     }
@@ -83,9 +127,9 @@ namespace ServerlessBenchmark.PerfResultProviders
                     else
                     {
                         var secondsSinceLastNewLog = (DateTime.UtcNow - latestNewLog).TotalSeconds;
-                        var secondsStillToWait = 60*waitForAllLogsTimeoutInMinutes - secondsSinceLastNewLog;
+                        var secondsStillToWait = 60 * waitForAllLogsTimeoutInMinutes - secondsSinceLastNewLog;
                         Console.WriteLine(
-                            "No new log for {0} seconds. Waiting another {1}s to finish.", 
+                            "No new log for {0} seconds. Waiting another {1}s to finish.",
                             secondsSinceLastNewLog,
                             secondsStillToWait
                             );
@@ -103,7 +147,7 @@ namespace ServerlessBenchmark.PerfResultProviders
                         Console.WriteLine("Not all result logs have been found! No new logs appeared in last {0} minutes. Finishing wait to present results.", waitForAllLogsTimeoutInMinutes);
                         break;
                     }
-                    
+
                     Thread.Sleep(1000);
                 } while (size < expectedExecutionCount);
             }

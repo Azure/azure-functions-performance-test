@@ -43,6 +43,14 @@ namespace ServerlessBenchmark.PerfResultProviders
             return executionCount;
         }
 
+        [PerfMetric("Total Errors")]
+        protected int TotalErrors(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
+        {
+            var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
+            var totalFailed = logs.Count(l => l.RawStatus == "CompletedFailure");
+            return totalFailed;
+        }
+
         [PerfMetric(PerfMetrics.Throughput)]
         protected double CalculateThroughput(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
         {

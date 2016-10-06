@@ -6,6 +6,7 @@ using ServerlessBenchmark.MetricInfo;
 using System.IO;
 using System.Text;
 using Amazon.CloudWatchLogs.Model;
+using System.Diagnostics;
 
 namespace ServerlessBenchmark.PerfResultProviders
 {
@@ -57,26 +58,34 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
 
             var grouped =
-                from l in logs                
+                from l in logs
                 group l by TrimMilliseconds(l.EndTime) into g
-                select new { TimeStamp = g.Key, Count = g.Count() };           
+                select new { TimeStamp = g.Key, Count = g.Count() };
 
             var actualStartTime = grouped.Min(x => x.TimeStamp);
             var actualEndTime = grouped.Max(x => x.TimeStamp);
             var countByTimestamp = grouped.ToDictionary(x => x.TimeStamp, x => x.Count);
 
-            var stringBuffer = new StringBuilder();
-            var throughputList = new List<int>();
-
-            for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
+            if (actualEndTime - actualStartTime > TimeSpan.FromHours(24))
             {
-                int count = 0;
-                countByTimestamp.TryGetValue(timeStamp, out count);
-                throughputList.Add(count);
-                stringBuffer.AppendFormat("{0},{1}{2}", count, timeStamp, Environment.NewLine);                
+                throw new Exception(string.Format("Aborting calculation. The max time range is 24 hours. StartTime: {0}, EndTime: {1}.", actualStartTime, actualEndTime));
             }
+
+            var throughputList = new List<int>();
             var fileName = string.Format("{0}-Throughput.txt", Guid.NewGuid().ToString());
-            File.WriteAllText(fileName, stringBuffer.ToString());
+
+            using (var logWriter = new StreamWriter(fileName))
+            {
+                for (var timeStamp = actualStartTime; timeStamp <= actualEndTime; timeStamp = timeStamp.AddSeconds(1))
+                {
+                    int count = 0;
+                    countByTimestamp.TryGetValue(timeStamp, out count);
+                    throughputList.Add(count);
+                    logWriter.WriteLine("{0},{1}", count, timeStamp);
+                }
+            }
+
+            Debug.Assert(throughputList.Sum() == countByTimestamp.Values.Sum(), "We missed log counts somehow");
 
             return throughputList.Average();
         }
@@ -89,7 +98,8 @@ namespace ServerlessBenchmark.PerfResultProviders
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
             var fileName = string.Format("Azure-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
-            PrintThroughputGraph(logGroupped, fileName, secondsInGroup);
+            PrintThroughputGraph(logGroupped, fileName, secondsInGroup);            
+
             return string.Format("Plot can be found at {0}", fileName);
         }
 
@@ -109,20 +119,26 @@ namespace ServerlessBenchmark.PerfResultProviders
                 });
             }
 
-            var stringBuffer = new StringBuilder();
-
             var orderedLogs = processedLogs.OrderBy(l => l.Timestamp);
             var actualStartTime = orderedLogs.First().Timestamp;
             var actualEndTime = orderedLogs.Last().Timestamp;
-            for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
+
+            if (actualEndTime - actualStartTime > TimeSpan.FromHours(24))
             {
-                var concurrency = processedLogs.Where(l => l.Timestamp > timeStamp.AddSeconds(-1 * concurrentTimeWindowInSeconds)
-                && l.Timestamp < timeStamp.AddSeconds(concurrentTimeWindowInSeconds)).Select(c => c.ContainerName).Distinct().Count();
-                concurrencyList.Add(concurrency);
-                stringBuffer.AppendFormat("{0},{1}{2}", concurrency, timeStamp, Environment.NewLine);
+                throw new Exception(string.Format("Aborting calculation. The max time range is 24 hours. StartTime: {0}, EndTime: {1}.", actualStartTime, actualEndTime));
             }
+
             var fileName = string.Format("{0}-HostConcurrency.txt", Guid.NewGuid().ToString());
-            File.WriteAllText(fileName, stringBuffer.ToString());
+            using (var logWriter = new StreamWriter(fileName))
+            {
+                for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
+                {
+                    var concurrency = processedLogs.Where(l => l.Timestamp > timeStamp.AddSeconds(-1 * concurrentTimeWindowInSeconds)
+                    && l.Timestamp < timeStamp.AddSeconds(concurrentTimeWindowInSeconds)).Select(c => c.ContainerName).Distinct().Count();
+                    concurrencyList.Add(concurrency);
+                    logWriter.WriteLine("{0},{1}", concurrency, timeStamp);
+                }
+            }
 
             return concurrencyList.Average();
         }
@@ -135,19 +151,30 @@ namespace ServerlessBenchmark.PerfResultProviders
 
         private Dictionary<DateTime, double> GetAverageLogCountInTimeWindow(List<FunctionLogs.AzureFunctionLogs> logs, int windowTimespanInSeconds)
         {
-            var orderedLogs = logs.OrderBy(l => l.Timestamp);
-            var actualStartTime = orderedLogs.First().Timestamp;
-            var actualEndTime = orderedLogs.Last().Timestamp;
+            var grouped =
+                from l in logs                
+                group l by RoundByTimeSpan(l.EndTime, TimeSpan.FromSeconds(windowTimespanInSeconds)) into g
+                select new { TimeStamp = g.Key, Count = (double)g.LongCount() };
+
+            var actualStartTime = grouped.Min(x => x.TimeStamp);
+            var actualEndTime = grouped.Max(x => x.TimeStamp);
+            var countByTimestamp = grouped.ToDictionary(x => x.TimeStamp, x => x.Count);            
+
+            if(actualEndTime - actualStartTime > TimeSpan.FromDays(1))
+            {
+                throw new Exception(string.Format("Aborting calculation. There is a problem with the timerange. StartTime: {0}, EndTime: {1}.", actualStartTime, actualEndTime));                
+            }
+
             var result = new Dictionary<DateTime, double>();
 
-            for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(windowTimespanInSeconds))
+            for (var timeStamp = actualStartTime; timeStamp <= actualEndTime; timeStamp = timeStamp.AddSeconds(windowTimespanInSeconds))
             {
-                var startTime = timeStamp.AddSeconds(-1 * windowTimespanInSeconds);
-                var logsCount = logs.Count(
-                    l => l.Timestamp > startTime &&
-                         l.Timestamp <= timeStamp.AddSeconds(windowTimespanInSeconds));
-                result[startTime.DateTime.AddSeconds(windowTimespanInSeconds / 2)] = logsCount;
+                double count = 0;
+                countByTimestamp.TryGetValue(timeStamp, out count);
+                result[timeStamp] = count;
             }
+
+            Debug.Assert(result.Values.Sum() == countByTimestamp.Values.Sum(), "We missed log counts somehow");
 
             return result;
         }
@@ -155,6 +182,11 @@ namespace ServerlessBenchmark.PerfResultProviders
         private static DateTime TrimMilliseconds(DateTime dt)
         {
             return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, 0);
+        }
+
+        private static DateTime RoundByTimeSpan(DateTime dt, TimeSpan ts)
+        {
+            return dt.AddTicks(-(dt.Ticks % ts.Ticks));
         }
 
 

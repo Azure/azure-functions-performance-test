@@ -57,6 +57,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="packages.config" />
+    <None Include="secrets.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\azuredeploy.json" />
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\function.json" />
     <None Include="TestSamples\Blob-NodeJs-HighMemory\azuredeploy.json" />

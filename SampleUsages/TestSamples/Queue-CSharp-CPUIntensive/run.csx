@@ -6,66 +6,6 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Azure.WebJobs.Host;
 
-public static int[,] CreateRandomMatrix(int size, int seed, int valueMin, int valueMax)
-{
-    Random rng = new Random(seed);
-    var matrix = new int[size, size];
-    for (var i = 0; i < size; i++)
-    {
-        for (var j = 0; j < size; j++)
-        {
-            matrix[i, j] = rng.Next(valueMin, valueMax);
-        }
-    }
-    return matrix;
-}
-
-public static IEnumerable<int> GetRowFromMatrix(int[,] matrix, int row)
-{
-    for (int j = 0; j < matrix.GetLength(1); j++)
-    {
-        yield return matrix[row, j];
-    }
-}
-
-public static IEnumerable<int> GetColumnFromMatrix(int[,] matrix, int col)
-{
-    for (int i = 0; i < matrix.GetLength(0); i++)
-    {
-        yield return matrix[i, col];
-    }
-}
-
-public static int[,] MultiplyMatrix(int[,] matrixA, int[,] matrixB)
-{
-    int[,] result = new int[matrixA.GetLength(0), matrixB.GetLength(1)];
-    for (var i = 0; i < matrixA.GetLength(0); i++)
-    {
-        for (var j = 0; j < matrixA.GetLength(1); j++)
-        {
-            var row = GetRowFromMatrix(matrixA, i);
-            var col = GetColumnFromMatrix(matrixB, j);
-            var rowXCol = Enumerable.Zip(row, col, (ix, xj) => ix * xj);
-            result[i, j] = rowXCol.Sum();
-        }
-    }
-    return result;
-}
-
-public static void PrintMatrix(TraceWriter log, int[,] matrix)
-{
-    for (var i = 0; i < matrix.GetLength(0); i++)
-    {
-        var row = "";
-        for (var j = 0; j < matrix.GetLength(1); j++)
-        {
-            row += " " + matrix[i, j];
-        }
-
-        log.Info(row);
-    }
-}
-
 public static void Run(string input, out string output, TraceWriter log)
 {
     int size = int.Parse(input);
@@ -73,10 +13,81 @@ public static void Run(string input, out string output, TraceWriter log)
     int valueMin = 0;
     int valueMax = 101;
 
-    int[,] matrix = CreateRandomMatrix(size, seed, valueMin, valueMax);
+    int[][] matrix = CreateRandomMatrix(size, seed, valueMin, valueMax);
     seed = 2 * seed;
-    int[,] matrix2 = CreateRandomMatrix(size, seed, valueMin, valueMax);
-    int[,] result = MultiplyMatrix(matrix, matrix2);
-    
+    int[][] matrix2 = CreateRandomMatrix(size, seed, valueMin, valueMax);
+    int[][] result = MultiplyMatrix(matrix, matrix2);
+
     output = input;
+}
+
+public static int[][] CreateRandomMatrix(int size, int seed, int valueMin, int valueMax)
+{
+    Random rng = new Random(seed);
+    var matrix = new int[size][];
+    for (var i = 0; i < size; i++)
+    {
+        var row = new int[size];
+        for (var j = 0; j < size; j++)
+        {
+            row[j] = rng.Next(valueMin, valueMax);
+        }
+
+        matrix[i] = row;
+    }
+    return matrix;
+}
+
+public static int[][] MultiplyMatrix(int[][] matrixA, int[][] matrixB)
+{
+    int[][] result = new int[matrixA.GetLength(0)][];
+    int elements = matrixB.GetLength(0);
+    for (var i = 0; i < matrixA.GetLength(0); i++)
+    {
+        result[i] = new int[elements];
+        for (var j = 0; j < matrixA.GetLength(0); j++)
+        {
+            var row = matrixA[i];
+            var col = GetColumn(matrixB, j);
+
+            result[i][j] = MultiplyRowAndColumn(row, col);
+        }
+    }
+    return result;
+}
+
+private static int MultiplyRowAndColumn(int[] row, int[] col)
+{
+    int sum = 0;
+    for (int b = 0; b < row.Length; b++)
+    {
+        sum += row[b] * col[b];
+    }
+
+    return sum;
+}
+
+private static int[] GetColumn(int[][] matrixB, int j)
+{
+    var result = new int[matrixB.Length];
+    for (int i = 0; i < matrixB.Length; i++)
+    {
+        result[i] = matrixB[i][j];
+    }
+
+    return result;
+}
+
+public static void PrintMatrix(int[][] matrix)
+{
+    for (var i = 0; i < matrix.Length; i++)
+    {
+        var row = "";
+        for (var j = 0; j < matrix.Length; j++)
+        {
+            row += " " + matrix[i][j];
+        }
+
+        Console.WriteLine(row);
+    }
 }

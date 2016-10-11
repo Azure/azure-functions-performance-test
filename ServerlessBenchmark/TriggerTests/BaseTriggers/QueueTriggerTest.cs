@@ -47,6 +47,28 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             return cloudPlatformResponses;
         }
 
+        protected override void SaveCurrentProgessToDb()
+        {
+            var currentFinished = CloudPlatformController.GetOutputItemsCount(new CloudPlatformRequest()
+            {
+                Key = Guid.NewGuid().ToString(),
+                Source = TargetQueue
+            }).GetAwaiter().GetResult();
+
+            var progressResult = new TestResult
+            {
+                Timestamp = DateTime.UtcNow,
+                CallCount = (int)currentFinished.Data - _outPutQueueSize,
+                FailedCount = 0,
+                SuccessCount = (int)currentFinished.Data - _outPutQueueSize,
+                TimeoutCount = 0,
+                AverageLatency = 0
+            };
+
+            _outPutQueueSize = (int)currentFinished.Data;
+            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+        }
+
         protected override string StorageType
         {
             get { return "Queue"; }
@@ -73,26 +95,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         {Constants.Message, messages}
                     }
             });
-
-            var currentFinished = await CloudPlatformController.GetOutputItemsCount(new CloudPlatformRequest()
-            {
-                Key = Guid.NewGuid().ToString(),
-                Source = TargetQueue
-            });
-
-            var progressResult = new TestResult
-            {
-                Timestamp = DateTime.UtcNow,
-                CallCount = (int)currentFinished.Data - _outPutQueueSize,
-                FailedCount = 0,
-                SuccessCount = (int)currentFinished.Data - _outPutQueueSize,
-                TimeoutCount = 0,
-                AverageLatency = 0
-            };
-
-            _outPutQueueSize = (int)currentFinished.Data;
-
-            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
         }
 
         protected override Task TestCoolDown()

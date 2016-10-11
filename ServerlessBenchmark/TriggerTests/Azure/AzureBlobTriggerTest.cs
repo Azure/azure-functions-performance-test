@@ -12,8 +12,8 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureBlobTriggerTest:BlobTriggerTest
     {
-        public AzureBlobTriggerTest(string functionName, int eps, IEnumerable<string> blobs, string inputContainer,
-            string outputContainer) : base(functionName, eps, blobs.ToArray(), inputContainer, outputContainer)
+        public AzureBlobTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> blobs, string inputContainer,
+            string outputContainer) : base(functionName, eps, warmUpTimeInMinutes, blobs.ToArray(), inputContainer, outputContainer)
         {
             
         }

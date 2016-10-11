@@ -10,9 +10,9 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 {
     public class AmazonSqsTriggerTest:QueueTriggerTest
     {
-        public AmazonSqsTriggerTest(string functionName, int eps, IEnumerable<string> queueMessages, string sourceBlobContainer,
+        public AmazonSqsTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> queueMessages, string sourceBlobContainer,
             string destinationBlobContainer)
-            : base(functionName, eps, queueMessages.ToArray(), sourceBlobContainer, destinationBlobContainer)
+            : base(functionName, eps, warmUpTimeInMinutes, queueMessages.ToArray(), sourceBlobContainer, destinationBlobContainer)
         {
             
         }
@@ -20,11 +20,6 @@ namespace ServerlessBenchmark.TriggerTests.AWS
         protected override bool Setup()
         {
             return FunctionLogs.RemoveAllCLoudWatchLogs(FunctionName);
-        }
-
-        protected override void SaveCurrentProgessToDb()
-        {
-            // skip
         }
 
         protected override ICloudPlatformController CloudPlatformController

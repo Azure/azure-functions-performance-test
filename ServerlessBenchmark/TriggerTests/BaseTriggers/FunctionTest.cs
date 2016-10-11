@@ -27,23 +27,24 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         private bool onTestCoolDown = false;
         protected Test TestWithResults { get; set; }
         protected ITestRepository TestRepository { get; set; }
-        protected int WarmUpTime { get; set; } = Constants.DefaultWarmUpTimeInSeconds;
+        protected int WarmUpTimeInMinutes { get; }
         public int Eps { get; } = 60;
 
-        protected FunctionTest(string functionName, int eps)
+        protected FunctionTest(string functionName, int eps, int warmUpTimeInMinutes)
         {
             FunctionName = functionName;
             TestRepository = new TestRepository();
             Eps = eps;
+            WarmUpTimeInMinutes = warmUpTimeInMinutes;
         }
         
         protected virtual async Task TestWarmup()
         {
             // use linear ramp up load for warmup, don't ramp down at the end
-            Console.WriteLine("Trigger Warmup - Starting Scheduled time for warm up: {0} s", WarmUpTime);
-            var loadProfile = new LinearWithRumpUp(TimeSpan.FromSeconds(WarmUpTime), Eps, rampDown: false);
+            Console.WriteLine("Trigger Warmup - Starting Scheduled time for warm up: {0} s", WarmUpTimeInMinutes * 60);
+            var loadProfile = new LinearWithRumpUp(TimeSpan.FromMinutes(WarmUpTimeInMinutes), Eps, rampDown: false);
             var sw = Stopwatch.StartNew();
-            await loadProfile.ExecuteRateAsync(GenerateLoad);
+            await loadProfile.ExecuteRateAsync(i => GenerateLoad(i, saveResults: false));
             loadProfile.Dispose();
             sw.Stop();
             Console.WriteLine("Trigger Warmup - Clean Up");
@@ -82,7 +83,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
             var sw = Stopwatch.StartNew();
-            await loadProfile.ExecuteRateAsync(GenerateLoad);
+            await loadProfile.ExecuteRateAsync(i => GenerateLoad(i));
             loadProfile.Dispose();
             onTestCoolDown = true;
             await TestCoolDown();
@@ -98,7 +99,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected abstract Task Load(IEnumerable<string> requestItems);
 
-        protected async Task GenerateLoad(int requests)
+        protected async Task GenerateLoad(int requests, bool saveResults = true)
         {
             var srcNumberOfItems = SourceItems.Count();
             List<string> selectedItems;
@@ -117,8 +118,14 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 } while (requests >= 0);
                 selectedItems = tmpList;
             }
+
             _executionsPerSecond = selectedItems.Count;
-            SaveCurrentProgessToDb();
+
+            if (saveResults)
+            {
+                SaveCurrentProgessToDb();
+            }
+
             Console.WriteLine(PrintTestProgress());
             Interlocked.Add(ref ExpectedExecutionCount, selectedItems.Count());
             await Load(selectedItems);

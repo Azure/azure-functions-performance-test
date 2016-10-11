@@ -36,7 +36,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected abstract bool Setup();
 
-        protected HttpTriggerTest(string functionName, int eps, string[] urls):base(functionName, eps)
+        protected HttpTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] urls):base(functionName, eps, warmUpTimeInMinutes)
         {
             if (!urls.Any())
             {

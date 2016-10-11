@@ -21,7 +21,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected abstract override ICloudPlatformController CloudPlatformController { get; }
         protected abstract override PerfResultProvider PerfmormanceResultProvider { get; }
 
-        protected StorageTriggerTest(string functionName, int eps, string[] items):base(functionName, eps)
+        protected StorageTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] items):base(functionName, eps, warmUpTimeInMinutes)
         {
             FunctionName = functionName;
             SourceItems = items.ToList();

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.PerfResultProviders;
@@ -49,6 +51,12 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             _runningTasks = new ConcurrentDictionary<int, Task<HttpResponseMessage>>();
             _loadRequests = new List<Task>();
             _responseTimes = new ConcurrentBag<int>();
+
+            ServicePointManager.ServerCertificateValidationCallback =
+            delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+            {
+                return true;
+            };
         }
 
         protected override Task TestWarmup()

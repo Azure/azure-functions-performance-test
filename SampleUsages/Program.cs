@@ -27,8 +27,8 @@ namespace SampleUsages
         public void S3Test(string functionName, string blobPath, string srcBucket, string targetBucket, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             var blobs = Directory.GetFiles(blobPath);
-            var test = new AmazonS3TriggerTest(functionName, blobs, srcBucket, targetBucket);
-            StorageTriggerTest(test, blobs, loadProfile, eps, repeat, durationMinutes);
+            var test = new AmazonS3TriggerTest(functionName, eps, blobs, srcBucket, targetBucket);
+            StorageTriggerTest(test, blobs, loadProfile, repeat, durationMinutes);
         }
 
         [Command]
@@ -36,16 +36,16 @@ namespace SampleUsages
             string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             var queueMessages = File.ReadAllLines(messages);
-            var test = new AmazonSqsTriggerTest(functionName, queueMessages, srcQueue, targetQueue);
-            StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
+            var test = new AmazonSqsTriggerTest(functionName, eps, queueMessages, srcQueue, targetQueue);
+            StorageTriggerTest(test, queueMessages, loadProfile, repeat, durationMinutes);
         }
 
         [Command]
         public void ApiGatewayTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             var urls = File.ReadAllLines(urlsFile);
-            var test = new AmazonApiGatewayTriggerTest(functionName, urls);
-            HttpTriggerTest(test, urls, loadProfile, eps, repeat, durationMinutes);
+            var test = new AmazonApiGatewayTriggerTest(functionName, eps, urls);
+            HttpTriggerTest(test, urls, loadProfile, repeat, durationMinutes);
         }
 
         [Command]
@@ -53,8 +53,8 @@ namespace SampleUsages
             string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             var queueMessages = File.ReadAllLines(messages);
-            var test = new AmazonSnsToSqs(functionName, queueMessages, srcTopic, targetQueue);
-            StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
+            var test = new AmazonSnsToSqs(functionName, eps, queueMessages, srcTopic, targetQueue);
+            StorageTriggerTest(test, queueMessages, loadProfile, repeat, durationMinutes);
         }
 
         [Command]
@@ -90,8 +90,8 @@ namespace SampleUsages
         public void AzureHttpTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
         {
             var urls = File.ReadAllLines(urlsFile);
-            var test = new AzureHttpTriggerTest(functionName, urls);
-            HttpTriggerTest(test, urls, loadProfile, eps, repeat, durationMinutes);
+            var test = new AzureHttpTriggerTest(functionName, eps, urls);
+            HttpTriggerTest(test, urls, loadProfile, repeat, durationMinutes);
         }
 
         private void AzureStorageTest(TriggerTypes triggerType, string functionName, string items, string source, string target, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
@@ -101,13 +101,13 @@ namespace SampleUsages
             {
                 case TriggerTypes.Blob:
                     var blobs = Directory.GetFiles(items);
-                    test = new AzureBlobTriggerTest(functionName, blobs, source, target);
-                    StorageTriggerTest(test, blobs, loadProfile, eps, repeat, durationMinutes);
+                    test = new AzureBlobTriggerTest(functionName, eps, blobs, source, target);
+                    StorageTriggerTest(test, blobs, loadProfile, repeat, durationMinutes);
                     break;
                 case TriggerTypes.Queue:
                     var queueMessages = File.ReadAllLines(items);
-                    test = new AzureQueueTriggerTest(functionName, queueMessages, source, target);
-                    StorageTriggerTest(test, queueMessages, loadProfile, eps, repeat, durationMinutes);
+                    test = new AzureQueueTriggerTest(functionName, eps, queueMessages, source, target);
+                    StorageTriggerTest(test, queueMessages, loadProfile, repeat, durationMinutes);
                     break;
             }
         }
@@ -125,10 +125,12 @@ namespace SampleUsages
         }
         #endregion
 
-        private void HttpTriggerTest(FunctionTest functionTest, IEnumerable<string> urls, string loadProfile, int eps = 0, bool repeat = false,
+        private void HttpTriggerTest(FunctionTest functionTest, IEnumerable<string> urls, string loadProfile, bool repeat = false,
             int durationMinutes = 0)
         {
             TriggerTestLoadProfile profile;
+            var eps = functionTest.Eps;
+
             if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && repeat)
             {
                 if (durationMinutes <= 0)
@@ -158,9 +160,10 @@ namespace SampleUsages
             Console.ForegroundColor = originalColor;
         }
 
-        private void StorageTriggerTest(FunctionTest functionTest, IEnumerable<string> sourceItems, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        private void StorageTriggerTest(FunctionTest functionTest, IEnumerable<string> sourceItems, string loadProfile, bool repeat = false, int durationMinutes = 0)
         {
             TriggerTestLoadProfile profile;
+            var eps = functionTest.Eps;
 
             if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && repeat)
             {

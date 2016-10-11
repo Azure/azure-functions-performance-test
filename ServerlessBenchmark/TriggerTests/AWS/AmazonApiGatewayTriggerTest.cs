@@ -7,7 +7,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 {
     public class AmazonApiGatewayTriggerTest:HttpTriggerTest
     {
-        public AmazonApiGatewayTriggerTest(string functionName, string[] urls) : base(functionName, urls)
+        public AmazonApiGatewayTriggerTest(string functionName, int eps, string[] urls) : base(functionName, eps, urls)
         {
         }
 

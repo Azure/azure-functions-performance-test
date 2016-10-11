@@ -19,7 +19,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected int ExpectedExecutionCount;
         private int _executionsPerSecond;
         protected abstract bool TestSetupWithRetry();
-        protected abstract Task TestWarmup();
         protected abstract Task TestCoolDown();
         protected abstract Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime);
         protected abstract void SaveCurrentProgessToDb();
@@ -28,11 +27,30 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         private bool onTestCoolDown = false;
         protected Test TestWithResults { get; set; }
         protected ITestRepository TestRepository { get; set; }
+        protected int WarmUpTime { get; set; } = Constants.DefaultWarmUpTimeInSeconds;
+        public int Eps { get; } = 60;
 
-        protected FunctionTest(string functionName)
+        protected FunctionTest(string functionName, int eps)
         {
             FunctionName = functionName;
             TestRepository = new TestRepository();
+            Eps = eps;
+        }
+        
+        protected virtual async Task TestWarmup()
+        {
+            // use linear ramp up load for warmup, don't ramp down at the end
+            Console.WriteLine("Trigger Warmup - Starting Scheduled time for warm up: {0} s", WarmUpTime);
+            var loadProfile = new LinearWithRumpUp(TimeSpan.FromSeconds(WarmUpTime), Eps, rampDown: false);
+            var sw = Stopwatch.StartNew();
+            await loadProfile.ExecuteRateAsync(GenerateLoad);
+            loadProfile.Dispose();
+            sw.Stop();
+            Console.WriteLine("Trigger Warmup - Clean Up");
+            TestSetupWithRetry();
+            Console.WriteLine("Trigger Warmup Finished - Elapsed Time: {0}ms", sw.ElapsedMilliseconds);
+            // sleep five seconds for storage latencies -- TODO: necesarry?
+            Thread.Sleep(TimeSpan.FromSeconds(5));
         }
 
         public async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)

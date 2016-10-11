@@ -16,16 +16,22 @@ namespace ServerlessBenchmark.LoadProfiles
         private double _rampTimePercentage = 0.25;
 
         /// <summary>
-        /// First 10% of time use for ramp up and last 10% for ramp down
+        /// First 25% of time use for ramp up and last 25% for ramp down
         /// </summary>
         /// <param name="loadDuration"></param>
         /// <param name="eps"></param>
-        public LinearWithRumpUp(TimeSpan loadDuration, int eps) : base(loadDuration)
+        public LinearWithRumpUp(TimeSpan loadDuration, int eps, bool rampDown = true) : base(loadDuration)
         {
             _targetEps = eps;
             var totalSeconds = loadDuration.TotalSeconds;
             _startLinearLoad = (int)(totalSeconds * _rampTimePercentage);
-            _endLinearLoad = (int)(totalSeconds - _startLinearLoad);
+            _endLinearLoad = (int)totalSeconds;
+
+            if (rampDown)
+            {
+                _endLinearLoad = (int)(totalSeconds - _startLinearLoad);
+            }
+
             inclineRate = eps / (double)_startLinearLoad;
         }
 

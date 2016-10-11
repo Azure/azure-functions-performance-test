@@ -10,7 +10,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureHttpTriggerTest:HttpTriggerTest
     {
-        public AzureHttpTriggerTest(string functionName, IEnumerable<string> urls) : base(functionName, urls.ToArray())
+        public AzureHttpTriggerTest(string functionName, int eps, IEnumerable<string> urls) : base(functionName, eps, urls.ToArray())
         {
 
         }

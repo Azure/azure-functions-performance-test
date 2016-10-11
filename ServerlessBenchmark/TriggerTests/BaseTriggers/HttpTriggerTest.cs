@@ -36,7 +36,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected abstract bool Setup();
 
-        protected HttpTriggerTest(string functionName, string[] urls):base(functionName)
+        protected HttpTriggerTest(string functionName, int eps, string[] urls):base(functionName, eps)
         {
             if (!urls.Any())
             {
@@ -57,28 +57,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             {
                 return true;
             };
-        }
-
-        protected override Task TestWarmup()
-        {
-            // for dev environments skip certificate validation
-            ServicePointManager.ServerCertificateValidationCallback +=
-                (sender, cert, chain, sslPolicyErrors) => true;
-            var warmSite = SourceItems.First();
-            var client = new HttpClient();
-            var cs = new CancellationTokenSource(Constants.HttpTriggerTimeoutMilliseconds);
-            HttpResponseMessage response;
-            try
-            {
-                response = client.GetAsync(warmSite, cs.Token).Result;
-            }
-            catch (TaskCanceledException)
-            {
-                throw new Exception(String.Format("Warm up passed timeout of {0}ms", Constants.HttpTriggerTimeoutMilliseconds));
-            }
-
-            var isSuccessfulSetup = response.IsSuccessStatusCode;
-            return Task.FromResult(isSuccessfulSetup);
         }
 
         protected override bool TestSetupWithRetry()

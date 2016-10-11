@@ -5,15 +5,17 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.ServerlessPlatformControllers;
+using ServerlessResultManager;
 
 namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class QueueTriggerTest:StorageTriggerTest
     {
+        private int _outPutQueueSize;
         protected string SourceQueue { get; set; }
         protected string TargetQueue { get; set; }
 
-        protected QueueTriggerTest(string functionName, string[] messages, string sourceQueue, string targetQueue):base(functionName, messages)
+        protected QueueTriggerTest(string functionName, int eps, string[] messages, string sourceQueue, string targetQueue):base(functionName, eps, messages)
         {
             SourceQueue = sourceQueue;
             TargetQueue = targetQueue;
@@ -71,6 +73,26 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         {Constants.Message, messages}
                     }
             });
+
+            var currentFinished = await CloudPlatformController.GetOutputItemsCount(new CloudPlatformRequest()
+            {
+                Key = Guid.NewGuid().ToString(),
+                Source = TargetQueue
+            });
+
+            var progressResult = new TestResult
+            {
+                Timestamp = DateTime.UtcNow,
+                CallCount = (int)currentFinished.Data - _outPutQueueSize,
+                FailedCount = 0,
+                SuccessCount = (int)currentFinished.Data - _outPutQueueSize,
+                TimeoutCount = 0,
+                AverageLatency = 0
+            };
+
+            _outPutQueueSize = (int)currentFinished.Data;
+
+            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
         }
 
         protected override Task TestCoolDown()

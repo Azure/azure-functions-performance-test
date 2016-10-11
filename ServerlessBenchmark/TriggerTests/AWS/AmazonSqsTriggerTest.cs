@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.AWS;
@@ -9,9 +10,9 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 {
     public class AmazonSqsTriggerTest:QueueTriggerTest
     {
-        public AmazonSqsTriggerTest(string functionName, IEnumerable<string> queueMessages, string sourceBlobContainer,
+        public AmazonSqsTriggerTest(string functionName, int eps, IEnumerable<string> queueMessages, string sourceBlobContainer,
             string destinationBlobContainer)
-            : base(functionName, queueMessages.ToArray(), sourceBlobContainer, destinationBlobContainer)
+            : base(functionName, eps, queueMessages.ToArray(), sourceBlobContainer, destinationBlobContainer)
         {
             
         }

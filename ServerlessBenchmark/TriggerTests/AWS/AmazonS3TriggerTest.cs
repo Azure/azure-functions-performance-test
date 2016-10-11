@@ -10,9 +10,9 @@ namespace ServerlessBenchmark.TriggerTests.AWS
     public class AmazonS3TriggerTest:BlobTriggerTest
     {
 
-        public AmazonS3TriggerTest(string functionName, IEnumerable<string> blobs, string sourceBlobContainer,
+        public AmazonS3TriggerTest(string functionName, int eps, IEnumerable<string> blobs, string sourceBlobContainer,
             string destinationBlobContainer)
-            : base(functionName, blobs.ToArray(), sourceBlobContainer, destinationBlobContainer)
+            : base(functionName, eps, blobs.ToArray(), sourceBlobContainer, destinationBlobContainer)
         {
             
         }

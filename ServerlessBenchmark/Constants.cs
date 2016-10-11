@@ -26,6 +26,8 @@ namespace ServerlessBenchmark
         public const int HttpTriggerTimeoutMilliseconds = 300 * 1000;
 
         public const int LoadCoolDownTimeout = 180 * 1000;
+
+        public const int DefaultWarmUpTimeInSeconds = 60 * 3;
     }
 
     public enum TriggerTypes { Blob, Queue, Http}

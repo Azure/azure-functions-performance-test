@@ -15,8 +15,6 @@ namespace ServerlessBenchmark.PerfResultProviders
     {
         protected void PrintThroughputGraph(Dictionary<DateTime, double> data, string fileName, int timeResolutionInSeconds)
         {
-            var stringBuffer = new StringBuilder();
-
             var model = new PlotModel { Title = "Throughput in time (items finished/second)" };
             var timeAxis = new DateTimeAxis
             {
@@ -27,8 +25,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             var series = new LineSeries();
 
             foreach (var log in data.OrderBy(l => l.Key))
-            {
-                stringBuffer.AppendFormat("{0},{1}{2}", log.Value / timeResolutionInSeconds, log.Key, Environment.NewLine);
+            {                
                 series.Points.Add(new DataPoint(DateTimeAxis.ToDouble(log.Key), log.Value / timeResolutionInSeconds));
             }
 

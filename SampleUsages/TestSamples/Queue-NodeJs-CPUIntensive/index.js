@@ -4,6 +4,7 @@
 
 module.exports = function (context, input) {
     main(context, input);
+    context.bindings.output = input;
     context.done();
 }
 

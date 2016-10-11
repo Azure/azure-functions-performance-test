@@ -85,34 +85,11 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
         }
 
         public CloudPlatformResponse DeleteMessages(CloudPlatformRequest request)
-        {
-            var operationContext = new OperationContext();
-            var response = new CloudPlatformResponse();
-            var client = storageAccount.CreateCloudQueueClient();
+        {            
+            var client = storageAccount.CreateCloudQueueClient();            
             var queue = client.GetQueueReference(request.Source);
-            queue.FetchAttributes();
-            var queueLength = queue.ApproximateMessageCount;
-            var messages = new List<CloudQueueMessage>();
-            var deletedMessages = new List<CloudQueueMessage>();
-            do
-            {
-                messages.AddRange(queue.GetMessages(Constants.MaxDequeueAmount));
-                foreach (var cloudQueueMessage in messages)
-                {
-                    queue.DeleteMessage(cloudQueueMessage, null, operationContext);
-                    if (operationContext.LastResult.HttpStatusCode == 204)
-                    {
-                        deletedMessages.Add(cloudQueueMessage);
-                    }
-                }
-                messages.RemoveAll(cloudQueueMessage => deletedMessages.Contains(cloudQueueMessage));
-                deletedMessages.Clear();
-                queue.FetchAttributes();
-                queueLength = queue.ApproximateMessageCount;
-            } while (queueLength > 0);
-            var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 204);
-            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
-            return response;
+            queue.Clear();
+            return new CloudPlatformResponse { HttpStatusCode = HttpStatusCode.OK };                                   
         }
 
         public async Task<CloudPlatformResponse> EnqueueMessagesAsync(CloudPlatformRequest request)

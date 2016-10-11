@@ -57,18 +57,33 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="packages.config" />
+    <None Include="secrets.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\azuredeploy.json" />
     <None Include="TestSamples\Blob-NodeJs-CPUIntensive\function.json" />
     <None Include="TestSamples\Blob-NodeJs-HighMemory\azuredeploy.json" />
     <None Include="TestSamples\Blob-NodeJs-HighMemory\function.json" />
     <None Include="TestSamples\Blob-NodeJs-LowUsage\azuredeploy.json" />
     <None Include="TestSamples\Blob-NodeJs-LowUsage\function.json" />
+    <None Include="TestSamples\Http-CSharp-LowUsage\function.json" />
+    <None Include="TestSamples\Http-CSharp-LowUsage\run.csx" />
+    <None Include="TestSamples\Http-CSharp-HighMemory\function.json" />
+    <None Include="TestSamples\Http-CSharp-HighMemory\run.csx" />
+    <None Include="TestSamples\Http-CSharp-CPUIntensive\function.json" />
+    <None Include="TestSamples\Http-CSharp-CPUIntensive\run.csx" />
     <None Include="TestSamples\Http-NodeJs-CPUIntensive\azuredeploy.json" />
     <None Include="TestSamples\Http-NodeJs-CPUIntensive\function.json" />
     <None Include="TestSamples\Http-NodeJs-HighMemory\azuredeploy.json" />
     <None Include="TestSamples\Http-NodeJs-HighMemory\function.json" />
     <None Include="TestSamples\Http-NodeJs-LowUsage\azuredeploy.json" />
     <None Include="TestSamples\Http-NodeJs-LowUsage\function.json" />
+    <None Include="TestSamples\Queue-CSharp-CPUIntensive\function.json" />
+    <None Include="TestSamples\Queue-CSharp-CPUIntensive\run.csx" />
+    <None Include="TestSamples\Queue-CSharp-HighMemory\function.json" />
+    <None Include="TestSamples\Queue-CSharp-HighMemory\run.csx" />
+    <None Include="TestSamples\Queue-CSharp-LowUsage\function.json" />
+    <None Include="TestSamples\Queue-CSharp-LowUsage\run.csx" />
     <None Include="TestSamples\Queue-NodeJs-CPUIntensive\azuredeploy.json" />
   </ItemGroup>
   <ItemGroup>

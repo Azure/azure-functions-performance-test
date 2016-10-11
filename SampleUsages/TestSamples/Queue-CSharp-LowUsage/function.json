@@ -4,13 +4,13 @@
       "type": "queueTrigger",
       "name": "input",
       "direction": "in",
-      "queueName": "samples-node-js-low-usage-test",
+      "queueName": "samples-csharp-low-usage-test",
       "connection": ""
     },
     {
       "type": "queue",
       "name": "output",
-      "queueName": "samples-node-js-low-usage-test-output",
+      "queueName": "samples-csharp-low-usage-test-output",
       "connection": "",
       "direction": "out"
     }

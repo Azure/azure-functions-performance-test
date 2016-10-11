@@ -35,11 +35,14 @@ namespace MiniCommandLineHelper
                 var mainProgram = (from type in assembly.GetTypes() where type.Name == "Program" select type).First();
                 methodInfo =
                     mainProgram.GetMethods()
-                        .First(
+                        .FirstOrDefault(
                             method =>
                                 method.Name.ToLower() == command.ToLower() &&
                                 method.IsDefined(typeof (CommandAttribute)));
-
+                if (methodInfo == null)
+                {
+                    throw new Exception($"Command {command} does not exist");
+                }
                 var commandArgs = Utility.CombineParameters(userCommandArgs, methodInfo.GetParameters());
                 methodInfo.Invoke(this, commandArgs);
             }
@@ -49,6 +52,8 @@ namespace MiniCommandLineHelper
             }
             catch (Exception ex)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(ex.ToString());
                 Console.ForegroundColor = _originalConsoleColor;
                 Console.WriteLine("Exiting benchmark {0}", ex.ToString());
             }

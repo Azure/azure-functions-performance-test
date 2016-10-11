@@ -125,8 +125,14 @@ namespace SampleUsages
         }
         #endregion
 
-        private void HttpTriggerTest(FunctionTest functionTest, IEnumerable<string> urls, string loadProfile, bool repeat = false,
-            int durationMinutes = 0)
+        [Command]
+        public void PurgeFunctionsTable(string storageConnectionString = null)
+        {
+            var isPurged = FunctionLogs.PurgeAzureFunctionTableAsync(storageConnectionString).Result;
+            Console.WriteLine($"Azure function log table purged:    {isPurged}");
+        }
+
+        private void HttpTriggerTest(FunctionTest functionTest, IEnumerable<string> urls, string loadProfile, bool repeat = false, int durationMinutes = 0)
         {
             TriggerTestLoadProfile profile;
             var eps = functionTest.Eps;

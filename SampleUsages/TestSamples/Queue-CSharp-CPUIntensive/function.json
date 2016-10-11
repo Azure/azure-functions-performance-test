@@ -1,18 +1,19 @@
 {
   "bindings": [
     {
-      "type": "queueTrigger",
       "name": "input",
+      "type": "queueTrigger",
       "direction": "in",
-      "queueName": "samples-node-js-low-usage-test",
+      "queueName": "samples-csharp-cpu-perf-test",
       "connection": ""
     },
     {
       "type": "queue",
       "name": "output",
-      "queueName": "samples-node-js-low-usage-test-output",
+      "queueName": "samples-csharp-cpu-perf-test-output",
       "connection": "",
       "direction": "out"
     }
-  ]
+  ],
+  "disabled": false
 }

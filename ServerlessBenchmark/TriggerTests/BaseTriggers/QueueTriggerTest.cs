@@ -12,6 +12,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
     public abstract class QueueTriggerTest:StorageTriggerTest
     {
         private int _outPutQueueSize;
+        private int _itemsPut;
         protected string SourceQueue { get; set; }
         protected string TargetQueue { get; set; }
 
@@ -58,7 +59,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var progressResult = new TestResult
             {
                 Timestamp = DateTime.UtcNow,
-                CallCount = (int)currentFinished.Data - _outPutQueueSize,
+                CallCount = _itemsPut,
                 FailedCount = 0,
                 SuccessCount = (int)currentFinished.Data - _outPutQueueSize,
                 TimeoutCount = 0,
@@ -82,6 +83,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected override async Task UploadItems(IEnumerable<string> items)
         {
             await UploadMessagesAsync(items);
+            _itemsPut = items?.Count() ?? 0;
         }
 
         private async Task UploadMessagesAsync(IEnumerable<string> messages)

@@ -70,6 +70,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         public static async Task<bool> PurgeAzureFunctionTableAsync(string storageConnectionString = null)
         {
             bool tablePurged = false;
+            _azureStorageConnectionString = storageConnectionString;
             Console.WriteLine("Purge Azure Function Table...");
             var table = AzureFunctionLogTable;
             var tableDeleted = await table.DeleteIfExistsAsync().ConfigureAwait(false);

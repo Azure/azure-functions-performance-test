@@ -177,6 +177,10 @@ namespace SampleUsages
             {
                 profile = new LinearLoad(sourceItems.Count(), eps == 0 ? 1 : eps);
             }
+            else if (loadProfile.Equals("LinearRamp", StringComparison.CurrentCultureIgnoreCase))
+            {
+                profile = new LinearWithRumpUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
+            }
             else
             {
                 throw new Exception(string.Format("{0} does not exist", loadProfile));

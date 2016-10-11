@@ -2,6 +2,10 @@
 
 module.exports = function (context, req) {
     var sizeMb = parseInt(req.body);
-    var b = Buffer.alloc(sizeMb * 1024 * 1024, 1);
+    var arrSize = sizeMb * 1024 * 1024;
+    var bytes = Buffer.alloc(arrSize);
+    for (var i = 0; i < arrSize; i++) {
+        bytes[i] = i % 255;
+    }
     context.done();
 };

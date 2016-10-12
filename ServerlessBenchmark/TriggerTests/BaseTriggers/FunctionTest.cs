@@ -94,6 +94,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             Console.WriteLine("--END-- Elapsed time:      {0}", sw.Elapsed);
             await PreReportGeneration(startTime, clientEndTime);
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, startTime, clientEndTime, expectedExecutionCount: ExpectedExecutionCount);
+            this.TestWithResults.Description = perfResult.ToString();
+            this.TestRepository.UpdateTest(this.TestWithResults);
             return perfResult;
         }
 
@@ -136,10 +138,15 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var sb = new StringBuilder();
             var progressData = testProgress ?? CurrentTestProgress();
             sb.Append(DateTime.Now);
-            foreach (var data in progressData)
+
+            if (progressData != null)
             {
-                sb.AppendFormat("   {0}:   {1}", data.Key, data.Value);
+                foreach (var data in progressData)
+                {
+                    sb.AppendFormat("   {0}:   {1}", data.Key, data.Value);
+                }
             }
+
             sb.AppendLine();
             return sb.ToString();
         }

@@ -1,11 +1,7 @@
-// function has low usage gets message, reads it count to 1000 and finishes
+// function is designed to simply copy input to output
 
-module.exports = function (context, size) {
-    context.log("Function started with input " + size);
-
-    for(var i = 0; i < 1000; i++){
-        context.log(i);
-    }
-    
+module.exports = function (context, input) {
+    context.log("Function started with input " + input);
+    context.bindings.output = input;
     context.done();
 }

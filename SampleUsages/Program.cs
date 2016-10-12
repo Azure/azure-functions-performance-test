@@ -125,6 +125,13 @@ namespace SampleUsages
         }
         #endregion
 
+        [Command]
+        public void PurgeFunctionsTable(string storageConnectionString = null)
+        {
+            var isPurged = FunctionLogs.PurgeAzureFunctionTableAsync(storageConnectionString).Result;
+            Console.WriteLine($"Azure function log table purged:    {isPurged}");
+        }
+
         private void HttpTriggerTest(FunctionTest functionTest, IEnumerable<string> urls, string loadProfile, int eps = 0, bool repeat = false,
             int durationMinutes = 0)
         {

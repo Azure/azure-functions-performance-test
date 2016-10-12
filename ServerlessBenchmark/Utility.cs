@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using ServerlessBenchmark.PerfResultProviders;
+using System.Threading.Tasks;
 
 namespace ServerlessBenchmark
 {
@@ -65,6 +66,44 @@ namespace ServerlessBenchmark
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Retry asynchronous operations
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="retries"></param>
+        /// <returns></returns>
+        public static async Task RetryHelperAsync(Func<Task> action, int retries = 5)
+        {
+            int attempt = 0;
+            int delayMilliseconds = 5000;
+            while (attempt < retries)
+            {
+                try
+                {
+                    await action().ConfigureAwait(false);
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    attempt++;
+                    if (attempt < retries)
+                    {
+                        var originalColor = Console.ForegroundColor;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"Attempt {attempt} failed");
+                        Console.WriteLine($"Waiting {delayMilliseconds}ms until next attempt");
+                        Console.ForegroundColor = originalColor;
+                        await Task.Delay(delayMilliseconds);
+                        delayMilliseconds += delayMilliseconds;
+                    }
+                    else{
+                        throw;
+                    }
+                }
+            }
         }
     }
 }

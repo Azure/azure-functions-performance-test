@@ -1,19 +1,11 @@
-// function is designed to allocate big array depending on input size
+// function is designed to allocate an array depending on input size
 
 module.exports = function (context, req) {
-    var array = [];
-    var size = parseInt(req.body);
-    var seed = size;
-
-    for(var i = 0; i < size; i++){
-        var x = Math.random(seed) * size;
-        array.push(x);
+    var sizeMb = parseInt(req.body);
+    var arrSize = sizeMb * 1024 * 1024;
+    var bytes = Buffer.alloc(arrSize);
+    for (var i = 0; i < arrSize; i++) {
+        bytes[i] = i % 255;
     }
-
-    for(var j = 1; j < size; j++){
-        var y = Math.random(seed) * size;
-        array[j] = array[j - 1] + y;
-    }
-    
     context.done();
-}
+};

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ServerlessBenchmark.LoadProfiles
 {
-    public class LinearWithRumpUp : TriggerTestLoadProfile
+    public class LinearWithRampUp : TriggerTestLoadProfile
     {
         private int _targetEps;
         private int _startLinearLoad;
@@ -20,7 +20,7 @@ namespace ServerlessBenchmark.LoadProfiles
         /// </summary>
         /// <param name="loadDuration"></param>
         /// <param name="eps"></param>
-        public LinearWithRumpUp(TimeSpan loadDuration, int eps, bool rampDown = true) : base(loadDuration)
+        public LinearWithRampUp(TimeSpan loadDuration, int eps, bool rampDown = true) : base(loadDuration)
         {
             _targetEps = eps;
             var totalSeconds = loadDuration.TotalSeconds;

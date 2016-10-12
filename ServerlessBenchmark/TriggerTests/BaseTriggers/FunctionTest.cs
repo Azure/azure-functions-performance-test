@@ -42,7 +42,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         {
             // use linear ramp up load for warmup, don't ramp down at the end
             Console.WriteLine("Trigger Warmup - Starting Scheduled time for warm up: {0} s", WarmUpTimeInMinutes * 60);
-            var loadProfile = new LinearWithRumpUp(TimeSpan.FromMinutes(WarmUpTimeInMinutes), Eps, rampDown: false);
+            var loadProfile = new LinearWithRampUp(TimeSpan.FromMinutes(WarmUpTimeInMinutes), Eps, rampDown: false);
             var sw = Stopwatch.StartNew();
             await loadProfile.ExecuteRateAsync(i => GenerateLoad(i, saveResults: false));
             loadProfile.Dispose();

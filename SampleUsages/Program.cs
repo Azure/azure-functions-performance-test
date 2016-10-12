@@ -24,7 +24,7 @@ namespace SampleUsages
 
         #region LambdaTests
         [Command]
-        public void S3Test(string functionName, string blobPath, string srcBucket, string targetBucket, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 3)
+        public void S3Test(string functionName, string blobPath, string srcBucket, string targetBucket, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             var blobs = Directory.GetFiles(blobPath);
             var test = new AmazonS3TriggerTest(functionName, eps, warmUpTimeInMinutes, blobs, srcBucket, targetBucket);
@@ -33,7 +33,7 @@ namespace SampleUsages
 
         [Command]
         public void SqsTest(string functionName, string messages, string srcQueue, string targetQueue,
-            string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 3)
+            string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             var queueMessages = File.ReadAllLines(messages);
             var test = new AmazonSqsTriggerTest(functionName, eps, warmUpTimeInMinutes, queueMessages, srcQueue, targetQueue);
@@ -41,7 +41,7 @@ namespace SampleUsages
         }
 
         [Command]
-        public void ApiGatewayTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 3)
+        public void ApiGatewayTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             var urls = File.ReadAllLines(urlsFile);
             var test = new AmazonApiGatewayTriggerTest(functionName, eps, warmUpTimeInMinutes, urls);
@@ -50,7 +50,7 @@ namespace SampleUsages
 
         [Command]
         public void SnsToSqsTest(string functionName, string messages, string srcTopic, string targetQueue,
-            string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes= 3)
+            string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             var queueMessages = File.ReadAllLines(messages);
             var test = new AmazonSnsToSqs(functionName, eps, warmUpTimeInMinutes, queueMessages, srcTopic, targetQueue);
@@ -74,27 +74,27 @@ namespace SampleUsages
 
         [Command]
         public void BlobTest(string functionName, string blobPath, string srcBlobContainer,
-            string targetBlobContainer, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 3)
+            string targetBlobContainer, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             AzureStorageTest(TriggerTypes.Blob, functionName, blobPath, srcBlobContainer, targetBlobContainer, loadProfile, eps, repeat, durationMinutes, durationMinutes);
         }
 
         [Command]
         public void QueueTest(string functionName, string queueItems, string srcQueue,
-            string targetQueue, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 3)
+            string targetQueue, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             AzureStorageTest(TriggerTypes.Queue, functionName, queueItems, srcQueue, targetQueue, loadProfile, eps, repeat, durationMinutes, warmUpTimeInMinutes);
         }
 
         [Command]
-        public void AzureHttpTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 3)
+        public void AzureHttpTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             var urls = File.ReadAllLines(urlsFile);
             var test = new AzureHttpTriggerTest(functionName, eps, warmUpTimeInMinutes, urls);
             HttpTriggerTest(test, urls, loadProfile, repeat, durationMinutes);
         }
 
-        private void AzureStorageTest(TriggerTypes triggerType, string functionName, string items, string source, string target, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 3)
+        private void AzureStorageTest(TriggerTypes triggerType, string functionName, string items, string source, string target, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             FunctionTest test;
             switch (triggerType)
@@ -151,7 +151,7 @@ namespace SampleUsages
             }
             else if (loadProfile.Equals("LinearRamp", StringComparison.CurrentCultureIgnoreCase))
             {
-                profile = new LinearWithRumpUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
+                profile = new LinearWithRampUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
             }
         else
             {
@@ -185,7 +185,7 @@ namespace SampleUsages
             }
             else if (loadProfile.Equals("LinearRamp", StringComparison.CurrentCultureIgnoreCase))
             {
-                profile = new LinearWithRumpUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
+                profile = new LinearWithRampUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
             }
             else
             {

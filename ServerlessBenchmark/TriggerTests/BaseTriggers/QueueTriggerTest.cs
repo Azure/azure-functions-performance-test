@@ -94,7 +94,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 });
                 messages = (IEnumerable<object>) taskMesagesResponse.Data;
                 count += messages == null ? 0 : messages.Count();
-                Console.WriteLine("Destination Messages - Number Of Messages:     {0}", count);
+                Logger.LogInfo("Destination Messages - Number Of Messages:     {0}", count);
                 Thread.Sleep(1 * 1000);
                 if (count != lastCountSeen)
                 {
@@ -104,7 +104,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
                 if ((startTime - lastTimeCountChanged) > timeout)
                 {
-                    Console.WriteLine("Waiting for destination queue to reach expected count timed out: {0}/{1}", count, ExpectedExecutionCount);
+                    Logger.LogInfo("Waiting for destination queue to reach expected count timed out: {0}/{1}", count, ExpectedExecutionCount);
                     break;
                 }
             } while (count < expected);

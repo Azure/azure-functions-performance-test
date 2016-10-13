@@ -14,6 +14,7 @@ namespace ServerlessBenchmark.PerfResultProviders
 {
     public class FunctionLogs
     {
+        public static ILogger _logger;
         private static CloudTable _azureFunctionLogTable;
         private static string _azureStorageConnectionString = null;
         private static CloudTable AzureFunctionLogTable
@@ -35,7 +36,7 @@ namespace ServerlessBenchmark.PerfResultProviders
                         }
                         catch (Exception)
                         {
-                            Console.WriteLine("Error in getting azure table");
+                            _logger.LogWarning("Error in getting azure table");
                             throw;
                         }
                     }
@@ -60,7 +61,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             using (var cwClient = new AmazonCloudWatchLogsClient())
             {
                 var logStreams = GetAllLogStreams(functionName, cwClient);
-                Console.WriteLine("Deleting Log Streams");
+                _logger.LogInfo("Deleting Log Streams");
                 logStreams.ForEach(s => cwClient.DeleteLogStream(new DeleteLogStreamRequest("/aws/lambda/" + functionName, s.LogStreamName)));
                 isEmpty = GetAllLogStreams(functionName, cwClient).Count == 0;
             }
@@ -71,20 +72,21 @@ namespace ServerlessBenchmark.PerfResultProviders
         {
             bool tablePurged = false;
             _azureStorageConnectionString = storageConnectionString;
-            Console.WriteLine("Purge Azure Function Table...");
+            _logger.LogInfo("Purge Azure Function Table...");
             var table = AzureFunctionLogTable;
             var tableDeleted = await table.DeleteIfExistsAsync().ConfigureAwait(false);
             await Task.Delay(2000);
             await Utility.RetryHelperAsync(async () =>
             {
                 tablePurged = await table.CreateIfNotExistsAsync().ConfigureAwait(false);
-            });
+            }, 
+            _logger);
             return tablePurged;
         }
 
         private static List<AzureFunctionLogs> GetAzureFunctionLogsInternal(string functionName, DateTime? startTime, int expectedExecutionCount, int waitForAllLogsTimeoutInMinutes, bool includeIncomplete)
         {
-            Console.WriteLine("Getting Azure Function logs from Azure Storage Tables..");
+            _logger.LogInfo("Getting Azure Function logs from Azure Storage Tables..");
             var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
             var _azurefunctionLogs = new List<AzureFunctionLogs>();
 
@@ -129,7 +131,7 @@ namespace ServerlessBenchmark.PerfResultProviders
                     {
                         var secondsSinceLastNewLog = (DateTime.UtcNow - latestNewLog).TotalSeconds;
                         var secondsStillToWait = 60 * waitForAllLogsTimeoutInMinutes - secondsSinceLastNewLog;
-                        Console.WriteLine(
+                        _logger.LogInfo(
                             "No new log for {0} seconds. Waiting another {1}s to finish.",
                             secondsSinceLastNewLog,
                             secondsStillToWait
@@ -141,11 +143,11 @@ namespace ServerlessBenchmark.PerfResultProviders
                         break;
                     }
 
-                    Console.WriteLine("Log count {0} expected {1}", size, expectedExecutionCount);
+                    _logger.LogInfo("Log count {0} expected {1}", size, expectedExecutionCount);
 
                     if ((DateTime.UtcNow - latestNewLog).TotalMinutes >= waitForAllLogsTimeoutInMinutes)
                     {
-                        Console.WriteLine("Not all result logs have been found! No new logs appeared in last {0} minutes. Finishing wait to present results.", waitForAllLogsTimeoutInMinutes);
+                        _logger.LogInfo("Not all result logs have been found! No new logs appeared in last {0} minutes. Finishing wait to present results.", waitForAllLogsTimeoutInMinutes);
                         break;
                     }
 

@@ -92,7 +92,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 {
                     Source = DstBlobContainer
                 }).Data;
-                Console.WriteLine("Destination Blobs - Number Of Blobs:     {0}", blobs.Count());
+                this.Logger.LogInfo("Destination Blobs - Number Of Blobs:     {0}", blobs.Count());
                 Thread.Sleep(1 * 1000);
             } while (blobs.Count() < expected);
             return true;

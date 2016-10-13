@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.Runtime.Internal.Util;
 using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
@@ -14,6 +15,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class FunctionTest
     {
+        public ILogger Logger { get; set; } = new ConsoleLogger();
         protected string FunctionName { get; set; }
         protected abstract IEnumerable<string> SourceItems { get; set; }
         protected int ExpectedExecutionCount;
@@ -50,7 +52,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 await TestWarmup();
             }
 
-            Console.WriteLine("--START-- Running load");
+            Logger.LogInfo("--START-- Running load");
             var startTime = DateTime.Now;
 
             this.TestWithResults = new Test
@@ -72,7 +74,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var clientEndTime = DateTime.Now;
             this.TestWithResults.EndTime = clientEndTime.ToUniversalTime();
             this.TestRepository.UpdateTest(this.TestWithResults);
-            Console.WriteLine("--END-- Elapsed time:      {0}", sw.Elapsed);
+            Logger.LogInfo("--END-- Elapsed time:      {0}", sw.Elapsed);
             await PreReportGeneration(startTime, clientEndTime);
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, startTime, clientEndTime, expectedExecutionCount: ExpectedExecutionCount);
             return perfResult;
@@ -101,7 +103,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             }
             _executionsPerSecond = selectedItems.Count;
             SaveCurrentProgessToDb();
-            Console.WriteLine(PrintTestProgress());
+            Logger.LogInfo(PrintTestProgress());
             Interlocked.Add(ref ExpectedExecutionCount, selectedItems.Count());
             await Load(selectedItems);
         }

@@ -28,11 +28,11 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override bool TestSetupWithRetry()
         {
-            Console.WriteLine("{0} trigger tests - setup", StorageType);
+            Logger.LogInfo("{0} trigger tests - setup", StorageType);
             bool successfulSetup;
             try
             {
-                Console.WriteLine("Deleting storage items");
+                Logger.LogInfo("Deleting storage items");
                 var cloudPlatformResponses = CleanUpStorageResources();
                 var undoneJobs =
                     cloudPlatformResponses.Where(
@@ -48,24 +48,24 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected async override Task TestWarmup()
         {
-          Console.WriteLine("{0} Trigger Warmup - Starting", StorageType);
+            Logger.LogInfo("{0} Trigger Warmup - Starting", StorageType);
 
             var sw = Stopwatch.StartNew();
 
             await UploadItems(new[] { SourceItems.First() });
 
-            Console.WriteLine("{0} Trigger Warmup - Verify test", StorageType);
+            Logger.LogInfo("{0} Trigger Warmup - Verify test", StorageType);
 
             bool isWarmUpSuccess = await VerifyTargetDestinationStorageCount(1);
 
             sw.Stop();
 
-            Console.WriteLine("{0} Trigger Warmup - Clean Up", StorageType);
+            Logger.LogInfo("{0} Trigger Warmup - Clean Up", StorageType);
 
             TestSetupWithRetry();
 
-            Console.WriteLine(isWarmUpSuccess ? "Warmup - Done!" : "Warmup - Done with failures");
-            Console.WriteLine("{1} Trigger Warmup - Elapsed Time: {0}ms", sw.ElapsedMilliseconds, StorageType);
+            Logger.LogInfo(isWarmUpSuccess ? "Warmup - Done!" : "Warmup - Done with failures");
+            Logger.LogInfo("{1} Trigger Warmup - Elapsed Time: {0}ms", sw.ElapsedMilliseconds, StorageType);
         }
 
         protected async override Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime)

@@ -102,6 +102,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleLogger.cs" />
+    <Compile Include="ILogger.cs" />
     <Compile Include="LoadProfiles\LinearLoad.cs" />
     <Compile Include="LoadProfiles\LinearWithRumpUp.cs" />
     <Compile Include="LoadProfiles\TriggerTestLoadProfile.cs" />

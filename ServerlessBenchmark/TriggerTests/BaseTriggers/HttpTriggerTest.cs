@@ -119,7 +119,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         Interlocked.Increment(ref _totalRequests);
                         if (!_runningTasks.TryAdd(request.Id, request))
                         {
-                            Console.WriteLine("Error on tracking this task");
+                            Logger.LogWarning("Error on tracking this task");
                         }
                         var response = await request;
                         var responseReceived = DateTime.Now;
@@ -163,8 +163,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
                         if (_totalActiveRequests == 0)
                         {
-                            Console.WriteLine(testProgressString);
-                            Console.WriteLine("Finished Outstanding Requests");
+                            Logger.LogInfo(testProgressString);
+                            Logger.LogInfo("Finished Outstanding Requests");
                             break;
                         }
 
@@ -177,20 +177,20 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         {
                             var secondsSinceLastNewSize = (DateTime.Now - lastNewSize).TotalSeconds;
                             var secondsLeft = TimeSpan.FromMilliseconds(Constants.LoadCoolDownTimeout).TotalSeconds - secondsSinceLastNewSize;
-                            Console.WriteLine("No new requests for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
+                            Logger.LogInfo("No new requests for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
 
                             if (secondsLeft < 0)
                             {
                                 break;
                             }
                         }
-                        
-                        Console.WriteLine(testProgressString);
+
+                        Logger.LogInfo(testProgressString);
                         await Task.Delay(_tickTimeInMiliseconds);
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e);
+                        Logger.LogException(e);
                     }
                 }
             }

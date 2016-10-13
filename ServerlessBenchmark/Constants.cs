@@ -28,7 +28,9 @@ namespace ServerlessBenchmark
         public const int LoadCoolDownTimeout = 180 * 1000;
     }
 
-    public enum TriggerTypes { Blob, Queue, Http}
+    public enum TriggerType { Blob, Queue, Http, AmazonSqsOnly }
+
+    public enum LoadProfilesType { Linear, LinearRampUp }
 
     public enum Platform { Azure, Amazon }
 }

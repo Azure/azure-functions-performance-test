@@ -35,7 +35,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                this.Logger.LogException(e);
                 throw;
             }
             return responses;

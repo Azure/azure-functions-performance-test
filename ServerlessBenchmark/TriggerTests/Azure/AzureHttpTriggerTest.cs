@@ -10,7 +10,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureHttpTriggerTest:HttpTriggerTest
     {
-        public AzureHttpTriggerTest(string functionName, IEnumerable<string> urls) : base(functionName, urls.ToArray())
+        public AzureHttpTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> urls) : base(functionName, eps, warmUpTimeInMinutes, urls.ToArray())
         {
 
         }
@@ -28,7 +28,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AzureGenericPerformanceResultsProvider(); }
+            get { return new AzureGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
         }
     }
 }

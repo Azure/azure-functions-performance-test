@@ -103,6 +103,10 @@
       <Project>{582cc16b-6c75-494b-b27f-7a769dec0c30}</Project>
       <Name>ServerlessBenchmark</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ServerlessResultManager\ServerlessResultManager.csproj">
+      <Project>{288bf0d3-d4d2-420a-a015-66569a20102b}</Project>
+      <Name>ServerlessResultManager</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestSamples\Blob-NodeJs-CPUIntensive\index.js" />
@@ -115,7 +119,9 @@
     <Content Include="TestSamples\Queue-NodeJs-HighMemory\index.js" />
     <Content Include="TestSamples\Queue-NodeJs-LowUsage\index.js" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

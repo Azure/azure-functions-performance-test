@@ -8,6 +8,7 @@
     var failedCountMetricName = "FailedCount";
     var timeoutCountMetricName = "TimeoutCount";
     var averageLatencyMetricName = "AverageLatency";
+    var hostConcurrencyMetricName = "HostConcurrency";
 }
 
 <div id="test-@Model.Id">
@@ -98,11 +99,12 @@
 
     $(function() {
         // Set up the control widget
-        var plot = $.plot("#@containerName", [ ], {
+        var plot = $.plot("#@containerName", [], {
             series: {
-                shadowSize: 0	// Drawing is faster without shadows
+                shadowSize: 0 // Drawing is faster without shadows
             },
-            yaxis: [{
+            yaxis: [
+            {
                 min: 0,
                 position: "left",
                 alignTicksWithAxis: null
@@ -110,6 +112,10 @@
             {
                 position: "right",
                 alignTicksWithAxis: 1
+            },
+            {
+                min: 0,
+                position: "left:"
             }],
             xaxis: {
                 show: true,
@@ -127,7 +133,7 @@
         var failedCountMetricName = '@failedCountMetricName';
         var timeoutCountMetricName = '@timeoutCountMetricName';
         var averageLatencyMetricName = '@averageLatencyMetricName';
-
+        var hostConcurrencyMetricName = '@hostConcurrencyMetricName';
 
         function plotNewData(callback) {
             var url = "@dataPollUrl";
@@ -142,6 +148,7 @@
                 dataCache.push({ label: failedCountMetricName, data: data[failedCountMetricName] });
                 dataCache.push({ label: timeoutCountMetricName, data: data[timeoutCountMetricName] });
                 dataCache.push({ label: averageLatencyMetricName, data: data[averageLatencyMetricName], yaxis: 2 });
+                dataCache.push({ label: hostConcurrencyMetricName, data: data[hostConcurrencyMetricName], yaxis: 3 });
                 plot.setData(dataCache);
                 plot.setupGrid();
                 plot.draw();

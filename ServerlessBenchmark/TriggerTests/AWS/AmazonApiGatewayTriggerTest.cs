@@ -7,7 +7,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 {
     public class AmazonApiGatewayTriggerTest:HttpTriggerTest
     {
-        public AmazonApiGatewayTriggerTest(string functionName, string[] urls) : base(functionName, urls)
+        public AmazonApiGatewayTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] urls) : base(functionName, eps, warmUpTimeInMinutes, urls)
         {
         }
 
@@ -23,7 +23,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AwsGenericPerformanceResultsProvider(); }
+            get { return new AwsGenericPerformanceResultsProvider {DatabaseTest = this.TestWithResults}; }
         }
     }
 }

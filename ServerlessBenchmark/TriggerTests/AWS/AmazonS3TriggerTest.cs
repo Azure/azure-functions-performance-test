@@ -10,9 +10,9 @@ namespace ServerlessBenchmark.TriggerTests.AWS
     public class AmazonS3TriggerTest:BlobTriggerTest
     {
 
-        public AmazonS3TriggerTest(string functionName, IEnumerable<string> blobs, string sourceBlobContainer,
+        public AmazonS3TriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> blobs, string sourceBlobContainer,
             string destinationBlobContainer)
-            : base(functionName, blobs.ToArray(), sourceBlobContainer, destinationBlobContainer)
+            : base(functionName, eps, warmUpTimeInMinutes, blobs.ToArray(), sourceBlobContainer, destinationBlobContainer)
         {
             
         }
@@ -34,7 +34,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AwsGenericPerformanceResultsProvider(); }
+            get { return new AwsGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
         }
     }
 }

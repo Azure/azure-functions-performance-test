@@ -14,7 +14,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected readonly string DstBlobContainer;
         protected readonly string _functionName;
 
-        protected BlobTriggerTest(string functionName, string[] blobs, string sourceBlobContainer, string destinationBlobContainer):base(functionName, blobs)
+        protected BlobTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] blobs, string sourceBlobContainer, string destinationBlobContainer):base(functionName, eps, warmUpTimeInMinutes, blobs)
         {
             if (string.IsNullOrEmpty(functionName) || string.IsNullOrEmpty(sourceBlobContainer) || string.IsNullOrEmpty(destinationBlobContainer)
                 || blobs == null)
@@ -27,7 +27,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             _functionName = functionName;
         }
 
-        public BlobTriggerTest():base(null, null) { }
+        public BlobTriggerTest():base(null, 0, 0, null) { }
 
         protected virtual string WarmUpBlob
         {

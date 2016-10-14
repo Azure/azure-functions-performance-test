@@ -8,11 +8,14 @@ using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 using ServerlessBenchmark.MetricInfo;
+using ServerlessResultManager;
 
 namespace ServerlessBenchmark.PerfResultProviders
 {
     public abstract class PerfResultProvider
     {
+        public Test DatabaseTest { get; set; }
+
         protected void PrintThroughputGraph(Dictionary<DateTime, double> data, string fileName, int timeResolutionInSeconds)
         {
             var model = new PlotModel { Title = "Throughput in time (items finished/second)" };
@@ -59,6 +62,48 @@ namespace ServerlessBenchmark.PerfResultProviders
                 perfResults.AddMetric(additionalPerfResult.Key, additionalPerfResult.Value);
             }
             return perfResults;
+        }
+
+        protected void UpdateResultsWithHostConcurrency(Test dbTest, Dictionary<DateTime, int> results, bool force = false)
+        {
+            var toleranceInSeconds = 5;
+
+            foreach (var result in dbTest.TestResults)
+            {
+                if (force || result.HostConcurrency == null)
+                {
+                    var time = result.Timestamp;
+                    var closestInfo = results
+                        .Where(x => x.Key >= time && (x.Key - time) <= TimeSpan.FromSeconds(toleranceInSeconds))
+                        .OrderBy(x => x.Key);
+
+                    if (closestInfo.Any())
+                    {
+                        result.HostConcurrency = closestInfo.First().Value;
+                    }
+                }
+            }
+        }
+
+        protected void UpdateResultsWithLatency(Test dbTest, IDictionary<DateTime, double> results, bool force = false)
+        {
+            var toleranceInSeconds = 5;
+
+            foreach (var result in dbTest.TestResults)
+            {
+                if (force || Math.Abs(result.AverageLatency) < 0.00001)
+                {
+                    var time = result.Timestamp;
+                    var closestInfo = results
+                        .Where(x => x.Key >= time && (x.Key - time) <= TimeSpan.FromSeconds(toleranceInSeconds))
+                        .OrderBy(x => x.Key);
+
+                    if (closestInfo.Any())
+                    {
+                        result.AverageLatency = closestInfo.First().Value;
+                    }
+                }
+            }
         }
     }
 }

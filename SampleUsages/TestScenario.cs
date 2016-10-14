@@ -38,49 +38,49 @@ namespace SampleUsages
             {
                 AssertInput("FunctionName", "InputPath", "InputObject", "OutputObject");
                 var blobs = Directory.GetFiles(this.InputPath);
-                test = new AmazonS3TriggerTest(this.FunctionName, blobs, this.InputObject, this.OutputObject);
+                test = new AmazonS3TriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, blobs, this.InputObject, this.OutputObject);
                 inputCount = blobs.Count();
             }
             else if (scenarioType.Compare(Platform.Amazon, TriggerType.Http))
             {
                 AssertInput("FunctionName", "InputPath");
                 var urls = File.ReadAllLines(this.InputPath);
-                test = new AmazonApiGatewayTriggerTest(this.FunctionName, urls);
+                test = new AmazonApiGatewayTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, urls);
                 inputCount = urls.Count();
             }
             else if (scenarioType.Compare(Platform.Amazon, TriggerType.Queue))
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
                 var queueMessages = File.ReadAllLines(this.InputPath);
-                test = new AmazonSnsToSqs(this.FunctionName, queueMessages, this.InputObject, this.OutputObject);
+                test = new AmazonSnsToSqs(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject);
                 inputCount = queueMessages.Count();
             }
             else if (scenarioType.Compare(Platform.Amazon, TriggerType.AmazonSqsOnly))
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
                 var queueMessages = File.ReadAllLines(this.InputPath);
-                test = new AmazonSqsTriggerTest(this.FunctionName, queueMessages, this.InputObject, this.OutputObject);
+                test = new AmazonSqsTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject);
                 inputCount = queueMessages.Count();
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Blob))
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
                 var blobs = Directory.GetFiles(this.InputPath);
-                test = new AzureBlobTriggerTest(this.FunctionName, blobs, this.InputObject, this.OutputObject);
+                test = new AzureBlobTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, blobs, this.InputObject, this.OutputObject);
                 inputCount = blobs.Count();
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Http))
             {
                 AssertInput("InputPath", "FunctionName");
                 var urls = File.ReadAllLines(this.InputPath);
-                test = new AzureHttpTriggerTest(this.FunctionName, urls);
+                test = new AzureHttpTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, urls);
                 inputCount = urls.Count();
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Queue))
             {
                 AssertInput("FunctionName", "InputObject", "OutputObject");
                 var queueMessages = File.ReadAllLines(this.InputPath);
-                test = new AzureQueueTriggerTest(this.FunctionName, queueMessages, this.InputObject, this.OutputObject);
+                test = new AzureQueueTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject);
                 inputCount = queueMessages.Count();
             }
             else
@@ -116,7 +116,7 @@ namespace SampleUsages
                     }
                     break;
                 case LoadProfilesType.LinearRampUp:
-                    profile = new LinearWithRumpUp(TimeSpan.FromMinutes(this.DurationInMinutes),
+                    profile = new LinearWithRampUp(TimeSpan.FromMinutes(this.DurationInMinutes),
                         this.Eps == 0 ? 1 : this.Eps);
                     break;
                 default:

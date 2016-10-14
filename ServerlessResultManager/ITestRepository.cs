@@ -14,7 +14,7 @@ namespace ServerlessResultManager
 
         TestResult AddTestResult(Test test, TestResult testResult);
 
-        void UpdateTest(Test testWithResults);
+        void UpdateTest(Test testWithResults, bool saveResults);
 
         IEnumerable<TestResult> GetResultsForTestAfter(int testId, DateTime startDate);
 

@@ -20,6 +20,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var executionTimes = RetrieveExecutionTimes(logs);
             var avgExecutionTime = executionTimes.Average(e => e.TotalMilliseconds);
+
+            if (this.DatabaseTest != null)
+            {
+                UpdateResultsWithLatency(this.DatabaseTest, RetrieveAvgExecutionTimesPerSecond(logs));
+            }
+
             return TimeSpan.FromMilliseconds(avgExecutionTime);
         }
 
@@ -129,6 +135,8 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
 
             var fileName = string.Format("{0}-HostConcurrency.txt", Guid.NewGuid().ToString());
+            var hostConcurrencyInTime = new Dictionary<DateTime, int>();
+
             using (var logWriter = new StreamWriter(fileName))
             {
                 for (var timeStamp = actualStartTime; timeStamp < actualEndTime; timeStamp = timeStamp.AddSeconds(1))
@@ -137,9 +145,15 @@ namespace ServerlessBenchmark.PerfResultProviders
                     && l.Timestamp < timeStamp.AddSeconds(concurrentTimeWindowInSeconds)).Select(c => c.ContainerName).Distinct().Count();
                     concurrencyList.Add(concurrency);
                     logWriter.WriteLine("{0},{1}", concurrency, timeStamp);
+                    hostConcurrencyInTime[timeStamp] = concurrency;
                 }
             }
 
+            if (this.DatabaseTest != null)
+            {
+                UpdateResultsWithHostConcurrency(this.DatabaseTest, hostConcurrencyInTime);
+            }
+            
             return concurrencyList.Average();
         }
 
@@ -210,10 +224,20 @@ namespace ServerlessBenchmark.PerfResultProviders
             return _logs;
         }
 
-        private IEnumerable<TimeSpan>RetrieveExecutionTimes(IEnumerable<FunctionLogs.AzureFunctionLogs> logs)
+        private IEnumerable<TimeSpan> RetrieveExecutionTimes(IEnumerable<FunctionLogs.AzureFunctionLogs> logs)
         {
             var executionTimes = logs.Select(l => TimeSpan.FromMilliseconds((l.EndTime - l.StartTime).Milliseconds));
             return executionTimes;
+        }
+
+        private IDictionary<DateTime, double> RetrieveAvgExecutionTimesPerSecond(IEnumerable<FunctionLogs.AzureFunctionLogs> logs)
+        {
+            var grouped =
+                from l in logs
+                group l by TrimMilliseconds(l.EndTime) into g
+                select new { TimeStamp = g.Key, Average = g.Average(l => (l.EndTime - l.StartTime).Milliseconds) };
+
+            return grouped.ToDictionary(x => x.TimeStamp, key => key.Average);
         }
 
         public override PerfTestResult GetPerfMetrics(string functionName, DateTime testStartTime, DateTime testEndTime,

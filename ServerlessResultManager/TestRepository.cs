@@ -76,15 +76,25 @@ namespace ServerlessResultManager
                 testResult.TestId = test.Id;
                 var addedTestResult = model.TestResults.Add(testResult);
                 model.SaveChanges();
+                test.TestResults.Add(addedTestResult);
                 return addedTestResult;
             }
         }
 
-        public void UpdateTest(Test testWithResults)
+        public void UpdateTest(Test testWithResults, bool saveResults = false)
         {
             using (var model = new ServerlessTestModel())
             {
                 model.Tests.AddOrUpdate(testWithResults);
+
+                if (saveResults)
+                {
+                    foreach (var result in testWithResults.TestResults)
+                    {
+                        model.TestResults.AddOrUpdate(result);
+                    }
+                }
+
                 model.SaveChanges();
             }
         }

@@ -135,6 +135,19 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             return response;
         }
 
+        public async Task<CloudPlatformResponse> GetOutputItemsCount(CloudPlatformRequest request)
+        {
+            var operationContext = new OperationContext();
+            var response = new CloudPlatformResponse();
+            var queue = QueueClient.GetQueueReference(request.Source);
+            await queue.FetchAttributesAsync();
+            var queueLength = queue.ApproximateMessageCount;
+            var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 200);
+            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
+            response.Data = queueLength;
+            return response;
+        }
+
         public CloudPlatformResponse PostBlob(CloudPlatformRequest request)
         {
             OperationContext uploadContext = new OperationContext();

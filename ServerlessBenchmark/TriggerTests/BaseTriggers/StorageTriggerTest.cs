@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 
@@ -20,7 +21,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected abstract override ICloudPlatformController CloudPlatformController { get; }
         protected abstract override PerfResultProvider PerfmormanceResultProvider { get; }
 
-        protected StorageTriggerTest(string functionName, string[] items):base(functionName)
+        protected StorageTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] items):base(functionName, eps, warmUpTimeInMinutes)
         {
             FunctionName = functionName;
             SourceItems = items.ToList();
@@ -44,28 +45,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 throw new Exception(String.Format("Could not setup Test"), e);
             }
             return successfulSetup;            
-        }
-
-        protected async override Task TestWarmup()
-        {
-            Logger.LogInfo("{0} Trigger Warmup - Starting", StorageType);
-
-            var sw = Stopwatch.StartNew();
-
-            await UploadItems(new[] { SourceItems.First() });
-
-            Logger.LogInfo("{0} Trigger Warmup - Verify test", StorageType);
-
-            bool isWarmUpSuccess = await VerifyTargetDestinationStorageCount(1);
-
-            sw.Stop();
-
-            Logger.LogInfo("{0} Trigger Warmup - Clean Up", StorageType);
-
-            TestSetupWithRetry();
-
-            Logger.LogInfo(isWarmUpSuccess ? "Warmup - Done!" : "Warmup - Done with failures");
-            Logger.LogInfo("{1} Trigger Warmup - Elapsed Time: {0}ms", sw.ElapsedMilliseconds, StorageType);
         }
 
         protected async override Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime)

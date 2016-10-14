@@ -180,6 +180,37 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             return cResponse;
         }
 
+        public async Task<CloudPlatformResponse> GetOutputItemsCount(CloudPlatformRequest request)
+        {
+            var cResponse = new CloudPlatformResponse();
+            try
+            {
+                ReceiveMessageResponse response;
+                using (var client = new AmazonSQSClient())
+                {
+                    var queueUrl = client.GetQueueUrl(request.Source).QueueUrl;
+                    var length = await client.GetQueueAttributesAsync(queueUrl, new List<string> {"ApproximateNumberOfMessages"});
+                    response = await client.ReceiveMessageAsync(queueUrl);
+
+                    if (response.HttpStatusCode == HttpStatusCode.OK)
+                    {
+                        cResponse.Data = length.ApproximateNumberOfMessages;
+                    }
+                    else
+                    {
+                        cResponse.Data = 0;
+                        cResponse.ErrorDetails.Add("unknown", 1);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            return cResponse;
+        }
+
         public CloudPlatformResponse PostBlob(CloudPlatformRequest request)
         {
             AmazonWebServiceResponse response;

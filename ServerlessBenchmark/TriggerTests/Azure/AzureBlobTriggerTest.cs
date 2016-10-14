@@ -12,8 +12,8 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureBlobTriggerTest:BlobTriggerTest
     {
-        public AzureBlobTriggerTest(string functionName, IEnumerable<string> blobs, string inputContainer,
-            string outputContainer) : base(functionName, blobs.ToArray(), inputContainer, outputContainer)
+        public AzureBlobTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> blobs, string inputContainer,
+            string outputContainer) : base(functionName, eps, warmUpTimeInMinutes, blobs.ToArray(), inputContainer, outputContainer)
         {
             
         }
@@ -40,7 +40,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AzureGenericPerformanceResultsProvider(); }
+            get { return new AzureGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
         }
 
         private bool RemoveAzureFunctionLogs()

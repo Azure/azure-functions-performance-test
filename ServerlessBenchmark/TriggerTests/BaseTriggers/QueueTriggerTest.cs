@@ -5,15 +5,21 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ServerlessBenchmark.ServerlessPlatformControllers;
+using ServerlessResultManager;
 
 namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class QueueTriggerTest:StorageTriggerTest
     {
+        private int _outPutQueueSize;
+        private int _itemsPut;
+        private int _itemsPutInGeneral;
+        private int _lastIterationFinished;
+        private int _tickTimeInMiliseconds = 1000;
         protected string SourceQueue { get; set; }
         protected string TargetQueue { get; set; }
 
-        protected QueueTriggerTest(string functionName, string[] messages, string sourceQueue, string targetQueue):base(functionName, messages)
+        protected QueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, string sourceQueue, string targetQueue):base(functionName, warmUpTimeInMinutes, eps, messages)
         {
             SourceQueue = sourceQueue;
             TargetQueue = targetQueue;
@@ -45,6 +51,22 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             return cloudPlatformResponses;
         }
 
+        protected override void SaveCurrentProgessToDb()
+        {
+            var progressResult = new TestResult
+            {
+                Timestamp = DateTime.UtcNow,
+                CallCount = _itemsPut,
+                FailedCount = 0,
+                SuccessCount = _lastIterationFinished,
+                TimeoutCount = 0,
+                AverageLatency = 0
+            };
+
+            
+            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+        }
+
         protected override string StorageType
         {
             get { return "Queue"; }
@@ -57,7 +79,12 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override async Task UploadItems(IEnumerable<string> items)
         {
+            var currentFinished = await GetCurrentOutputQueueSize();
+            _lastIterationFinished = (int)currentFinished.Data - _outPutQueueSize;
+            _outPutQueueSize = (int)currentFinished.Data;
             await UploadMessagesAsync(items);
+            _itemsPutInGeneral += items.Count();
+            _itemsPut = items?.Count() ?? 0;
         }
 
         private async Task UploadMessagesAsync(IEnumerable<string> messages)
@@ -73,9 +100,66 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             });
         }
 
-        protected override Task TestCoolDown()
+        protected override async Task TestCoolDown()
         {
-            return Task.FromResult(true);
+            // wait until destination queue won't be growing for 1 minutes
+            var lastSize = 0;
+            DateTime lastNewSize = new DateTime();
+            string testProgressString;
+            while (true)
+            {
+                try
+                {
+                    _itemsPut = 0;
+
+                    if (!this.DuringWarmUp)
+                    {
+                        this.SaveCurrentProgessToDb();
+                    }
+
+                    var currentOutPutQueueSize = await GetCurrentOutputQueueSize();
+                    _lastIterationFinished = (int)currentOutPutQueueSize.Data - _outPutQueueSize;
+                    _outPutQueueSize = (int)currentOutPutQueueSize.Data;
+                    testProgressString = PrintTestProgress();
+                    testProgressString = $"OutStanding:    {_itemsPutInGeneral - _outPutQueueSize} (finish: {_outPutQueueSize}/{_itemsPutInGeneral})   {testProgressString}";
+
+                    if (_itemsPutInGeneral - (int)currentOutPutQueueSize.Data == 0)
+                    {
+                        Logger.LogInfo(testProgressString);
+                        Logger.LogInfo("Finished Outstanding Requests");
+                        break;
+                    }
+
+                    if (_lastIterationFinished != 0)
+                    {
+                        lastNewSize = DateTime.Now;
+                    }
+                    else
+                    {
+                        var secondsSinceLastNewSize = (DateTime.Now - lastNewSize).TotalSeconds;
+                        var secondsLeft = TimeSpan.FromMilliseconds(Constants.LoadCoolDownTimeout).TotalSeconds - secondsSinceLastNewSize;
+                        Logger.LogInfo("No new items on destination queue for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
+
+                        if (secondsLeft < 0)
+                        {
+                            break;
+                        }
+                    }
+
+                    Logger.LogInfo(testProgressString);
+                    await Task.Delay(_tickTimeInMiliseconds);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e);
+                }
+            }
+
+            // clear data after run
+            _outPutQueueSize = 0;
+            _itemsPut = 0;
+            _itemsPutInGeneral = 0;
+            _lastIterationFinished = 0;
         }
 
         private async Task<bool> VerifyQueueMessagesExistInTargetQueue(int expected)
@@ -109,6 +193,15 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 }
             } while (count < expected);
             return true;
+        }
+
+        private async Task<CloudPlatformResponse> GetCurrentOutputQueueSize()
+        {
+            return await CloudPlatformController.GetOutputItemsCount(new CloudPlatformRequest()
+            {
+                Key = Guid.NewGuid().ToString(),
+                Source = TargetQueue
+            });
         }
     }
 }

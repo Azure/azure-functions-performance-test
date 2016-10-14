@@ -25,6 +25,8 @@ namespace ServerlessResultManager
 
         public long TestId { get; set; }
 
+        public int? HostConcurrency { get; set; }
+
         public virtual Test Test { get; set; }
     }
 }

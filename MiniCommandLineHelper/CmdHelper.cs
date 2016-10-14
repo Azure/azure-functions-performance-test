@@ -55,7 +55,7 @@ namespace MiniCommandLineHelper
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex.ToString());
                 Console.ForegroundColor = _originalConsoleColor;
-                Console.WriteLine("Exiting benchmark");
+                Console.WriteLine("Exiting benchmark {0}", ex.ToString());
             }
         }
 

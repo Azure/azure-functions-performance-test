@@ -5,6 +5,10 @@ using MiniCommandLineHelper;
 using Newtonsoft.Json;
 using ServerlessBenchmark;
 using ServerlessBenchmark.PerfResultProviders;
+using ServerlessBenchmark.TriggerTests.AWS;
+using ServerlessBenchmark.TriggerTests.Azure;
+using ServerlessBenchmark.TriggerTests.BaseTriggers;
+using ServerlessResultManager;
 
 namespace SampleUsages
 {
@@ -63,7 +67,7 @@ namespace SampleUsages
 
         #region LambdaTests
         [Command]
-        public void S3Test(string functionName, string blobPath, string srcBucket, string targetBucket, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        public void S3Test(string functionName, string blobPath, string srcBucket, string targetBucket, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             RunScenarioWithParameters(
                 Platform.Amazon,
@@ -75,12 +79,13 @@ namespace SampleUsages
                 outputObject: targetBucket,
                 eps: eps,
                 repeat: repeat,
-                durationMinutes: durationMinutes);
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
         public void SqsTest(string functionName, string messages, string srcQueue, string targetQueue,
-            LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+            LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             RunScenarioWithParameters(
                 Platform.Amazon,
@@ -92,11 +97,12 @@ namespace SampleUsages
                 outputObject: targetQueue,
                 eps: eps,
                 repeat: repeat,
-                durationMinutes: durationMinutes);
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
-        public void ApiGatewayTest(string functionName, string urlsFile, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        public void ApiGatewayTest(string functionName, string urlsFile, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             RunScenarioWithParameters(
                 Platform.Amazon,
@@ -106,12 +112,13 @@ namespace SampleUsages
                 urlsFile,
                 eps: eps,
                 repeat: repeat,
-                durationMinutes: durationMinutes);
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
         public void SnsToSqsTest(string functionName, string messages, string srcTopic, string targetQueue,
-            LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+            LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             RunScenarioWithParameters(
                 Platform.Amazon,
@@ -123,7 +130,8 @@ namespace SampleUsages
                 outputObject: targetQueue,
                 eps: eps,
                 repeat: repeat,
-                durationMinutes: durationMinutes);
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
@@ -143,7 +151,7 @@ namespace SampleUsages
 
         [Command]
         public void BlobTest(string functionName, string blobPath, string srcBlobContainer,
-            string targetBlobContainer, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+            string targetBlobContainer, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             RunScenarioWithParameters(
                 Platform.Azure,
@@ -155,12 +163,13 @@ namespace SampleUsages
                 outputObject: targetBlobContainer,
                 eps: eps,
                 repeat: repeat,
-                durationMinutes: durationMinutes);
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
         public void QueueTest(string functionName, string queueItems, string srcQueue,
-            string targetQueue, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+            string targetQueue, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             RunScenarioWithParameters(
                 Platform.Azure,
@@ -172,11 +181,12 @@ namespace SampleUsages
                 outputObject: targetQueue,
                 eps: eps,
                 repeat: repeat,
-                durationMinutes: durationMinutes);
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
-        public void AzureHttpTest(string functionName, string urlsFile, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0)
+        public void AzureHttpTest(string functionName, string urlsFile, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
             RunScenarioWithParameters(
                 Platform.Azure,
@@ -186,14 +196,28 @@ namespace SampleUsages
                 urlsFile,
                 eps: eps,
                 repeat: repeat,
-                durationMinutes: durationMinutes);
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
-        public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime)
+        public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime, int testId = 0)
         {
             var resultsProvider = new AzureGenericPerformanceResultsProvider();
+            TestRepository repo = null;
+            if (testId != 0)
+            {
+                repo = new TestRepository();
+                resultsProvider.DatabaseTest = repo.GetTest(testId, fetchResults: true);
+            }
+
             var results = resultsProvider.GetPerfMetrics(functionName, startTime, endTime);
+
+            if (testId != 0)
+            {
+                repo.UpdateTest(resultsProvider.DatabaseTest, saveResults: true);
+            }
+
             //print perf results
             var originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;
@@ -219,7 +243,8 @@ namespace SampleUsages
             string outputObject = null,
             int eps = 0,
             bool repeat = true,
-            int durationMinutes = 0)
+            int durationMinutes = 0,
+            int warmUpTimeInMinutes = 0)
         {
             var scenario = new TestScenario
             {
@@ -233,6 +258,7 @@ namespace SampleUsages
                 Eps = eps,
                 Repeat = repeat,
                 DurationInMinutes = durationMinutes,
+                WarmUpTimeInMinutes = warmUpTimeInMinutes
             };
 
             scenario.RunScenario(new ConsoleLogger());

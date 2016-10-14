@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
 using ServerlessBenchmark.ServerlessPlatformControllers.AWS;
@@ -9,9 +10,9 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 {
     public class AmazonSqsTriggerTest:QueueTriggerTest
     {
-        public AmazonSqsTriggerTest(string functionName, IEnumerable<string> queueMessages, string sourceBlobContainer,
+        public AmazonSqsTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> queueMessages, string sourceBlobContainer,
             string destinationBlobContainer)
-            : base(functionName, queueMessages.ToArray(), sourceBlobContainer, destinationBlobContainer)
+            : base(functionName, eps, warmUpTimeInMinutes, queueMessages.ToArray(), sourceBlobContainer, destinationBlobContainer)
         {
             
         }
@@ -21,11 +22,6 @@ namespace ServerlessBenchmark.TriggerTests.AWS
             return FunctionLogs.RemoveAllCLoudWatchLogs(FunctionName);
         }
 
-        protected override void SaveCurrentProgessToDb()
-        {
-            // skip
-        }
-
         protected override ICloudPlatformController CloudPlatformController
         {
             get { return new AwsController(this.Logger); }
@@ -33,7 +29,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AwsGenericPerformanceResultsProvider(); }
+            get { return new AwsGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
         }
     }
 }

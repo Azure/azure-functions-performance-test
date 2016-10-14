@@ -34,7 +34,7 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AwsGenericPerformanceResultsProvider(); }
+            get { return new AwsGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
         }
     }
 }

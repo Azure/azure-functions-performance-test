@@ -11,6 +11,7 @@ using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.TriggerTests.AWS;
 using ServerlessBenchmark.TriggerTests.Azure;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
+using ServerlessResultManager;
 
 namespace SampleUsages
 {
@@ -113,10 +114,23 @@ namespace SampleUsages
         }
 
         [Command]
-        public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime)
+        public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime, int testId = 0)
         {
             var resultsProvider = new AzureGenericPerformanceResultsProvider();
+            TestRepository repo = null;
+            if (testId != 0)
+            {
+                repo = new TestRepository();
+                resultsProvider.DatabaseTest = repo.GetTest(testId, fetchResults: true);
+            }
+
             var results = resultsProvider.GetPerfMetrics(functionName, startTime, endTime);
+
+            if (testId != 0)
+            {
+                repo.UpdateTest(resultsProvider.DatabaseTest, saveResults: true);
+            }
+
             //print perf results
             var originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Green;

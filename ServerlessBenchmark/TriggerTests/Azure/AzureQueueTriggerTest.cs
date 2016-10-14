@@ -19,7 +19,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AzureGenericPerformanceResultsProvider(); }
+            get { return new AzureGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
         }
 
         protected override bool Setup()

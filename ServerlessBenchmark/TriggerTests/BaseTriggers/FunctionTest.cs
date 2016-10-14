@@ -90,12 +90,12 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             sw.Stop();
             var clientEndTime = DateTime.Now;
             this.TestWithResults.EndTime = clientEndTime.ToUniversalTime();
-            this.TestRepository.UpdateTest(this.TestWithResults);
+            this.TestRepository.UpdateTest(this.TestWithResults, saveResults: false);
             Console.WriteLine("--END-- Elapsed time:      {0}", sw.Elapsed);
             await PreReportGeneration(startTime, clientEndTime);
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, startTime, clientEndTime, expectedExecutionCount: ExpectedExecutionCount);
             this.TestWithResults.Description = perfResult.ToString();
-            this.TestRepository.UpdateTest(this.TestWithResults);
+            this.TestRepository.UpdateTest(this.TestWithResults, saveResults: true);
             return perfResult;
         }
 

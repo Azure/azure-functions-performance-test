@@ -44,7 +44,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
         }
 
-        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, int expectedExecutionCount = 0, int waitForAllLogsTimeoutInMinutes = 5, bool includeIncomplete = false)
+        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, int expectedExecutionCount = 0, int waitForAllLogsTimeoutInMinutes = 2, bool includeIncomplete = false)
         {
             return GetAzureFunctionLogsInternal(functionName, startTime, expectedExecutionCount, waitForAllLogsTimeoutInMinutes, includeIncomplete);
         }

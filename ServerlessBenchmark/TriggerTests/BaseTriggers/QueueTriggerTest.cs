@@ -51,6 +51,15 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             return cloudPlatformResponses;
         }
 
+        protected override bool TestSetupWithRetry()
+        {
+            _outPutQueueSize = 0;
+            _itemsPut = 0;
+            _itemsPutInGeneral = 0;
+            _lastIterationFinished = 0;
+            return base.TestSetupWithRetry();
+        }
+
         protected override void SaveCurrentProgessToDb()
         {
             var progressResult = new TestResult
@@ -118,7 +127,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     testProgressString = PrintTestProgress();
                     testProgressString = $"OutStanding:    {_itemsPutInGeneral - _outPutQueueSize}    {testProgressString}";
 
-                    if (_itemsPutInGeneral - (int)currentOutPutQueueSize.Data == 0)
+                    if (_itemsPutInGeneral <= (int)currentOutPutQueueSize.Data)
                     {
                         Console.WriteLine(testProgressString);
                         Console.WriteLine("Finished Outstanding Requests");

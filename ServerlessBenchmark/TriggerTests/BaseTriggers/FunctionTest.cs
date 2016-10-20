@@ -17,8 +17,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected string FunctionName { get; set; }
         protected abstract IEnumerable<string> SourceItems { get; set; }
         protected int ExpectedExecutionCount;
-        private int _executionsPerSecond;
-        protected abstract bool TestSetupWithRetry();
+        private int _executionsPerSecond;        
         protected abstract Task TestCoolDown();
         protected abstract Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime);
         protected abstract void SaveCurrentProgessToDb();
@@ -37,9 +36,15 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             Eps = eps;
             WarmUpTimeInMinutes = warmUpTimeInMinutes;
         }
+
+        protected virtual bool TestSetupWithRetry()
+        {
+            ExpectedExecutionCount = 0;
+            return true;
+        }
         
         protected virtual async Task TestWarmup()
-        {
+        {            
             // use linear ramp up load for warmup, don't ramp down at the end
             Console.WriteLine("Trigger Warmup - Starting Scheduled time for warm up: {0} s", WarmUpTimeInMinutes * 60);
             var loadProfile = new LinearWithRampUp(TimeSpan.FromMinutes(WarmUpTimeInMinutes), Eps, rampDown: false);

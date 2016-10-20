@@ -121,7 +121,9 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             var response = new CloudPlatformResponse();
             
             var queue = QueueClient.GetQueueReference(request.Source);
-            var messages = await queue.GetMessagesAsync(Constants.MaxDequeueAmount);            
+            var messages = await queue.GetMessagesAsync(Constants.MaxDequeueAmount);
+
+            await Task.WhenAll(messages.Select(queue.DeleteMessageAsync));            
 
             var messagesString = messages.Select(message => message.AsString);
             var successfulPost = operationContext.RequestResults.All(cxt => cxt.HttpStatusCode == 200);

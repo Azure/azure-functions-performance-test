@@ -150,15 +150,13 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                 using (var client = new AmazonSQSClient())
                 {
                     var queueUrl = client.GetQueueUrl(request.Source).QueueUrl;
-                    response = await client.ReceiveMessageAsync(queueUrl);
+                    response = await client.ReceiveMessageAsync(new ReceiveMessageRequest { MaxNumberOfMessages = ServerlessBenchmark.Constants.MaxDequeueAmount, QueueUrl = queueUrl });
 
                     if (response.HttpStatusCode == HttpStatusCode.OK)
                     {
                         cResponse.Data = response.Messages;
-                        foreach (var message in response.Messages)
-                        {
-                            await client.DeleteMessageAsync(new DeleteMessageRequest(queueUrl, message.ReceiptHandle));
-                        }
+                        var deleteBatch = response.Messages.Select(x => new DeleteMessageBatchRequestEntry(x.MessageId, x.ReceiptHandle)).ToList();
+                        await client.DeleteMessageBatchAsync(queueUrl, deleteBatch);
                     }
                     else
                     {

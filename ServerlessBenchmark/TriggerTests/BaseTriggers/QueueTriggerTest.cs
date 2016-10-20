@@ -19,7 +19,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected string SourceQueue { get; set; }
         protected string TargetQueue { get; set; }
 
-        protected QueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, string sourceQueue, string targetQueue):base(functionName, warmUpTimeInMinutes, eps, messages)
+        protected QueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, string sourceQueue, string targetQueue):base(functionName, eps, warmUpTimeInMinutes, messages)
         {
             SourceQueue = sourceQueue;
             TargetQueue = targetQueue;

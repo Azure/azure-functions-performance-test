@@ -31,7 +31,7 @@ namespace SampleUsages
         public void LogException(Exception ex)
         {
             var fg = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.Red;
             LogException("<EXCEPTION> {0}", ex);
             Console.ForegroundColor = fg;
         }

@@ -16,14 +16,8 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
 {
     public class AwsController: ICloudPlatformController
     {
-        private ILogger _logger;
-
-        public AwsController(ILogger logger)
-        {
-            this._logger = logger;
-        }
-
         public Platform PlatformName => Platform.Amazon;
+        public ILogger Logger { get; set;  } = new ConsoleLogger();
 
         protected AmazonSimpleNotificationServiceClient SnsClient
         {
@@ -62,7 +56,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             var doneTask = await Task.WhenAny(aggregateTasks);
             if (doneTask.Id == timeoutTask.Id)
             {
-                this._logger.LogWarning("--ERROR-- Reached timeout {0}ms", timeout);
+                this.Logger.LogException("--ERROR-- Reached timeout {0}ms", timeout);
                 throw new Exception();
             }
             else
@@ -139,11 +133,11 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             }
             catch (InvalidCastException)
             {
-                this._logger.LogWarning("Data needs to be IEnumberable of strings");
+                this.Logger.LogWarning("Data needs to be IEnumberable of strings");
             }
             catch (Exception ex)
             {
-                this._logger.LogException(ex);
+                this.Logger.LogException(ex);
             }
             return cResponse;
         }
@@ -175,7 +169,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
             }
             catch (Exception ex)
             {
-                this._logger.LogException(ex);
+                this.Logger.LogException(ex);
             }
             return cResponse;
         }
@@ -304,7 +298,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                         int num = keys.Count;
                         do
                         {
-                            this._logger.LogInfo("Deleting Blobs - Remaining:       {0}", num);
+                            this.Logger.LogInfo("Deleting Blobs - Remaining:       {0}", num);
                             num -= (num < deleteLimit ? num : deleteLimit);
                             var takenKeys = keys.Take(deleteLimit).ToList();
                             response = client.DeleteObjects(new DeleteObjectsRequest()
@@ -320,9 +314,9 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                         DeleteObjectsResponse errorResponse = e.Response;
                         foreach (DeleteError deleteError in errorResponse.DeleteErrors)
                         {
-                            this._logger.LogInfo("Error deleting item " + deleteError.Key);
-                            this._logger.LogInfo(" Code - " + deleteError.Code);
-                            this._logger.LogInfo(" Message - " + deleteError.Message);
+                            this.Logger.LogInfo("Error deleting item " + deleteError.Key);
+                            this.Logger.LogInfo(" Code - " + deleteError.Code);
+                            this.Logger.LogInfo(" Message - " + deleteError.Message);
                         }
                     }
                 }
@@ -350,9 +344,9 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
                 {
                     if (retries > 0)
                     {
-                        this._logger.LogWarning("Encountered error while publishing message to SNS topic: {0}", topic);
-                        this._logger.LogException(e);
-                        this._logger.LogInfo("Retrying...");
+                        this.Logger.LogWarning("Encountered error while publishing message to SNS topic: {0}", topic);
+                        this.Logger.LogException(e);
+                        this.Logger.LogInfo("Retrying...");
                         retries -= 1;
                     }
                     else

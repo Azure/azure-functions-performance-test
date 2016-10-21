@@ -24,7 +24,13 @@ namespace ServerlessBenchmark.TriggerTests.AWS
 
         protected override ICloudPlatformController CloudPlatformController
         {
-            get { return new AwsController(this.Logger); }
+            get
+            {
+                return new AwsController
+                {
+                    Logger = this.Logger
+                };
+            }
         }
 
         protected override PerfResultProvider PerfmormanceResultProvider

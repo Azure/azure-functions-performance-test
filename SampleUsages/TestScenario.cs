@@ -138,7 +138,7 @@ namespace SampleUsages
         private void AssertInput(params string[] properties)
         {
             var fault = false;
-            var expcetions = new List<Exception>();
+            var exceptions = new List<Exception>();
 
             foreach (var propertyName in properties)
             {
@@ -146,7 +146,7 @@ namespace SampleUsages
                 if (property.GetValue(this) == null)
                 {
                     var exception = new ArgumentException($"Required test parameter {property.Name} has not been specified.");
-                    expcetions.Add(exception);
+                    exceptions.Add(exception);
                     this._logger.LogException(exception);
                     fault = true;
                 }
@@ -154,7 +154,7 @@ namespace SampleUsages
 
             if (fault)
             {
-                throw new AggregateException(expcetions);
+                throw new AggregateException(exceptions);
             }
         }
     }

@@ -35,6 +35,7 @@ namespace SampleUsages
                 catch (JsonException ex)
                 {
                     Console.WriteLine($"Failed to parse input file. {ex}");
+                    return;
                 }
             }
 

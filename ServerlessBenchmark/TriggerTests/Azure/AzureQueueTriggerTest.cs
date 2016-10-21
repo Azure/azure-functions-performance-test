@@ -14,7 +14,13 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         protected override ICloudPlatformController CloudPlatformController
         {
-            get { return new AzureController(); }
+            get
+            {
+                return new AzureController
+                {
+                    Logger = this.Logger
+                };
+            }
         }
 
         protected override PerfResultProvider PerfmormanceResultProvider
@@ -25,7 +31,8 @@ namespace ServerlessBenchmark.TriggerTests.Azure
         protected override bool Setup()
         {
             return Utility.RemoveAzureFunctionLogs(FunctionName,
-                ConfigurationManager.AppSettings["AzureStorageConnectionString"]);
+                ConfigurationManager.AppSettings["AzureStorageConnectionString"],
+                this.Logger);
         }
     }
 }

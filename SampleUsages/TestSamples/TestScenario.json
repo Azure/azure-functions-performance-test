@@ -1,0 +1,26 @@
+﻿[{
+    "functionName": "QueueCPU",
+    "platform": "Azure",
+    "inputPath": "path\\to\\inputItems.txt",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-csharp-cpu-perf-test",
+    "outputObject": "samples-csharp-cpu-perf-test-output",
+    "eps": 60,
+    "repeat": true,
+    "durationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
+},
+{
+    "functionName": "QueueTriggerNodeJS1",
+    "platform": "Azure",
+    "inputPath": "path\\to\\inputItems.txt",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-node-js-cpu-perf-test",
+    "outputObject": "outqueue",
+    "eps": 60,
+    "repeat": true,
+    "DurationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
+}]

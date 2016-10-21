@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
 using MiniCommandLineHelper;
+using Newtonsoft.Json;
 using ServerlessBenchmark;
-using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.TriggerTests.AWS;
 using ServerlessBenchmark.TriggerTests.Azure;
@@ -19,43 +16,123 @@ namespace SampleUsages
     {
         public new static void Main(string[] args)
         {
+            FunctionLogs._logger = new ConsoleLogger();
             var p = new Program();
             ((CmdHelper) p).Main(args);
         }
 
+        [Command]
+        public void RunScenario(string scenarioFilePath)
+        {
+            var testScenarios = new List<TestScenario>();
+            using (StreamReader r = new StreamReader(scenarioFilePath))
+            {
+                string json = r.ReadToEnd();
+                try
+                {
+                    testScenarios = JsonConvert.DeserializeObject<List<TestScenario>>(json);
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"Failed to parse input file. {ex}");
+                    return;
+                }
+            }
+
+            Console.WriteLine("Start running scenarios.");
+            var counter = 0;
+            var now = DateTime.UtcNow;
+
+            foreach (var testScenario in testScenarios)
+            {
+                Console.WriteLine($"Start running scenario for function {testScenario.FunctionName} {++counter}/{testScenarios.Count}.");
+                var logFilePath = $"{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
+
+                using (var logger = new FileLogger(logFilePath))
+                {
+                    try
+                    {
+                        FunctionLogs._logger = logger;
+                        testScenario.RunScenario(logger);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Error while running {testScenario.FunctionName} check {logFilePath} for log details.");
+                        Console.WriteLine($"Exception {e}");
+                    }
+                }
+
+                Console.WriteLine($"Finished running scenario {counter}/{testScenarios.Count}.");
+            }
+        }
+
         #region LambdaTests
         [Command]
-        public void S3Test(string functionName, string blobPath, string srcBucket, string targetBucket, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
+        public void S3Test(string functionName, string blobPath, string srcBucket, string targetBucket, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
-            var blobs = Directory.GetFiles(blobPath);
-            var test = new AmazonS3TriggerTest(functionName, eps, warmUpTimeInMinutes, blobs, srcBucket, targetBucket);
-            StorageTriggerTest(test, blobs, loadProfile, repeat, durationMinutes);
+            RunScenarioWithParameters(
+                Platform.Amazon,
+                TriggerType.Blob,
+                loadProfile,
+                functionName,
+                blobPath,
+                inputObject: srcBucket,
+                outputObject: targetBucket,
+                eps: eps,
+                repeat: repeat,
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
         public void SqsTest(string functionName, string messages, string srcQueue, string targetQueue,
-            string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
+            LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
-            var queueMessages = File.ReadAllLines(messages);
-            var test = new AmazonSqsTriggerTest(functionName, eps, warmUpTimeInMinutes, queueMessages, srcQueue, targetQueue);
-            StorageTriggerTest(test, queueMessages, loadProfile, repeat, durationMinutes);
+            RunScenarioWithParameters(
+                Platform.Amazon,
+                TriggerType.AmazonSqsOnly,
+                loadProfile,
+                functionName,
+                messages,
+                inputObject: srcQueue,
+                outputObject: targetQueue,
+                eps: eps,
+                repeat: repeat,
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
-        public void ApiGatewayTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
+        public void ApiGatewayTest(string functionName, string urlsFile, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
-            var urls = File.ReadAllLines(urlsFile);
-            var test = new AmazonApiGatewayTriggerTest(functionName, eps, warmUpTimeInMinutes, urls);
-            HttpTriggerTest(test, urls, loadProfile, repeat, durationMinutes);
+            RunScenarioWithParameters(
+                Platform.Amazon,
+                TriggerType.Http,
+                loadProfile,
+                functionName,
+                urlsFile,
+                eps: eps,
+                repeat: repeat,
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
         public void SnsToSqsTest(string functionName, string messages, string srcTopic, string targetQueue,
-            string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
+            LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
-            var queueMessages = File.ReadAllLines(messages);
-            var test = new AmazonSnsToSqs(functionName, eps, warmUpTimeInMinutes, queueMessages, srcTopic, targetQueue);
-            StorageTriggerTest(test, queueMessages, loadProfile, repeat, durationMinutes);
+            RunScenarioWithParameters(
+                Platform.Amazon,
+                TriggerType.Queue,
+                loadProfile,
+                functionName,
+                messages,
+                inputObject: srcTopic,
+                outputObject: targetQueue,
+                eps: eps,
+                repeat: repeat,
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
@@ -75,42 +152,53 @@ namespace SampleUsages
 
         [Command]
         public void BlobTest(string functionName, string blobPath, string srcBlobContainer,
-            string targetBlobContainer, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
+            string targetBlobContainer, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
-            AzureStorageTest(TriggerTypes.Blob, functionName, blobPath, srcBlobContainer, targetBlobContainer, loadProfile, eps, repeat, durationMinutes, durationMinutes);
+            RunScenarioWithParameters(
+                Platform.Azure,
+                TriggerType.Blob,
+                loadProfile,
+                functionName,
+                blobPath,
+                inputObject: srcBlobContainer,
+                outputObject: targetBlobContainer,
+                eps: eps,
+                repeat: repeat,
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
         public void QueueTest(string functionName, string queueItems, string srcQueue,
-            string targetQueue, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
+            string targetQueue, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
-            AzureStorageTest(TriggerTypes.Queue, functionName, queueItems, srcQueue, targetQueue, loadProfile, eps, repeat, durationMinutes, warmUpTimeInMinutes);
+            RunScenarioWithParameters(
+                Platform.Azure,
+                TriggerType.Queue,
+                loadProfile,
+                functionName,
+                queueItems,
+                inputObject: srcQueue,
+                outputObject: targetQueue,
+                eps: eps,
+                repeat: repeat,
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
-        public void AzureHttpTest(string functionName, string urlsFile, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
+        public void AzureHttpTest(string functionName, string urlsFile, LoadProfilesType loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
         {
-            var urls = File.ReadAllLines(urlsFile);
-            var test = new AzureHttpTriggerTest(functionName, eps, warmUpTimeInMinutes, urls);
-            HttpTriggerTest(test, urls, loadProfile, repeat, durationMinutes);
-        }
-
-        private void AzureStorageTest(TriggerTypes triggerType, string functionName, string items, string source, string target, string loadProfile, int eps = 0, bool repeat = false, int durationMinutes = 0, int warmUpTimeInMinutes = 0)
-        {
-            FunctionTest test;
-            switch (triggerType)
-            {
-                case TriggerTypes.Blob:
-                    var blobs = Directory.GetFiles(items);
-                    test = new AzureBlobTriggerTest(functionName, eps, warmUpTimeInMinutes, blobs, source, target);
-                    StorageTriggerTest(test, blobs, loadProfile, repeat, durationMinutes);
-                    break;
-                case TriggerTypes.Queue:
-                    var queueMessages = File.ReadAllLines(items);
-                    test = new AzureQueueTriggerTest(functionName, eps, warmUpTimeInMinutes, queueMessages, source, target);
-                    StorageTriggerTest(test, queueMessages, loadProfile, repeat, durationMinutes);
-                    break;
-            }
+            RunScenarioWithParameters(
+                Platform.Azure,
+                TriggerType.Http,
+                loadProfile,
+                functionName,
+                urlsFile,
+                eps: eps,
+                repeat: repeat,
+                durationMinutes: durationMinutes,
+                warmUpTimeInMinutes: warmUpTimeInMinutes);
         }
 
         [Command]
@@ -146,73 +234,35 @@ namespace SampleUsages
             Console.WriteLine($"Azure function log table purged:    {isPurged}");
         }
 
-        private void HttpTriggerTest(FunctionTest functionTest, IEnumerable<string> urls, string loadProfile, bool repeat = false, int durationMinutes = 0)
+        private void RunScenarioWithParameters(
+            Platform platform,
+            TriggerType triggerType,
+            LoadProfilesType loadProfile,
+            string functionName,
+            string inputPath,
+            string inputObject = null,
+            string outputObject = null,
+            int eps = 0,
+            bool repeat = true,
+            int durationMinutes = 0,
+            int warmUpTimeInMinutes = 0)
         {
-            TriggerTestLoadProfile profile;
-            var eps = functionTest.Eps;
+            var scenario = new TestScenario
+            {
+                Platform = platform,
+                TriggerType = triggerType,
+                FunctionName = functionName,
+                InputPath = inputPath,
+                InputObject = inputObject,
+                OutputObject = outputObject,
+                LoadProfile = loadProfile,
+                Eps = eps,
+                Repeat = repeat,
+                DurationInMinutes = durationMinutes,
+                WarmUpTimeInMinutes = warmUpTimeInMinutes
+            };
 
-            if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && repeat)
-            {
-                if (durationMinutes <= 0)
-                {
-                    throw new ArgumentException("No parameter to specify how long to repeat this load. Indicate how long in minutes to repeat load.", "durationMinutes");
-                }
-                profile = new LinearLoad(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
-            }
-            else if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && !repeat)
-            {
-                profile = new LinearLoad(urls.Count(), eps == 0 ? 1 : eps);
-            }
-            else if (loadProfile.Equals("LinearRamp", StringComparison.CurrentCultureIgnoreCase))
-            {
-                profile = new LinearWithRampUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
-            }
-        else
-            {
-                throw new Exception(string.Format("{0} does not exist", loadProfile));
-            }
-            var perfResult = functionTest.RunAsync(profile).Result;
-
-            //print perf results
-            var originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(perfResult);
-            Console.ForegroundColor = originalColor;
-        }
-
-        private void StorageTriggerTest(FunctionTest functionTest, IEnumerable<string> sourceItems, string loadProfile, bool repeat = false, int durationMinutes = 0)
-        {
-            TriggerTestLoadProfile profile;
-            var eps = functionTest.Eps;
-
-            if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && repeat)
-            {
-                if (durationMinutes <= 0)
-                {
-                    throw new ArgumentException("No parameter to specify how long to repeat this load. Indicate how long in minutes to repeat load.", "durationMinutes");
-                }
-                profile = new LinearLoad(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
-            }
-            else if (loadProfile.Equals("Linear", StringComparison.CurrentCultureIgnoreCase) && !repeat)
-            {
-                profile = new LinearLoad(sourceItems.Count(), eps == 0 ? 1 : eps);
-            }
-            else if (loadProfile.Equals("LinearRamp", StringComparison.CurrentCultureIgnoreCase))
-            {
-                profile = new LinearWithRampUp(TimeSpan.FromMinutes(durationMinutes), eps == 0 ? 1 : eps);
-            }
-            else
-            {
-                throw new Exception(string.Format("{0} does not exist", loadProfile));
-            }
-
-            var perfResult = functionTest.RunAsync(profile).Result;
-
-            //print perf results
-            var originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(perfResult);
-            Console.ForegroundColor = originalColor;
+            scenario.RunScenario(new ConsoleLogger());
         }
     }
 }

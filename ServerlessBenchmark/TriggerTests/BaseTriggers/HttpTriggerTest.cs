@@ -97,7 +97,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         Interlocked.Increment(ref _totalRequests);
                         if (!_runningTasks.TryAdd(request.Id, request))
                         {
-                            Console.WriteLine("Error on tracking this task");
+                            Logger.LogWarning("Error on tracking this task");
                         }
                         var response = await request;
                         var responseReceived = DateTime.Now;
@@ -135,14 +135,18 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 {
                     try
                     {
-                        this.SaveCurrentProgessToDb();
+                        if (!this.DuringWarmUp)
+                        {
+                            this.SaveCurrentProgessToDb();
+                        }
+
                         testProgressString = PrintTestProgress();
                         testProgressString = $"OutStanding:    {_totalActiveRequests}     {testProgressString}";
 
                         if (_totalActiveRequests == 0)
                         {
-                            Console.WriteLine(testProgressString);
-                            Console.WriteLine("Finished Outstanding Requests");
+                            Logger.LogInfo(testProgressString);
+                            Logger.LogInfo("Finished Outstanding Requests");
                             break;
                         }
 
@@ -155,23 +159,35 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         {
                             var secondsSinceLastNewSize = (DateTime.Now - lastNewSize).TotalSeconds;
                             var secondsLeft = TimeSpan.FromMilliseconds(Constants.LoadCoolDownTimeout).TotalSeconds - secondsSinceLastNewSize;
-                            Console.WriteLine("No new requests for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
+                            Logger.LogInfo("No new requests for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
 
                             if (secondsLeft < 0)
                             {
                                 break;
                             }
                         }
-                        
-                        Console.WriteLine(testProgressString);
+
+                        Logger.LogInfo(testProgressString);
                         await Task.Delay(_tickTimeInMiliseconds);
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e);
+                        Logger.LogException(e);
                     }
                 }
             }
+
+            // clean after cool down
+            _totalSuccessRequests = 0;
+            _totalSuccessRequestsWithTick = 0;
+            _totalFailedRequests = 0;
+            _totalFailedRequestsWithTick = 0;
+            _totalTimedOutRequests = 0;
+            _totalTimedOutRequestsWithTick = 0;
+            _totalActiveRequests = 0;
+            _totalActiveRequestsWithTick = 0;
+            _totalRequests = 0;
+            _totalRequestsWithTick = 0;
         }
 
         protected override void SaveCurrentProgessToDb()

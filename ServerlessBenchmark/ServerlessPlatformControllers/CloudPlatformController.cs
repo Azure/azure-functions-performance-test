@@ -8,6 +8,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers
     public interface ICloudPlatformController
     {
         Platform PlatformName { get; }
+        ILogger Logger { get; set;  }
         CloudPlatformResponse PostMessage(CloudPlatformRequest request);
         CloudPlatformResponse PostMessages(CloudPlatformRequest request);
         Task<CloudPlatformResponse> PostMessagesAsync(CloudPlatformRequest request);

@@ -113,24 +113,29 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         {
             // wait until destination queue won't be growing for 1 minutes
             var lastSize = 0;
-            _itemsPut = 0;
             DateTime lastNewSize = new DateTime();
             string testProgressString;
             while (true)
             {
                 try
                 {
-                    this.SaveCurrentProgessToDb();
+                    _itemsPut = 0;
+
+                    if (!this.DuringWarmUp)
+                    {
+                        this.SaveCurrentProgessToDb();
+                    }
+
                     var currentOutPutQueueSize = await GetCurrentOutputQueueSize();
                     _lastIterationFinished = (int)currentOutPutQueueSize.Data - _outPutQueueSize;
                     _outPutQueueSize = (int)currentOutPutQueueSize.Data;
                     testProgressString = PrintTestProgress();
-                    testProgressString = $"OutStanding:    {_itemsPutInGeneral - _outPutQueueSize}    {testProgressString}";
+                    testProgressString = $"OutStanding:    {_itemsPutInGeneral - _outPutQueueSize} (finish: {_outPutQueueSize}/{_itemsPutInGeneral})   {testProgressString}";
 
                     if (_itemsPutInGeneral <= (int)currentOutPutQueueSize.Data)
                     {
-                        Console.WriteLine(testProgressString);
-                        Console.WriteLine("Finished Outstanding Requests");
+                        Logger.LogInfo(testProgressString);
+                        Logger.LogInfo("Finished Outstanding Requests");
                         break;
                     }
 
@@ -142,7 +147,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     {
                         var secondsSinceLastNewSize = (DateTime.Now - lastNewSize).TotalSeconds;
                         var secondsLeft = TimeSpan.FromMilliseconds(Constants.LoadCoolDownTimeout).TotalSeconds - secondsSinceLastNewSize;
-                        Console.WriteLine("No new items on destination queue for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
+                        Logger.LogInfo("No new items on destination queue for {0} seconds. Waiting another {1}s to finish", secondsSinceLastNewSize, secondsLeft);
 
                         if (secondsLeft < 0)
                         {
@@ -150,14 +155,20 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                         }
                     }
 
-                    Console.WriteLine(testProgressString);
+                    Logger.LogInfo(testProgressString);
                     await Task.Delay(_tickTimeInMiliseconds);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Logger.LogException(e);
                 }
             }
+
+            // clear data after run
+            _outPutQueueSize = 0;
+            _itemsPut = 0;
+            _itemsPutInGeneral = 0;
+            _lastIterationFinished = 0;
         }
 
         private async Task<bool> VerifyQueueMessagesExistInTargetQueue(int expected)
@@ -181,7 +192,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
                 if(retrieveCount < Constants.MaxDequeueAmount)
                     Thread.Sleep(1 * 1000);
-
+                
                 if (count != lastCountSeen)
                 {
                     lastCountSeen = count;
@@ -190,7 +201,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
                 if ((startTime - lastTimeCountChanged) > timeout)
                 {
-                    Console.WriteLine("Waiting for destination queue to reach expected count timed out: {0}/{1}", count, ExpectedExecutionCount);
+                    Logger.LogInfo("Waiting for destination queue to reach expected count timed out: {0}/{1}", count, ExpectedExecutionCount);
                     break;
                 }
             } while (count < expected);

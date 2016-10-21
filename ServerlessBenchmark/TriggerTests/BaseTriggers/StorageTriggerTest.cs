@@ -29,11 +29,11 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override bool TestSetupWithRetry()
         {
-            Console.WriteLine("{0} trigger tests - setup", StorageType);
+            Logger.LogInfo("{0} trigger tests - setup", StorageType);
             bool successfulSetup;
             try
             {
-                Console.WriteLine("Deleting storage items");
+                Logger.LogInfo("Deleting storage items");
                 var cloudPlatformResponses = CleanUpStorageResources();
                 var undoneJobs =
                     cloudPlatformResponses.Where(

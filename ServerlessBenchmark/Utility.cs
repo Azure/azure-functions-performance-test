@@ -17,7 +17,7 @@ namespace ServerlessBenchmark
         /// <param name="functionName"></param>
         /// <param name="storageConnectionString"></param>
         /// <returns></returns>
-        public static bool RemoveAzureFunctionLogs(string functionName, string storageConnectionString)
+        public static bool RemoveAzureFunctionLogs(string functionName, string storageConnectionString, ILogger logger)
         {
             if (!string.IsNullOrEmpty(storageConnectionString))
             {
@@ -52,12 +52,12 @@ namespace ServerlessBenchmark
                         catch (Exception e)
                         {
                             deleteResults = new List<TableResult>();
-                            Console.WriteLine("--ERROR-- Could not delete logs. {0}", e);
+                            logger.LogException("Could not delete logs. {0}", e);
                         }
 
                         var deletedLogsCount = deleteResults.Count(result => result.HttpStatusCode == 204);
                         count += deletedLogsCount;
-                        Console.WriteLine("Deleted {0}/{1} logs", count, executionLogsCount);
+                        logger.LogInfo("Deleted {0}/{1} logs", count, executionLogsCount);
 
                         logCount = logCount - selectedLogs.Count;
                     }
@@ -74,7 +74,7 @@ namespace ServerlessBenchmark
         /// <param name="action"></param>
         /// <param name="retries"></param>
         /// <returns></returns>
-        public static async Task RetryHelperAsync(Func<Task> action, int retries = 5)
+        public static async Task RetryHelperAsync(Func<Task> action, ILogger logger, int retries = 5)
         {
             int attempt = 0;
             int delayMilliseconds = 5000;
@@ -87,19 +87,17 @@ namespace ServerlessBenchmark
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    logger.LogException(e);
                     attempt++;
                     if (attempt < retries)
                     {
-                        var originalColor = Console.ForegroundColor;
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine($"Attempt {attempt} failed");
-                        Console.WriteLine($"Waiting {delayMilliseconds}ms until next attempt");
-                        Console.ForegroundColor = originalColor;
+                        logger.LogWarning($"Attempt {attempt} failed");
+                        logger.LogWarning($"Waiting {delayMilliseconds}ms until next attempt");
                         await Task.Delay(delayMilliseconds);
                         delayMilliseconds += delayMilliseconds;
                     }
-                    else{
+                    else
+                    {
                         throw;
                     }
                 }

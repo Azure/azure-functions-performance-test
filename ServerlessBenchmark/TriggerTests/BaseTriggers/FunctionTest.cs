@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.Runtime.Internal.Util;
 using ServerlessBenchmark.LoadProfiles;
 using ServerlessBenchmark.PerfResultProviders;
 using ServerlessBenchmark.ServerlessPlatformControllers;
@@ -14,6 +15,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 {
     public abstract class FunctionTest
     {
+        public ILogger Logger { get; set; } = new ConsoleLogger();
         protected string FunctionName { get; set; }
         protected abstract IEnumerable<string> SourceItems { get; set; }
         protected int ExpectedExecutionCount;
@@ -28,6 +30,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected ITestRepository TestRepository { get; set; }
         protected int WarmUpTimeInMinutes { get; }
         public int Eps { get; } = 60;
+        protected bool DuringWarmUp = false;
 
         protected FunctionTest(string functionName, int eps, int warmUpTimeInMinutes)
         {
@@ -43,24 +46,27 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             return true;
         }
         
-        protected virtual async Task TestWarmup()
-        {            
+        protected virtual async Task TestWarmup() { 
+            DuringWarmUp = true;
             // use linear ramp up load for warmup, don't ramp down at the end
-            Console.WriteLine("Trigger Warmup - Starting Scheduled time for warm up: {0} s", WarmUpTimeInMinutes * 60);
+            Logger.LogInfo("Trigger Warmup - Starting Scheduled time for warm up: {0} s", WarmUpTimeInMinutes * 60);
             var loadProfile = new LinearWithRampUp(TimeSpan.FromMinutes(WarmUpTimeInMinutes), Eps, rampDown: false);
             var sw = Stopwatch.StartNew();
             await loadProfile.ExecuteRateAsync(i => GenerateLoad(i, saveResults: false));
             loadProfile.Dispose();
-            sw.Stop();
-            Console.WriteLine("Trigger Warmup - Clean Up");
+            Logger.LogInfo("Trigger Warmup - Clean Up");
+            await TestCoolDown();
             TestSetupWithRetry();
-            Console.WriteLine("Trigger Warmup Finished - Elapsed Time: {0}ms", sw.ElapsedMilliseconds);
+            sw.Stop();
+            Logger.LogInfo("Trigger Warmup Finished - Elapsed Time: {0}ms", sw.ElapsedMilliseconds);
             // sleep five seconds for storage latencies -- TODO: necesarry?
+            DuringWarmUp = false;
             Thread.Sleep(TimeSpan.FromSeconds(5));
         }
 
         public async Task<PerfTestResult> RunAsync(TriggerTestLoadProfile loadProfile, bool warmup = true)
         {
+            DuringWarmUp = false; 
             var retries = 3;
             bool isSuccessSetup;
             do
@@ -74,7 +80,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 await TestWarmup();
             }
 
-            Console.WriteLine("--START-- Running load");
+            Logger.LogInfo("--START-- Running load");
             var startTime = DateTime.Now;
 
             this.TestWithResults = new Test
@@ -96,7 +102,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var clientEndTime = DateTime.Now;
             this.TestWithResults.EndTime = clientEndTime.ToUniversalTime();
             this.TestRepository.UpdateTest(this.TestWithResults, saveResults: false);
-            Console.WriteLine("--END-- Elapsed time:      {0}", sw.Elapsed);
+            Logger.LogInfo("--END-- Elapsed time:      {0}", sw.Elapsed);
             await PreReportGeneration(startTime, clientEndTime);
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, startTime, clientEndTime, expectedExecutionCount: ExpectedExecutionCount);
             this.TestWithResults.Description = perfResult.ToString();
@@ -133,7 +139,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 SaveCurrentProgessToDb();
             }
 
-            Console.WriteLine(PrintTestProgress());
+            Logger.LogInfo(PrintTestProgress());
             Interlocked.Add(ref ExpectedExecutionCount, selectedItems.Count());
             await Load(selectedItems);
         }
@@ -151,8 +157,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     sb.AppendFormat("   {0}:   {1}", data.Key, data.Value);
                 }
             }
-
-            sb.AppendLine();
+            
             return sb.ToString();
         }
 

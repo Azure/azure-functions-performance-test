@@ -19,7 +19,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected string SourceQueue { get; set; }
         protected string TargetQueue { get; set; }
 
-        protected QueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, string sourceQueue, string targetQueue):base(functionName, warmUpTimeInMinutes, eps, messages)
+        protected QueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, string sourceQueue, string targetQueue):base(functionName, eps, warmUpTimeInMinutes, messages)
         {
             SourceQueue = sourceQueue;
             TargetQueue = targetQueue;
@@ -49,6 +49,15 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 throw;
             }
             return cloudPlatformResponses;
+        }
+
+        protected override bool TestSetupWithRetry()
+        {
+            _outPutQueueSize = 0;
+            _itemsPut = 0;
+            _itemsPutInGeneral = 0;
+            _lastIterationFinished = 0;
+            return base.TestSetupWithRetry();
         }
 
         protected override void SaveCurrentProgessToDb()
@@ -118,7 +127,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     testProgressString = PrintTestProgress();
                     testProgressString = $"OutStanding:    {_itemsPutInGeneral - _outPutQueueSize}    {testProgressString}";
 
-                    if (_itemsPutInGeneral - (int)currentOutPutQueueSize.Data == 0)
+                    if (_itemsPutInGeneral <= (int)currentOutPutQueueSize.Data)
                     {
                         Console.WriteLine(testProgressString);
                         Console.WriteLine("Finished Outstanding Requests");
@@ -166,9 +175,13 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                     Source = TargetQueue
                 });
                 messages = (IEnumerable<object>) taskMesagesResponse.Data;
-                count += messages == null ? 0 : messages.Count();
+                var retrieveCount = messages.Count();
+                count += messages == null ? 0 : retrieveCount;
                 Console.WriteLine("Destination Messages - Number Of Messages:     {0}", count);
-                Thread.Sleep(1 * 1000);
+
+                if(retrieveCount < Constants.MaxDequeueAmount)
+                    Thread.Sleep(1 * 1000);
+
                 if (count != lastCountSeen)
                 {
                     lastCountSeen = count;

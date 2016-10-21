@@ -44,7 +44,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             {
                 throw new Exception(String.Format("Could not setup Test"), e);
             }
-            return successfulSetup;            
+
+            return base.TestSetupWithRetry() && successfulSetup;            
         }
 
         protected async override Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime)

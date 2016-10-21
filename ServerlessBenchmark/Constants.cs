@@ -8,7 +8,7 @@ namespace ServerlessBenchmark
         public const string Topic = "Topic";
         public const string Message = "Message";
         public const string Queue = "QueueUrl";
-        public const int MaxDequeueAmount = 32;
+        public const int MaxDequeueAmount = 10;
 
         /// <summary>
         /// The name of the table where all of the azure function execution logs are stored.

@@ -61,7 +61,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override bool TestSetupWithRetry()
         {
-            return Setup();
+            return base.TestSetupWithRetry() && Setup();
         }
 
         protected abstract override PerfResultProvider PerfmormanceResultProvider { get; }

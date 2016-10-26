@@ -211,14 +211,21 @@ namespace SampleUsages
             if (testId != 0)
             {
                 repo = new TestRepository();
-                resultsProvider.DatabaseTest = repo.GetTest(testId, fetchResults: true);
+
+                if (repo.IsInitialized)
+                {
+                    resultsProvider.DatabaseTest = repo.GetTest(testId, fetchResults: true);
+                }
             }
 
             var results = resultsProvider.GetPerfMetrics(functionName, startTime, endTime);
 
             if (testId != 0)
             {
-                repo.UpdateTest(resultsProvider.DatabaseTest, saveResults: true);
+                if (repo.IsInitialized)
+                {
+                    repo.UpdateTest(resultsProvider.DatabaseTest, saveResults: true);
+                }
             }
 
             //print perf results

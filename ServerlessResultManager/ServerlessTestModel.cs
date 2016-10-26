@@ -1,3 +1,6 @@
+using System.Configuration;
+using System.Data.Entity.Infrastructure;
+
 namespace ServerlessResultManager
 {
     using System;
@@ -7,9 +10,15 @@ namespace ServerlessResultManager
 
     public partial class ServerlessTestModel : DbContext
     {
-        public ServerlessTestModel()
-            : base("name=ServerlessTestModel")
+        public ServerlessTestModel(string connectionString)
+            : base(connectionString)
         {
+        }
+
+        public static string GetConnectionString()
+        {
+            var connString = System.Configuration.ConfigurationManager.AppSettings["DbConnectionString"];
+            return connString;
         }
 
         public virtual DbSet<TestResult> TestResults { get; set; }

@@ -192,26 +192,29 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override void SaveCurrentProgessToDb()
         {
-            var totalRequests = _totalRequests;
-            var totalSuccessRequests = _totalSuccessRequests;
-            var totalFailedRequests = _totalFailedRequests;
-            var totalTimeoutRequests = _totalTimedOutRequests;
-
-            var progressResult = new TestResult
+            if (this.TestRepository.IsInitialized)
             {
-                Timestamp = DateTime.UtcNow,
-                CallCount = totalRequests - _totalRequestsWithTick,
-                FailedCount = totalFailedRequests - _totalFailedRequestsWithTick,
-                SuccessCount = totalSuccessRequests - _totalSuccessRequestsWithTick,
-                TimeoutCount = totalTimeoutRequests - _totalTimedOutRequestsWithTick,
-                AverageLatency = _responseTimes.IsEmpty ? .0 : _responseTimes.Average()
-            };
+                var totalRequests = _totalRequests;
+                var totalSuccessRequests = _totalSuccessRequests;
+                var totalFailedRequests = _totalFailedRequests;
+                var totalTimeoutRequests = _totalTimedOutRequests;
 
-            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
-            _totalRequestsWithTick = totalRequests;
-            _totalFailedRequestsWithTick = totalFailedRequests;
-            _totalSuccessRequestsWithTick = totalSuccessRequests;
-            _totalTimedOutRequestsWithTick = _totalTimedOutRequests;
+                var progressResult = new TestResult
+                {
+                    Timestamp = DateTime.UtcNow,
+                    CallCount = totalRequests - _totalRequestsWithTick,
+                    FailedCount = totalFailedRequests - _totalFailedRequestsWithTick,
+                    SuccessCount = totalSuccessRequests - _totalSuccessRequestsWithTick,
+                    TimeoutCount = totalTimeoutRequests - _totalTimedOutRequestsWithTick,
+                    AverageLatency = _responseTimes.IsEmpty ? .0 : _responseTimes.Average()
+                };
+
+                this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+                _totalRequestsWithTick = totalRequests;
+                _totalFailedRequestsWithTick = totalFailedRequests;
+                _totalSuccessRequestsWithTick = totalSuccessRequests;
+                _totalTimedOutRequestsWithTick = _totalTimedOutRequests;
+            }
         }
 
         protected override IDictionary<string, string> CurrentTestProgress()

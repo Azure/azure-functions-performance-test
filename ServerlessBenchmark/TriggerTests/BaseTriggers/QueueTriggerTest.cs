@@ -62,18 +62,20 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override void SaveCurrentProgessToDb()
         {
-            var progressResult = new TestResult
+            if (this.TestRepository.IsInitialized)
             {
-                Timestamp = DateTime.UtcNow,
-                CallCount = _itemsPut,
-                FailedCount = 0,
-                SuccessCount = _lastIterationFinished,
-                TimeoutCount = 0,
-                AverageLatency = 0
-            };
+                var progressResult = new TestResult
+                {
+                    Timestamp = DateTime.UtcNow,
+                    CallCount = _itemsPut,
+                    FailedCount = 0,
+                    SuccessCount = _lastIterationFinished,
+                    TimeoutCount = 0,
+                    AverageLatency = 0
+                };
 
-            
-            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+                this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+            }
         }
 
         protected override string StorageType

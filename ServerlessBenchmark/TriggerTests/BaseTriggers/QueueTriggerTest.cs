@@ -188,7 +188,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 messages = (IEnumerable<object>) taskMesagesResponse.Data;
                 var retrieveCount = messages.Count();
                 count += messages == null ? 0 : retrieveCount;
-                Console.WriteLine("Destination Messages - Number Of Messages:     {0}", count);
+                this.Logger.LogInfo("Destination Messages - Number Of Messages:     {0}", count);
 
                 if(retrieveCount < Constants.MaxDequeueAmount)
                     Thread.Sleep(1 * 1000);

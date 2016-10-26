@@ -8,7 +8,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureQueueTriggerTest:QueueTriggerTest
     {
-        public AzureQueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, string sourceQueue, string targetQueue) : base(functionName, warmUpTimeInMinutes, eps, messages, sourceQueue, targetQueue)
+        public AzureQueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, string sourceQueue, string targetQueue) : base(functionName, eps, warmUpTimeInMinutes, messages, sourceQueue, targetQueue)
         {
         }
 

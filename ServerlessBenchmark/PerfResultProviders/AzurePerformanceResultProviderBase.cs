@@ -78,7 +78,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
 
             var throughputList = new List<int>();
-            var fileName = string.Format("{0}-Throughput.txt", Guid.NewGuid().ToString());
+            var fileName = string.Format("{0}/{1}-Throughput.txt", functionName, Guid.NewGuid().ToString());
 
             using (var logWriter = new StreamWriter(fileName))
             {
@@ -103,7 +103,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
-            var fileName = string.Format("Azure-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
+            var fileName = string.Format("{0}/Azure-{1}-Throughput-graph.pdf", functionName, Guid.NewGuid().ToString());
             PrintThroughputGraph(logGroupped, fileName, secondsInGroup);            
 
             return string.Format("Plot can be found at {0}", fileName);
@@ -134,7 +134,7 @@ namespace ServerlessBenchmark.PerfResultProviders
                 throw new Exception(string.Format("Aborting calculation. The max time range is 24 hours. StartTime: {0}, EndTime: {1}.", actualStartTime, actualEndTime));
             }
 
-            var fileName = string.Format("{0}-HostConcurrency.txt", Guid.NewGuid().ToString());
+            var fileName = string.Format("{0}/{1}-HostConcurrency.txt", functionName, Guid.NewGuid().ToString());
             var hostConcurrencyInTime = new Dictionary<DateTime, int>();
 
             using (var logWriter = new StreamWriter(fileName))

@@ -46,7 +46,9 @@ namespace SampleUsages
             foreach (var testScenario in testScenarios)
             {
                 Console.WriteLine($"Start running scenario for function {testScenario.FunctionName} {++counter}/{testScenarios.Count}.");
-                var logFilePath = $"{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
+                var testFolder = string.Format(testScenario.FunctionName);
+                Directory.CreateDirectory(testFolder);
+                var logFilePath = $"{testFolder}/{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
 
                 using (var logger = new FileLogger(logFilePath))
                 {

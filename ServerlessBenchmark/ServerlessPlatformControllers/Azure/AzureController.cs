@@ -18,8 +18,7 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
     public class AzureController:ICloudPlatformController
     {
         private readonly CloudStorageAccount storageAccount;
-        
-        public Platform PlatformName => Platform.Azure;
+
         public ILogger Logger { get; set; } = new ConsoleLogger();
 
         private CloudQueueClient QueueClient

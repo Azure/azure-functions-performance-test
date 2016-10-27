@@ -8,6 +8,7 @@ using ServerlessBenchmark.TriggerTests.AWS;
 using ServerlessBenchmark.TriggerTests.Azure;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 using System.Collections.Generic;
+using ServerlessResultManager;
 
 namespace SampleUsages
 {
@@ -93,6 +94,18 @@ namespace SampleUsages
             
             profile = GetLoadProfile(inputCount);
             test.Logger = _logger;
+
+            var dbTest = new Test
+            {
+                Source = this.InputObject,
+                Destination = this.OutputObject,
+                TriggerType = this.TriggerType.ToString(),
+                Platform = this.Platform.ToString(),
+                TargetEps = this.Eps,
+                ToolsVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString()
+            };
+
+            test.TestWithResults = dbTest;
             RunScenario(test, profile);
         }
 

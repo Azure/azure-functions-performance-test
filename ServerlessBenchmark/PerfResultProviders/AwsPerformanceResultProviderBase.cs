@@ -77,6 +77,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, testEndTime);
             var orderedLogs = logs.OrderBy(log => log.IngestionTime);
             var clockTime = orderedLogs.Last().IngestionTime - orderedLogs.First().IngestionTime;
+            
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.FunctionClockTime = clockTime.TotalSeconds;
+            }
+
             return TimeSpan.FromMilliseconds(clockTime.TotalMilliseconds);
         }
 
@@ -89,6 +95,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             var sumOfSquaredDifferences =
                 executionTimes.Select(t => (t.GetValueOrDefault().TotalMilliseconds - avgExecutionTime)*(t.GetValueOrDefault().TotalMilliseconds - avgExecutionTime)).Sum();
             var std = Math.Sqrt(sumOfSquaredDifferences/executionTimes.Count());
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.ExecutionTimeStandardDeviation = std;
+            }
+
             return std.ToString();
         }
 
@@ -98,6 +110,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, testEndTime);
             var executionTimes = RetrieveExecutionTimes(logs);
             var executionCount = executionTimes.Count();
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.ExecutionCount = executionCount;
+            }
+
             return executionCount;
         }
 
@@ -107,6 +125,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, testEndTime);
             var executionTimes = RetrieveExecutionTimes(logs);
             var avgExecutionTime = executionTimes.Average(e => e.GetValueOrDefault().TotalMilliseconds);
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.AverageExecutionTime = avgExecutionTime * 1000;
+            }
+
             return TimeSpan.FromMilliseconds(avgExecutionTime);
         }
 
@@ -117,13 +141,21 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logByMinute = logs.GroupBy(l => (l.Timestamp - TimeSpan.FromMilliseconds(l.Timestamp.Millisecond)));
 
             var sum = 0;
+
             foreach (var logGroup in logByMinute)
             {
                 var hosts = RetrieveHostNames(logGroup.ToList());
                 sum += hosts.Distinct().Count();
             }
 
-            return (sum / logByMinute.Count()).ToString();
+            var avgHostCount = (sum / logByMinute.Count());
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.HostConcurrency = avgHostCount;
+            }
+
+            return avgHostCount.ToString();
         }
 
         [PerfMetric(PerfMetrics.Throughput)]
@@ -140,8 +172,14 @@ namespace ServerlessBenchmark.PerfResultProviders
 
             var fileName = string.Format("{0}/AWS-{1}-Throughput.txt", functionName, Guid.NewGuid().ToString());
             File.WriteAllText(fileName, stringBuffer.ToString());
+            var averageThroughput = logByMinute.Select(l => l.Value).Average();
 
-            return logByMinute.Select(l => l.Value).Average().ToString();
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.Throughput = averageThroughput;
+            }
+
+            return averageThroughput.ToString();
         }
 
         [PerfMetric(PerfMetrics.ThroughputGraph)]

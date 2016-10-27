@@ -16,6 +16,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
     public abstract class FunctionTest
     {
         public ILogger Logger { get; set; } = new ConsoleLogger();
+        public Test TestWithResults { get; set; }
         protected string FunctionName { get; set; }
         protected abstract IEnumerable<string> SourceItems { get; set; }
         protected int ExpectedExecutionCount;
@@ -26,7 +27,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected abstract ICloudPlatformController CloudPlatformController { get; }
         protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
         private bool onTestCoolDown = false;
-        protected Test TestWithResults { get; set; }
         protected ITestRepository TestRepository { get; set; }
         protected int WarmUpTimeInMinutes { get; }
         public int Eps { get; } = 60;
@@ -85,14 +85,15 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             if (this.TestRepository.IsInitialized)
             {
-                this.TestWithResults = new Test
+                if (this.TestWithResults == null)
                 {
-                    StartTime = startTime.ToUniversalTime(),
-                    Name = $"Test function - {FunctionName}",
-                    Platform = CloudPlatformController.PlatformName.ToString(),
-                    Description = "Test manually run from console app.",
-                    Owner = System.Security.Principal.WindowsIdentity.GetCurrent().Name
-                };
+                    this.TestWithResults = new Test();
+                }
+
+                this.TestWithResults.StartTime = startTime.ToUniversalTime();
+                this.TestWithResults.Name = $"Test function - {FunctionName}";
+                this.TestWithResults.Description = "Test manually run from console app.";
+                this.TestWithResults.Owner = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
                 this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
             }
 

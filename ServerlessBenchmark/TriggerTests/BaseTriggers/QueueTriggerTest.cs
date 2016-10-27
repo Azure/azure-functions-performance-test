@@ -62,18 +62,20 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         protected override void SaveCurrentProgessToDb()
         {
-            var progressResult = new TestResult
+            if (this.TestRepository.IsInitialized)
             {
-                Timestamp = DateTime.UtcNow,
-                CallCount = _itemsPut,
-                FailedCount = 0,
-                SuccessCount = _lastIterationFinished,
-                TimeoutCount = 0,
-                AverageLatency = 0
-            };
+                var progressResult = new TestResult
+                {
+                    Timestamp = DateTime.UtcNow,
+                    CallCount = _itemsPut,
+                    FailedCount = 0,
+                    SuccessCount = _lastIterationFinished,
+                    TimeoutCount = 0,
+                    AverageLatency = 0
+                };
 
-            
-            this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+                this.TestRepository.AddTestResult(this.TestWithResults, progressResult);
+            }
         }
 
         protected override string StorageType
@@ -188,7 +190,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 messages = (IEnumerable<object>) taskMesagesResponse.Data;
                 var retrieveCount = messages.Count();
                 count += messages == null ? 0 : retrieveCount;
-                Console.WriteLine("Destination Messages - Number Of Messages:     {0}", count);
+                this.Logger.LogInfo("Destination Messages - Number Of Messages:     {0}", count);
 
                 if(retrieveCount < Constants.MaxDequeueAmount)
                     Thread.Sleep(1 * 1000);

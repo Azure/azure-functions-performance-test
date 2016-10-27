@@ -1,7 +1,5 @@
-﻿using Microsoft.Owin;
-using Owin;
+﻿using Owin;
 
-[assembly: OwinStartupAttribute(typeof(ServerlessDashboard.Startup))]
 namespace ServerlessDashboard
 {
     public partial class Startup

@@ -83,16 +83,19 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             Logger.LogInfo("--START-- Running load");
             var startTime = DateTime.Now;
 
-            this.TestWithResults = new Test
+            if (this.TestRepository.IsInitialized)
             {
-                StartTime = startTime.ToUniversalTime(),
-                Name = $"Test function - {FunctionName}",
-                Platform = CloudPlatformController.PlatformName.ToString(),
-                Description = "Test manually run from console app.",
-                Owner = System.Security.Principal.WindowsIdentity.GetCurrent().Name
-            };
+                this.TestWithResults = new Test
+                {
+                    StartTime = startTime.ToUniversalTime(),
+                    Name = $"Test function - {FunctionName}",
+                    Platform = CloudPlatformController.PlatformName.ToString(),
+                    Description = "Test manually run from console app.",
+                    Owner = System.Security.Principal.WindowsIdentity.GetCurrent().Name
+                };
+                this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
+            }
 
-            this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
             var sw = Stopwatch.StartNew();
             await loadProfile.ExecuteRateAsync(i => GenerateLoad(i));
             loadProfile.Dispose();
@@ -100,13 +103,23 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             await TestCoolDown();
             sw.Stop();
             var clientEndTime = DateTime.Now;
-            this.TestWithResults.EndTime = clientEndTime.ToUniversalTime();
-            this.TestRepository.UpdateTest(this.TestWithResults, saveResults: false);
             Logger.LogInfo("--END-- Elapsed time:      {0}", sw.Elapsed);
+
+            if (this.TestRepository.IsInitialized)
+            {
+                this.TestWithResults.EndTime = clientEndTime.ToUniversalTime();
+                this.TestRepository.UpdateTest(this.TestWithResults, saveResults: false);
+            }
+
             await PreReportGeneration(startTime, clientEndTime);
             var perfResult = PerfmormanceResultProvider.GetPerfMetrics(FunctionName, startTime, clientEndTime, expectedExecutionCount: ExpectedExecutionCount);
-            this.TestWithResults.Description = perfResult.ToString();
-            this.TestRepository.UpdateTest(this.TestWithResults, saveResults: true);
+
+            if (this.TestRepository.IsInitialized)
+            {
+                this.TestWithResults.Description = perfResult.ToString();
+                this.TestRepository.UpdateTest(this.TestWithResults, saveResults: true);
+            }
+
             return perfResult;
         }
 

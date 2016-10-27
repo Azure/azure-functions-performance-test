@@ -138,7 +138,7 @@ namespace ServerlessBenchmark.PerfResultProviders
                 stringBuffer.AppendFormat("{0},{1}{2}", log, log.Key, Environment.NewLine);
             }
 
-            var fileName = string.Format("AWS-{0}-Throughput.txt", Guid.NewGuid().ToString());
+            var fileName = string.Format("{0}/AWS-{1}-Throughput.txt", functionName, Guid.NewGuid().ToString());
             File.WriteAllText(fileName, stringBuffer.ToString());
 
             return logByMinute.Select(l => l.Value).Average().ToString();
@@ -150,7 +150,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, testEndTime).Where(l => l.Message.Contains("Duration:"));
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
-            var fileName = string.Format("AWS-{0}-Throughput-graph.pdf", Guid.NewGuid().ToString());
+            var fileName = string.Format("{0}/AWS-{1}-Throughput-graph.pdf", functionName, Guid.NewGuid().ToString());
             PrintThroughputGraph(logGroupped, fileName, secondsInGroup);
             return string.Format("Plot can be found at {0}", fileName);
         }

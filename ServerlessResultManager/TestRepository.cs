@@ -8,13 +8,28 @@ namespace ServerlessResultManager
 {
     public class TestRepository : ITestRepository
     {
+        private readonly string _connectionString;
+
         public TestRepository()
         {
+            this._connectionString = ServerlessTestModel.GetConnectionString();
         }
+
+        public TestRepository(string connectionString)
+        {
+            this._connectionString = connectionString;
+        }
+
+        public bool IsInitialized => !string.IsNullOrEmpty(this._connectionString);
 
         public Test GetTest(int id, bool fetchResults = false)
         {
-            using (var model = new ServerlessTestModel())
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
             {
                 if (fetchResults)
                 {
@@ -29,7 +44,12 @@ namespace ServerlessResultManager
 
         public IEnumerable<TestResult> GetResultsForTestAfter(int testId, DateTime startDate)
         {
-            using (var model = new ServerlessTestModel())
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
             {
                 return model.TestResults.Where(tr => tr.TestId == testId && tr.Timestamp >= startDate).ToList();
             }
@@ -37,7 +57,12 @@ namespace ServerlessResultManager
 
         public IEnumerable<Test> GetTestsAfter(DateTime dateFrom, bool fetchResults = true)
         {
-            using (var model = new ServerlessTestModel())
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
             {
                 if (fetchResults)
                 {
@@ -53,7 +78,12 @@ namespace ServerlessResultManager
 
         public IEnumerable<Test> GetTestsByIds(IEnumerable<long> idsNumbers)
         {
-            using (var model = new ServerlessTestModel())
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
             {
                 return model.Tests.Where(t => idsNumbers.Contains(t.Id)).Include("TestResults").ToList();
             }
@@ -61,7 +91,12 @@ namespace ServerlessResultManager
 
         public Test AddTest(Test test)
         {
-            using (var model = new ServerlessTestModel())
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
             {
                 var addedTest = model.Tests.Add(test);
                 model.SaveChanges();
@@ -71,7 +106,12 @@ namespace ServerlessResultManager
 
         public TestResult AddTestResult(Test test, TestResult testResult)
         {
-            using (var model = new ServerlessTestModel())
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
             {
                 testResult.TestId = test.Id;
                 var addedTestResult = model.TestResults.Add(testResult);
@@ -83,7 +123,12 @@ namespace ServerlessResultManager
 
         public void UpdateTest(Test testWithResults, bool saveResults = false)
         {
-            using (var model = new ServerlessTestModel())
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
             {
                 model.Tests.AddOrUpdate(testWithResults);
 

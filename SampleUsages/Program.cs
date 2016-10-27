@@ -46,7 +46,9 @@ namespace SampleUsages
             foreach (var testScenario in testScenarios)
             {
                 Console.WriteLine($"Start running scenario for function {testScenario.FunctionName} {++counter}/{testScenarios.Count}.");
-                var logFilePath = $"{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
+                var testFolder = string.Format(testScenario.FunctionName);
+                Directory.CreateDirectory(testFolder);
+                var logFilePath = $"{testFolder}/{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
 
                 using (var logger = new FileLogger(logFilePath))
                 {
@@ -209,14 +211,21 @@ namespace SampleUsages
             if (testId != 0)
             {
                 repo = new TestRepository();
-                resultsProvider.DatabaseTest = repo.GetTest(testId, fetchResults: true);
+
+                if (repo.IsInitialized)
+                {
+                    resultsProvider.DatabaseTest = repo.GetTest(testId, fetchResults: true);
+                }
             }
 
             var results = resultsProvider.GetPerfMetrics(functionName, startTime, endTime);
 
             if (testId != 0)
             {
-                repo.UpdateTest(resultsProvider.DatabaseTest, saveResults: true);
+                if (repo.IsInitialized)
+                {
+                    repo.UpdateTest(resultsProvider.DatabaseTest, saveResults: true);
+                }
             }
 
             //print perf results

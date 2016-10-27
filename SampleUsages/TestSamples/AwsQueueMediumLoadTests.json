@@ -1,0 +1,26 @@
+﻿[{
+    "functionName": "Queue-NodeJs-CPUIntensive",
+    "platform": "Amazon",
+    "inputPath": "..\\queueitems-static-64.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-node-js-cpu-perf-test",
+    "outputObject": "samples-node-js-cpu-perf-test-output",
+    "eps": 100,
+    "repeat": true,
+    "durationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
+},
+{
+    "functionName": "Queue-NodeJs-HighMemory",
+    "platform": "Amazon",
+    "inputPath": "..\\queueitems-static-16.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-node-js-memory-perf-test",
+    "outputObject": "samples-node-js-memory-perf-test-output",
+    "eps": 100,
+    "repeat": true,
+    "durationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
+}]

@@ -62,6 +62,10 @@
     <Compile Include="FileLogger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="TestSamples\AwsQueueLowLoadTests.json" />
+    <None Include="TestSamples\AwsQueueMediumLoadTests.json" />
+    <None Include="TestSamples\AzureQueueMediumLoadTests.json" />
+    <None Include="TestSamples\AzureQueueLowLoadTests.json" />
     <Compile Include="TestScenario.cs" />
     <None Include="packages.config" />
     <None Include="secrets.config">

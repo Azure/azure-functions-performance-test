@@ -6,6 +6,7 @@ namespace ServerlessResultManager
 {
     public interface ITestRepository
     {
+        bool IsInitialized { get; }
         Test GetTest(int id, bool fetchResults);
 
         IEnumerable<Test> GetTestsAfter(DateTime dateFrom, bool fetchResults);

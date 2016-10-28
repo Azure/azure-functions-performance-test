@@ -19,6 +19,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected string FunctionName { get; set; }
         protected abstract IEnumerable<string> SourceItems { get; set; }
         protected int ExpectedExecutionCount;
+        protected int clientLoadErrors;
         private int _executionsPerSecond;        
         protected abstract Task TestCoolDown();
         protected abstract Task PreReportGeneration(DateTime testStartTime, DateTime testEndTime);
@@ -105,6 +106,11 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
             var clientEndTime = DateTime.Now;
             Logger.LogInfo("--END-- Elapsed time:      {0}", sw.Elapsed);
 
+            if (clientLoadErrors > 0)
+            {
+                Logger.LogWarning("{0} errors were encountered while generating load.", clientLoadErrors);
+            }
+
             if (this.TestRepository.IsInitialized)
             {
                 this.TestWithResults.EndTime = clientEndTime.ToUniversalTime();
@@ -145,16 +151,29 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 selectedItems = tmpList;
             }
 
-            _executionsPerSecond = selectedItems.Count;
-
-            if (saveResults)
+            try
             {
-                SaveCurrentProgessToDb();
-            }
+                await Load(selectedItems);
+                _executionsPerSecond = selectedItems.Count;
+                Interlocked.Add(ref ExpectedExecutionCount, selectedItems.Count);
+                Logger.LogInfo(PrintTestProgress());
 
-            Logger.LogInfo(PrintTestProgress());
-            Interlocked.Add(ref ExpectedExecutionCount, selectedItems.Count());
-            await Load(selectedItems);
+                if (saveResults)
+                {
+                    SaveCurrentProgessToDb();
+                }
+            }
+            catch(Exception exception)
+            {
+                Logger.LogWarning("{0} Exception encountered while generating load: {1}", DateTime.Now, exception.Message); 
+                Interlocked.Increment(ref clientLoadErrors);
+                if (clientLoadErrors > Eps)
+                {
+                    Logger.LogWarning("Aborting run, too many client errors.");
+                    Logger.LogException(exception);
+                    throw;
+                }
+            }
         }
 
         protected virtual string PrintTestProgress(Dictionary<string, string> testProgress = null)

@@ -1,0 +1,28 @@
+﻿[
+  {
+    "functionName": "Queue-NodeJs-CPUIntensive",
+    "platform": "Azure",
+    "inputPath": "..\\queueitems-static-64.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-node-js-cpu-perf-test",
+    "outputObject": "samples-node-js-cpu-perf-test-output",
+    "eps": 10,
+    "repeat": true,
+    "durationInMinutes": 1,
+    "warmUpTimeInMinutes": 0
+  },
+  {
+    "functionName": "Queue-CSharp-CPUIntensive",
+    "platform": "Azure",
+    "inputPath": "..\\queueitems-static-64.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-csharp-cpu-perf-test",
+    "outputObject": "samples-csharp-cpu-perf-test-output",
+    "eps": 10,
+    "repeat": true,
+    "durationInMinutes": 1,
+    "warmUpTimeInMinutes": 0
+  }
+]

@@ -64,6 +64,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="TestSamples\AwsQueueLowLoadTests.json" />
     <None Include="TestSamples\AwsQueueMediumLoadTests.json" />
+    <None Include="TestSamples\AzureQueueShortRunTests.json" />
+    <None Include="TestSamples\AzureQueueHighLoadTests.json" />
     <None Include="TestSamples\AzureQueueMediumLoadTests.json" />
     <None Include="TestSamples\AzureQueueLowLoadTests.json" />
     <Compile Include="TestScenario.cs" />

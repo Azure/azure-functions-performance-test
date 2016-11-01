@@ -98,6 +98,7 @@ namespace ServerlessBenchmark.PerfResultProviders
 
             var throughputList = new List<int>();
             var fileName = string.Format("{0}/{1}-Throughput.txt", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
 
             using (var logWriter = new StreamWriter(fileName))
             {
@@ -129,6 +130,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
             var fileName = string.Format("{0}/Azure-{1}-Throughput-graph.pdf", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
             PrintThroughputGraph(logGroupped, fileName, secondsInGroup);            
 
             return string.Format("Plot can be found at {0}", fileName);
@@ -160,6 +162,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
 
             var fileName = string.Format("{0}/{1}-HostConcurrency.txt", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
             var hostConcurrencyInTime = new Dictionary<DateTime, int>();
 
             using (var logWriter = new StreamWriter(fileName))

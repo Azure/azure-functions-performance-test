@@ -171,6 +171,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
 
             var fileName = string.Format("{0}/AWS-{1}-Throughput.txt", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
             File.WriteAllText(fileName, stringBuffer.ToString());
             var averageThroughput = logByMinute.Select(l => l.Value).Average();
 
@@ -189,6 +190,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
             var fileName = string.Format("{0}/AWS-{1}-Throughput-graph.pdf", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
             PrintThroughputGraph(logGroupped, fileName, secondsInGroup);
             return string.Format("Plot can be found at {0}", fileName);
         }

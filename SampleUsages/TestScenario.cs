@@ -91,7 +91,8 @@ namespace SampleUsages
                 this._logger.LogException(ex);
                 throw ex;
             }
-            
+
+            Directory.CreateDirectory(this.FunctionName);
             profile = GetLoadProfile(inputCount);
             test.Logger = _logger;
 

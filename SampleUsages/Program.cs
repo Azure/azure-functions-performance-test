@@ -207,6 +207,7 @@ namespace SampleUsages
         public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime, int testId = 0)
         {
             var resultsProvider = new AzureGenericPerformanceResultsProvider();
+            Directory.CreateDirectory(functionName);
             TestRepository repo = null;
             if (testId != 0)
             {

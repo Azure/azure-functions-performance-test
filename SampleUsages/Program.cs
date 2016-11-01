@@ -22,7 +22,7 @@ namespace SampleUsages
         }
 
         [Command]
-        public void RunScenario(string scenarioFilePath)
+        public void RunScenario(string scenarioFilePath, bool logToConsole = false)
         {
             var testScenarios = new List<TestScenario>();
             using (StreamReader r = new StreamReader(scenarioFilePath))
@@ -48,19 +48,27 @@ namespace SampleUsages
                 Console.WriteLine($"Start running scenario for function {testScenario.FunctionName} {++counter}/{testScenarios.Count}.");
                 var testFolder = string.Format(testScenario.FunctionName);
                 Directory.CreateDirectory(testFolder);
-                var logFilePath = $"{testFolder}/{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
 
-                using (var logger = new FileLogger(logFilePath))
+                if (logToConsole)
                 {
-                    try
+                    testScenario.RunScenario(new ConsoleLogger());
+                }
+                else
+                {
+                    var logFilePath = $"{testFolder}/{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
+
+                    using (var logger = new FileLogger(logFilePath))
                     {
-                        FunctionLogs._logger = logger;
-                        testScenario.RunScenario(logger);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Error while running {testScenario.FunctionName} check {logFilePath} for log details.");
-                        Console.WriteLine($"Exception {e}");
+                        try
+                        {
+                            FunctionLogs._logger = logger;
+                            testScenario.RunScenario(logger);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Error while running {testScenario.FunctionName} check {logFilePath} for log details.");
+                            Console.WriteLine($"Exception {e}");
+                        }
                     }
                 }
 

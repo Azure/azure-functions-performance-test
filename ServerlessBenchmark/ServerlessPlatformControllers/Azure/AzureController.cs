@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading.Tasks.Dataflow;
 
 namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
 {
@@ -98,21 +99,25 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             var response = new CloudPlatformResponse();
             var messages = request.Data[Constants.Message] as IEnumerable<string>;
             var queue = QueueClient.GetQueueReference(request.Source);
-            var tasks = new List<Task>();
-            var operationResultsByTask = new Dictionary<int, OperationContext>();
+            var operationContext = new OperationContext();
+            
+            var addMessageBlock = new ActionBlock<string>(async message =>
+            {
+                await queue.AddMessageAsync(new CloudQueueMessage(message), null, null, null, operationContext);
+            }, new ExecutionDataflowBlockOptions { SingleProducerConstrained = true, MaxDegreeOfParallelism = 32 });
+
+            var bufferBlock = new BufferBlock<string>();
+            bufferBlock.LinkTo(addMessageBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
             foreach (var message in messages)
             {
-                var operationContext = new OperationContext();
-                var t = queue.AddMessageAsync(new CloudQueueMessage(message), null, null, null, operationContext);
-                tasks.Add(t);
-                operationResultsByTask.Add(t.Id, operationContext);
+                bufferBlock.Post(message);                
             }
 
-            await Task.WhenAll(tasks);
-            var operationResults = operationResultsByTask.Values;
-            var successfulPost = operationResults.All(operationContext => operationContext.LastResult.HttpStatusCode == 201);
-            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;
+            bufferBlock.Complete();
+            await addMessageBlock.Completion;            
+            var successfulPost = operationContext.RequestResults.All(x => x.HttpStatusCode == 201);
+            response.HttpStatusCode = successfulPost ? HttpStatusCode.OK : HttpStatusCode.Conflict;            
             return response;
         }
 

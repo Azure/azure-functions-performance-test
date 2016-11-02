@@ -40,12 +40,12 @@ namespace ServerlessBenchmark.LoadProfiles
                 await loadAction;
             };
             _calculateRateTimer = new Timer(callback, null, 0, 1000 * 1);
-            var isLoadFinishedTask = Task.Run(() =>
+            var isLoadFinishedTask = Task.Run(async () =>
             {
                 while (!IsFinished())
                 {
                     //keep cycling
-                    Task.Delay(TimeSpan.FromSeconds(1));
+                    await Task.Delay(TimeSpan.FromSeconds(1));
                 }
             });
 

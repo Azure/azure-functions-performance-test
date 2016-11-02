@@ -175,39 +175,36 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
         private async Task<bool> VerifyQueueMessagesExistInTargetQueue(int expected)
         {
-            IEnumerable<object> messages;
-            var lastCountSeen = -1;
-            int count = 0;
-            DateTime lastTimeCountChanged = new DateTime();
-            var timeout = TimeSpan.FromSeconds(45);
-            var startTime = DateTime.UtcNow;
-            do
-            {
-                var taskMesagesResponse = await CloudPlatformController.DequeueMessagesAsync(new CloudPlatformRequest()
-                {
-                    Source = TargetQueue
-                });
-                messages = (IEnumerable<object>) taskMesagesResponse.Data;
-                var retrieveCount = messages.Count();
-                count += messages == null ? 0 : retrieveCount;
-                this.Logger.LogInfo("Destination Messages - Number Of Messages:     {0}", count);
+            const int newMessagesTimeoutSeconds = 30;
 
-                if(retrieveCount < Constants.MaxDequeueAmount)
-                    Thread.Sleep(1 * 1000);
-                
-                if (count != lastCountSeen)
+            int count = 0;
+            int lastCountSeen = -1;
+            DateTime lastTimeCountChanged = DateTime.Now;
+
+            while(true)
+            {
+                var sizeResponse = await GetCurrentOutputQueueSize();
+                count = (int)sizeResponse.Data;
+                this.Logger.LogInfo("{0} - Found {1} of {2} expected messages.", DateTime.Now, count, expected);
+
+                if (count >= expected)
+                {
+                    this.Logger.LogInfo("All messages found, done waiting.");
+                    return true;
+                }
+                else if (count > lastCountSeen)
                 {
                     lastCountSeen = count;
-                    lastTimeCountChanged = DateTime.UtcNow;
+                    lastTimeCountChanged = DateTime.Now;
+                }
+                else if (DateTime.Now - lastTimeCountChanged > TimeSpan.FromSeconds(newMessagesTimeoutSeconds))
+                {
+                    this.Logger.LogWarning("No new messages found in {0} seconds. Wait operation has timed out.", newMessagesTimeoutSeconds);
+                    return false;
                 }
 
-                if ((startTime - lastTimeCountChanged) > timeout)
-                {
-                    Logger.LogInfo("Waiting for destination queue to reach expected count timed out: {0}/{1}", count, ExpectedExecutionCount);
-                    break;
-                }
-            } while (count < expected);
-            return true;
+                await Task.Delay(TimeSpan.FromSeconds(5));
+            }
         }
 
         private async Task<CloudPlatformResponse> GetCurrentOutputQueueSize()

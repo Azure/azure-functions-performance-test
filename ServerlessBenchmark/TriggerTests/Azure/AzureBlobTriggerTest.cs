@@ -58,7 +58,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
                 var storageAccount = CloudStorageAccount.Parse(connectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
                 var logs = FunctionLogs.GetAzureFunctionLogs(FunctionName);
-                var table = tableClient.GetTableReference("AzureFunctionsLogTable");
+                var table = tableClient.GetTableReference(Utility.GetCurrentLogsTableName());
                 logs.ForEach(entity => table.Execute(TableOperation.Delete(entity)));
                 return true;
             }

@@ -13,7 +13,7 @@ namespace ServerlessBenchmark
         /// <summary>
         /// The name of the table where all of the azure function execution logs are stored.
         /// </summary>
-        public const string AzureFunctionLogTableName = "AzureFunctionsLogTable";
+        public const string AzureFunctionLogTableNamePrefix = "AzureWebJobsHostLogs";
 
         /// <summary>
         /// Partition key of the execution logs that carries information such as container and etc.

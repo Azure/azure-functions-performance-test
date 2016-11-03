@@ -217,6 +217,7 @@
     <Content Include="Views\Results\TestResultsPartial.cshtml" />
     <None Include="Views\Home\List.cshtml" />
     <Content Include="Views\Home\TestScenarioList.cshtml" />
+    <Content Include="Views\Home\TestScenario.cshtml" />
     <None Include="Views\Results\OpenTests.cshtml" />
     <Content Include="Views\Results\TestResultsPastPartial.cshtml" />
   </ItemGroup>

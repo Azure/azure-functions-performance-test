@@ -33,7 +33,7 @@ namespace ServerlessResultManager
             {
                 if (fetchTests)
                 {
-                    return model.TestScenarios.Include("Tests").Include("TestResults").FirstOrDefault(s => s.Id == id);
+                    return model.TestScenarios.Include("Tests.TestResults").FirstOrDefault(s => s.Id == id);
                 }
                 else
                 {

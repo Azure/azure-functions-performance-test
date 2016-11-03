@@ -44,6 +44,13 @@ namespace ServerlessDashboard.Controllers
             return View(scenarios);
         }
 
+        public ActionResult TestScenario(int id)
+        {
+            var repo = new TestRepository();
+            var scenarios = repo.GetTestScenario(id, fetchTests: true);
+            return View(scenarios);
+        }
+
         public ActionResult Contact()
         {
             return View();

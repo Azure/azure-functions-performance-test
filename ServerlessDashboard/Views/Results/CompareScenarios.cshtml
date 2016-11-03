@@ -1,0 +1,51 @@
+﻿@using System.Collections.Generic;
+@model ServerlessDashboard.Models.ScenarioComparisonModel
+
+@{
+    ViewBag.Title = "title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Comparing scenarios @Model.FirstScenario.Name and @Model.SecondScenario.Name</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>@Model.FirstScenario.Name</th>
+        <th>@Model.SecondScenario.Name</th>
+    </tr>
+    </thead>
+    <tbody>
+    @for (var i = 0; i < Math.Max(Model.FirstScenarioTests.Count, Model.SecondScenarioTests.Count); ++i)
+    {
+
+        var leftTest = Model.FirstScenarioTests.Count > i ? Model.FirstScenarioTests[i] : null;
+        var rightTest = Model.SecondScenarioTests.Count > i ? Model.SecondScenarioTests[i] : null;
+        <tr>
+            <td>
+                @if (leftTest != null)
+                {
+                    <input type="radio" name="left-test" value="@leftTest.Id"/>@leftTest.Name
+                }
+            </td>
+            <td>
+                @if (rightTest != null)
+                {
+                    <input type="radio" name="right-test" value="@rightTest.Id">@rightTest.Name
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<input type="button" value="Compare" onclick="openTestComparison()"/>
+
+<script>
+    openTestComparison = function() {
+        var leftId = $('input[name="left-test"]:checked').val();
+        var rightId = $('input[name="right-test"]:checked').val();
+        console.log(leftId, rightId);
+        window.open("/compareTests/" + leftId + "/" + rightId);
+    }
+</script>

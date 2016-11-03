@@ -40,5 +40,26 @@ namespace ServerlessDashboard.Models
             Owner = test.Owner;
             ViewTimespanInMinutes = test.EndTime.HasValue ? (int)(test.EndTime.Value - test.StartTime).TotalMinutes : viewTimeSpanInMinutes;
         }
+
+        public static Dictionary<string, List<object[]>> ParseResults(ICollection<TestResult> results)
+        {
+            return new Dictionary<string, List<object[]>>
+            {
+                { "TotalCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.CallCount }).ToList() },
+                { "SuccessCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.SuccessCount }).ToList() },
+                { "FailedCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.FailedCount }).ToList() },
+                { "TimeoutCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.TimeoutCount }).ToList() },
+                { "AverageLatency", results.Where(x => Math.Abs(x.AverageLatency) > 0.01).Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.AverageLatency }).ToList() },
+                { "HostConcurrency", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.HostConcurrency }).ToList() }
+            };
+        }
+
+        private static long ToFlotTimestamp(DateTime timestamp)
+        {
+            timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var time = timestamp.ToUniversalTime().Subtract(new TimeSpan(epoch.Ticks));
+            return (long)(time.Ticks / 10000);
+        }
     }
 }

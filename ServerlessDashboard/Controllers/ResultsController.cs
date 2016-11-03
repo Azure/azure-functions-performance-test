@@ -18,7 +18,7 @@ namespace ServerlessDashboard.Controllers
             var startDateTime = DateTime.SpecifyKind(DateTime.Parse(startDate.Replace("!", ":")),  DateTimeKind.Utc);
             var repo = new TestRepository();
             var results = repo.GetResultsForTestAfter(testId, startDateTime).ToList();
-            var result = ParseResults(results);
+            var result = TestResultsModel.ParseResults(results);
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
@@ -27,7 +27,7 @@ namespace ServerlessDashboard.Controllers
         {
             var repo = new TestRepository();
             var results = repo.GetTest(testId, fetchResults: true).TestResults;
-            var parsedResults = ParseResults(results);
+            var parsedResults = TestResultsModel.ParseResults(results);
             return Json(parsedResults, JsonRequestBehavior.AllowGet);
         }
 
@@ -79,24 +79,22 @@ namespace ServerlessDashboard.Controllers
             return View(results);
         }
 
-        private long ToFlotTimestamp(DateTime timestamp)
+        public ActionResult CompareTests(int firstTestId, int secondTestId)
         {
-            timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var time = timestamp.ToUniversalTime().Subtract(new TimeSpan(epoch.Ticks));
-            return (long)(time.Ticks / 10000);
+            var repo = new TestRepository();
+            var firstTest = repo.GetTest(firstTestId, fetchResults: true);
+            var secondTest = repo.GetTest(secondTestId, fetchResults: true);
+            var comparisonModel = new TestComparisonModel(firstTest, secondTest);
+            return View(comparisonModel);
         }
-        private Dictionary<string, List<object[]>> ParseResults(ICollection<TestResult> results)
+
+        public ActionResult CompareScenarios(int firstScenarioId, int secondScenarioId)
         {
-            return new Dictionary<string, List<object[]>>
-            {
-                { "TotalCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.CallCount }).ToList() },
-                { "SuccessCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.SuccessCount }).ToList() },
-                { "FailedCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.FailedCount }).ToList() },
-                { "TimeoutCount", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.TimeoutCount }).ToList() },
-                { "AverageLatency", results.Where(x => Math.Abs(x.AverageLatency) > 0.01).Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.AverageLatency }).ToList() },
-                { "HostConcurrency", results.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), x.HostConcurrency }).ToList() }
-            };
+            var repo = new TestRepository();
+            var firstScenario = repo.GetTestScenario(firstScenarioId, fetchTests: true);
+            var secondScenario = repo.GetTestScenario(secondScenarioId, fetchTests: true);
+            var comparisonModel = new ScenarioComparisonModel(firstScenario, secondScenario);
+            return View(comparisonModel);
         }
     }
 }

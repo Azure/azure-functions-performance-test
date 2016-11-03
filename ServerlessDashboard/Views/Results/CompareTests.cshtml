@@ -1,0 +1,147 @@
+﻿@using ServerlessDashboard.Models
+@model TestComparisonModel
+@{
+    ViewBag.Title = "title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var throughputContainerName = "flot-throughput-container";
+    var latencyContainerName = "flot-latency-container";
+    var errorsContainerName = "flot-errors-container";
+    var timeoutContainerName = "flot-timeout-container";
+    var hostConcurrencyContainerName = "flot-concurrency-container";
+}
+
+<h3>Comparing tests @Model.FirstTest.Name and @Model.SecondTest.Name</h3>
+
+<div id="test">
+    <hr />
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Platform</th>
+                <th>Total execution requests</th>
+                <th>Succeeded executions</th>
+                <th>Failed executions</th>
+                <th>Timeout executions</th>
+                <th>Average latency</th>
+                <th>TargetEps</th>
+                <th>ExecutionCount</th>
+                <th>ExecutionTimeStd</th>
+                <th>FunctionClockTime</th>
+                <th>HostConcurrency</th>
+                <th>Throughput</th>
+                <th>Errors</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var testResult in new List<TestResultsModel> { Model.FirstTest, Model.SecondTest })
+        {
+            <tr>
+                <td><b>@testResult.Name</b></td>
+                <td>@testResult.Platform</td>
+                <td>@testResult.TotalExecutionRequests</td>
+                <td>@testResult.SucceededExecutions</td>
+                <td>@testResult.FailedExecutions</td>
+                <td>@testResult.TimeoutExecutions</td>
+                <td>@testResult.AverageLatency</td>
+                <td>@testResult.TargetEps</td>
+                <td>@testResult.ExecutionCount</td>
+                <td>@testResult.ExecutionTimeStandardDeviation</td>
+                <td>@testResult.FunctionClockTime</td>
+                <td>@testResult.HostConcurrency</td>
+                <td>@testResult.Throughput</td>
+                <td>@testResult.Errors</td>
+            </tr>
+        }
+            <tr>
+                <td><b>Diff</b></td>
+                <td>@Model.PlatformDiff</td>
+                <td>@Model.TotalExecutionRequestsDiff</td>
+                <td>@Model.SucceededExecutionsDiff</td>
+                <td>@Model.FailedExecutionsDiff</td>
+                <td>@Model.TimeoutExecutionsDiff</td>
+                <td>@Model.AverageLatencyDiff</td>
+                <td>@Model.TargetEpsDiff</td>
+                <td>@Model.ExecutionCountDiff</td>
+                <td>@Model.ExecutionTimeStdDiff</td>
+                <td>@Model.FunctionClockTimeDiff</td>
+                <td>@Model.HostConcurrencyDiff</td>
+                <td>@Model.ThroughputDiff</td>
+                <td>@Model.ErrorsDiff</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Throughput:</h4>
+    <div id="legend-@throughputContainerName" style="float: left; padding: 15px 30px "></div>
+    <div id="@throughputContainerName" style="border: 1px solid black; width: 1300px; height: 400px;"></div>
+
+    <h4>Latency:</h4>
+    <div id="legend-@latencyContainerName" style="float: left; padding: 15px 30px "></div>
+    <div id="@latencyContainerName" style="border: 1px solid black; width: 1300px; height: 400px;"></div>
+
+    <h4>Errors:</h4>
+    <div id="legend-@errorsContainerName" style="float: left; padding: 15px 30px "></div>
+    <div id="@errorsContainerName" style="border: 1px solid black; width: 1300px; height: 400px;"></div>
+
+    <h4>Timeouts:</h4>
+    <div id="legend-@timeoutContainerName" style="float: left; padding: 15px 30px "></div>
+    <div id="@timeoutContainerName" style="border: 1px solid black; width: 1300px; height: 400px;"></div>
+
+    <h4>Host concurrenty:</h4>
+    <div id="legend-@hostConcurrencyContainerName" style="float: left; padding: 15px 30px "></div>
+    <div id="@hostConcurrencyContainerName" style="border: 1px solid black; width: 1300px; height: 400px;"></div>
+    
+    <script type="text/javascript">
+        function getUtcNow() {
+            var now = new Date();
+            return new Date(now.getTime());
+        }
+
+        function printGraph(containerSelector, data, legendSelector) {
+            $.plot(containerSelector, data, {
+                series: {
+                    shadowSize: 0	// Drawing is faster without shadows
+                },
+                yaxis: [{
+                    min: 0,
+                    position: "left",
+                    alignTicksWithAxis: null
+                },
+                {
+                    position: "right",
+                    alignTicksWithAxis: 1
+                }],
+                xaxis: {
+                    show: true,
+                    mode: "time",
+                    timezone: "UTC"
+                },
+                legend: {
+                    show: true,
+                    placement: 'outsideGrid',
+                    container: $(legendSelector)
+                }
+            });
+        };
+
+        $(function() {
+            // We use an inline data source in the example, usually data would
+            // be fetched from a server
+            var throughputData = @Html.Raw(Json.Encode(Model.ComparedThroughput));
+            printGraph("#@throughputContainerName", throughputData, "#legend-@throughputContainerName");
+
+            var latencyData = @Html.Raw(Json.Encode(Model.ComparedLatency));
+            printGraph("#@latencyContainerName", latencyData, "#legend-@latencyContainerName");
+
+            var errorData = @Html.Raw(Json.Encode(Model.ComparedErrorCount));
+            printGraph("#@errorsContainerName", errorData, "#legend-@errorsContainerName");
+
+            var timeoutData = @Html.Raw(Json.Encode(Model.ComparedTimeoutCount));
+            printGraph("#@timeoutContainerName", timeoutData, "#legend-@timeoutContainerName");
+
+            var hostConcurrencyData = @Html.Raw(Json.Encode(Model.ComparedHostConcurrencyCount));
+            printGraph("#@hostConcurrencyContainerName", hostConcurrencyData, "#legend-@hostConcurrencyContainerName");
+        });
+    </script>
+</div>

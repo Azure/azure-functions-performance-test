@@ -44,6 +44,16 @@ namespace ServerlessDashboard
                 defaults: new { controller = "Results", action = "GetRunningTests", monitoredTests = UrlParameter.Optional });
 
             routes.MapRoute(
+                name: "CompareTests",
+                url: "compareTests/{firstTestId}/{secondTestId}",
+                defaults: new { controller = "Results", action = "CompareTests" });
+
+            routes.MapRoute(
+                name: "CompareScenarios",
+                url: "compareScenarios/{firstScenarioId}/{secondScenarioId}",
+                defaults: new { controller = "Results", action = "CompareScenarios" });
+
+            routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }

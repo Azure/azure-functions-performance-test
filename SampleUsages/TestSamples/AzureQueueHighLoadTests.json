@@ -2,7 +2,7 @@
   {
     "functionName": "Queue-NodeJs-CPUIntensive",
     "platform": "Azure",
-    "inputPath": "..\\queueitems-static-64.config",
+    "inputPath": "..\\queueitems-static-128.config",
     "triggerType": "Queue",
     "loadProfile": "Linear",
     "inputObject": "samples-node-js-cpu-perf-test",
@@ -15,7 +15,7 @@
   {
     "functionName": "Queue-CSharp-CPUIntensive",
     "platform": "Azure",
-    "inputPath": "..\\queueitems-static-64.config",
+    "inputPath": "..\\queueitems-static-128.config",
     "triggerType": "Queue",
     "loadProfile": "Linear",
     "inputObject": "samples-csharp-cpu-perf-test",

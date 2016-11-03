@@ -45,7 +45,7 @@ namespace ServerlessResultManager
         [StringLength(250)]
         public string FunctionsRuntimeVersion { get; set; }
 
-        public int TargetEps { get; set; }
+        public int? TargetEps { get; set; }
 
         [StringLength(250)]
         public string TriggerType { get; set; }
@@ -56,19 +56,23 @@ namespace ServerlessResultManager
         [StringLength(250)]
         public string Destination { get; set; }
 
-        public double AverageExecutionTime { get; set; }
+        public double? AverageExecutionTime { get; set; }
 
-        public int ExecutionCount { get; set; }
+        public int? ExecutionCount { get; set; }
 
-        public double ExecutionTimeStandardDeviation { get; set; }
+        public double? ExecutionTimeStandardDeviation { get; set; }
 
-        public double FunctionClockTime { get; set; }
+        public double? FunctionClockTime { get; set; }
 
-        public double HostConcurrency { get; set; }
+        public double? HostConcurrency { get; set; }
 
-        public double Throughput { get; set; }
+        public double? Throughput { get; set; }
 
-        public int Errors { get; set; }
+        public int? Errors { get; set; }
+
+        public long? TestScenarioId { get; set; }
+
+        public virtual TestScenario TestScenario { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TestResult> TestResults { get; set; }

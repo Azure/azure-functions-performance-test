@@ -1,0 +1,49 @@
+﻿@model List<ServerlessResultManager.TestScenario>
+
+@{
+    ViewBag.Title = "Test list";
+}
+<table style="border: 1px solid black">
+    <thead style="border: 1px solid black">
+        <tr>
+            <th></th>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Start time</th>
+            <th>End time</th>
+            <th>Test count</th>
+        </tr>
+    </thead>
+    <tbody style="border: 1px solid black">
+        @foreach (var testScenario in Model)
+        {
+            <tr style="border: 1px solid black">
+                <td class="test-checkbox"><input type="checkbox" class="test-id" value="@testScenario.Id" /></td>
+                <td>@testScenario.Id</td>
+                <td>@testScenario.Name </td>
+                <td>@testScenario.StartTimeUtc</td>
+                <td>@testScenario.EndTimeUtc</td>
+                <th>@testScenario.Tests.Count()</th>
+            </tr>
+        }
+    </tbody>
+</table>
+<input type="button" id="select-tests" value="Show selected" />
+
+<script>
+    $(function() {
+        $("#select-tests").click(function () {
+            var ids = [];
+            $(".test-id:checkbox:checked").each(function() {
+                ids.push($(this).val());
+            });
+
+            var idsString = ids.reduce(function (a, b) {
+                return a + "," + b;
+            }, "");
+
+            idsString = idsString.substring(1, idsString.length);
+            window.location = "/openTests/" + idsString;
+        });
+    })
+</script>

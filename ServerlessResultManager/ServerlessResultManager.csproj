@@ -61,6 +61,7 @@
     <Compile Include="TestRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestResult.cs" />
+    <Compile Include="TestScenario.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Model\" />

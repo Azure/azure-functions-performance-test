@@ -27,7 +27,7 @@ namespace SampleUsages
         public int WarmUpTimeInMinutes { get; set; }
         private ILogger _logger { get; set; }
 
-        internal void RunScenario(ILogger logger)
+        internal void RunScenario(ILogger logger, ServerlessResultManager.TestScenario testScenario = null)
         {
             this._logger = logger;
             var scenarioType = Tuple.Create(this.Platform, this.TriggerType);
@@ -105,7 +105,8 @@ namespace SampleUsages
                 TargetEps = this.Eps,
                 ToolsVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString()
             };
-
+            
+            dbTest.TestScenarioId = testScenario?.Id;
             test.TestWithResults = dbTest;
             RunScenario(test, profile);
         }

@@ -22,6 +22,41 @@ namespace SampleUsages
         }
 
         [Command]
+        public void Test()
+        {
+            var repo = new TestRepository();
+            var scenario = repo.AddTestScenario(new ServerlessResultManager.TestScenario
+            {
+                Name = "test",
+                StartTimeUtc = DateTime.UtcNow
+            });
+
+            var test = repo.AddTest(new Test
+            {
+                Name = "test1",
+                TestScenario = scenario,
+                TestScenarioId = scenario.Id,
+                Description = "test",
+                Owner = "test",
+                Platform = "test",
+                StartTime = DateTime.UtcNow
+            });
+
+            test.TestResults.Add(new TestResult
+            {
+                AverageLatency = 0,
+                Timestamp = DateTime.UtcNow,
+                CallCount = 0,
+                FailedCount = 0,
+                HostConcurrency = 0,
+                SuccessCount = 0,
+                TimeoutCount = 0
+            });
+
+            repo.UpdateTest(test);
+        }
+
+        [Command]
         public void RunScenario(string scenarioFilePath, bool logToConsole = false)
         {
             var testScenarios = new List<TestScenario>();
@@ -42,6 +77,13 @@ namespace SampleUsages
             Console.WriteLine("Start running scenarios.");
             var counter = 0;
             var now = DateTime.UtcNow;
+            var repo = new TestRepository();
+
+            var scenario = repo.AddTestScenario(new ServerlessResultManager.TestScenario
+            {
+                Name = string.Format("Scenario-{0}-{1}", scenarioFilePath, now.ToString("s")),
+                StartTimeUtc = now
+            });
 
             foreach (var testScenario in testScenarios)
             {
@@ -51,7 +93,7 @@ namespace SampleUsages
 
                 if (logToConsole)
                 {
-                    testScenario.RunScenario(new ConsoleLogger());
+                    testScenario.RunScenario(new ConsoleLogger(), testScenario: scenario);
                 }
                 else
                 {
@@ -62,7 +104,7 @@ namespace SampleUsages
                         try
                         {
                             FunctionLogs._logger = logger;
-                            testScenario.RunScenario(logger);
+                            testScenario.RunScenario(logger, testScenario: scenario);
                         }
                         catch (Exception e)
                         {
@@ -74,6 +116,9 @@ namespace SampleUsages
 
                 Console.WriteLine($"Finished running scenario {counter}/{testScenarios.Count}.");
             }
+
+            scenario.EndTimeUtc = DateTime.UtcNow;
+            repo.UpdateTestScenario(scenario);
         }
 
         #region LambdaTests

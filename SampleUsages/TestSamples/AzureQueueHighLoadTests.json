@@ -24,5 +24,57 @@
     "repeat": true,
     "durationInMinutes": 20,
     "warmUpTimeInMinutes": 5
+  },
+  {
+    "functionName": "Queue-NodeJs-HighMemory",
+    "platform": "Azure",
+    "inputPath": "..\\queueitems-static-1.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-node-js-memory-perf-test",
+    "outputObject": "samples-node-js-memory-perf-test-output",
+    "eps": 1000,
+    "repeat": true,
+    "durationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
+  },
+  {
+    "functionName": "Queue-CSharp-HighMemory",
+    "platform": "Azure",
+    "inputPath": "..\\queueitems-static-1.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-csharp-memory-perf-test",
+    "outputObject": "samples-csharp-memory-perf-test-output",
+    "eps": 1000,
+    "repeat": true,
+    "durationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
+  },
+  {
+    "functionName": "Queue-NodeJs-LowUsage",
+    "platform": "Azure",
+    "inputPath": "..\\queueitems-static-128.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-node-js-low-usage-test",
+    "outputObject": "samples-node-js-low-usage-test-output",
+    "eps": 1000,
+    "repeat": true,
+    "durationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
+  },
+  {
+    "functionName": "Queue-CSharp-LowUsage",
+    "platform": "Azure",
+    "inputPath": "..\\queueitems-static-128.config",
+    "triggerType": "Queue",
+    "loadProfile": "Linear",
+    "inputObject": "samples-csharp-low-usage-test",
+    "outputObject": "samples-csharp-low-usage-test-output",
+    "eps": 1000,
+    "repeat": true,
+    "durationInMinutes": 20,
+    "warmUpTimeInMinutes": 5
   }
 ]

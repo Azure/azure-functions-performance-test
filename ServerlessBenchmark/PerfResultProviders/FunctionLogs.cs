@@ -101,7 +101,7 @@ namespace ServerlessBenchmark.PerfResultProviders
 
                 do
                 {
-                    var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == "R");
+                    var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == Constants.AzureFunctionLogExecutionPartitionKey);
 
                     if (!string.IsNullOrEmpty(functionName))
                     {

@@ -18,7 +18,7 @@ namespace ServerlessBenchmark
         /// <summary>
         /// Partition key of the execution logs that carries information such as container and etc.
         /// </summary>
-        public const string AzureFunctionLogExecutionPartitionKey = "R";
+        public const string AzureFunctionLogExecutionPartitionKey = "R2";
 
         /// <summary>
         /// Timeout in milliseconds for each http request

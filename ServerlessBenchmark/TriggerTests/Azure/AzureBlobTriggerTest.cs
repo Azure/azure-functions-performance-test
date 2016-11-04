@@ -12,12 +12,12 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureBlobTriggerTest:BlobTriggerTest
     {
-        private string _azureStorageConnectionString;
+        private string _azureStorageConnectionStringConfigName;
 
         public AzureBlobTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> blobs, string inputContainer,
-            string outputContainer, string azureStorageAccountConnectionString = null) : base(functionName, eps, warmUpTimeInMinutes, blobs.ToArray(), inputContainer, outputContainer)
+            string outputContainer, string azureStorageConnectionStringConfigName = null) : base(functionName, eps, warmUpTimeInMinutes, blobs.ToArray(), inputContainer, outputContainer)
         {
-            _azureStorageConnectionString = azureStorageAccountConnectionString;
+            _azureStorageConnectionStringConfigName = azureStorageConnectionStringConfigName;
         }
 
         protected override bool Setup()
@@ -34,7 +34,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
         {
             get
             {
-                return new AzureController(_azureStorageConnectionString)
+                return new AzureController(_azureStorageConnectionStringConfigName)
                 {
                     Logger = this.Logger
                 };

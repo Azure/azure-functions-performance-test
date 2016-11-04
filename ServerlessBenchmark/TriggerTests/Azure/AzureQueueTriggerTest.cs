@@ -8,19 +8,19 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureQueueTriggerTest:QueueTriggerTest
     {
-        private string _azureStorageConnectionString;
+        private string _azureStorageConnectionStringConfigName;
 
         public AzureQueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, 
-            string sourceQueue, string targetQueue, string azureStorageConnectionString = null) : base(functionName, eps, warmUpTimeInMinutes, messages, sourceQueue, targetQueue)
+            string sourceQueue, string targetQueue, string azureStorageConnectionStringConfigName = null) : base(functionName, eps, warmUpTimeInMinutes, messages, sourceQueue, targetQueue)
         {
-            _azureStorageConnectionString = azureStorageConnectionString;
+            _azureStorageConnectionStringConfigName = azureStorageConnectionStringConfigName;
         }
 
         protected override ICloudPlatformController CloudPlatformController
         {
             get
             {
-                return new AzureController(_azureStorageConnectionString)
+                return new AzureController(_azureStorageConnectionStringConfigName)
                 {
                     Logger = this.Logger
                 };

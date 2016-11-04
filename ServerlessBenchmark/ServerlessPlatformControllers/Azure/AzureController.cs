@@ -33,9 +33,9 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             get { return storageAccount.CreateCloudBlobClient(); }
         }
 
-        public AzureController(string storageAccountConnectionString = null)
+        public AzureController(string storageAccountConnectionStringConfigName = null)
         {
-            var connectionString = storageAccountConnectionString ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+            var connectionString = ConfigurationManager.AppSettings[storageAccountConnectionStringConfigName] ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
 
             if (!string.IsNullOrEmpty(connectionString))
             {

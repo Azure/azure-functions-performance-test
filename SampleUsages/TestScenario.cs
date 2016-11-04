@@ -24,7 +24,7 @@ namespace SampleUsages
         public bool Repeat { get; set; }
         public int DurationInMinutes { get; set; }
         public int WarmUpTimeInMinutes { get; set; }
-        public string AzureStorageConnectionString { get; set; }
+        public string AzureStorageConnectionStringConfigName { get; set; }
         private ILogger _logger { get; set; }
 
         internal void RunScenario(ILogger logger)
@@ -67,7 +67,7 @@ namespace SampleUsages
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
                 var blobs = Directory.GetFiles(this.InputPath);
-                test = new AzureBlobTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, blobs, this.InputObject, this.OutputObject, this.AzureStorageConnectionString);
+                test = new AzureBlobTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, blobs, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
                 inputCount = blobs.Count();
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Http))
@@ -81,7 +81,7 @@ namespace SampleUsages
             {
                 AssertInput("FunctionName", "InputObject", "OutputObject");
                 var queueMessages = File.ReadAllLines(this.InputPath);
-                test = new AzureQueueTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject, this.AzureStorageConnectionString);
+                test = new AzureQueueTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
                 inputCount = queueMessages.Count();
             }
             else

@@ -11,6 +11,12 @@ namespace ServerlessBenchmark
 {
     public class Utility
     {
+        public static string GetCurrentLogsTableName()
+        {
+            // TODO: make this tool capable of doing a run that spans the end of a month
+            return string.Format("{0}{1:yyyyMM}", Constants.AzureFunctionLogTableNamePrefix, DateTime.UtcNow);
+        }
+
         /// <summary>
         /// Delete Azure Function Logs from an Azure storage account given the storage connection string.
         /// </summary>
@@ -25,7 +31,7 @@ namespace ServerlessBenchmark
                 var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
                 var logs = FunctionLogs.GetAzureFunctionLogs(functionName);
-                var table = tableClient.GetTableReference(Constants.AzureFunctionLogTableName);
+                var table = tableClient.GetTableReference(GetCurrentLogsTableName());
                 var partitions = logs.GroupBy(log => log.PartitionKey);
                 var executionLogsCount = logs.Count(log => log.PartitionKey.Equals(Constants.AzureFunctionLogExecutionPartitionKey, 
                     StringComparison.CurrentCultureIgnoreCase));

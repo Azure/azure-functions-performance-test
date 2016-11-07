@@ -30,7 +30,7 @@ namespace ServerlessBenchmark.PerfResultProviders
                         {
                             var storageAccount = CloudStorageAccount.Parse(connectionString);
                             var tableClient = storageAccount.CreateCloudTableClient();
-                            var table = tableClient.GetTableReference("AzureFunctionsLogTable");
+                            var table = tableClient.GetTableReference(Utility.GetCurrentLogsTableName());
                             _azureFunctionLogTable = table;
                             return table;
                         }
@@ -94,14 +94,14 @@ namespace ServerlessBenchmark.PerfResultProviders
             {
                 var storageAccount = CloudStorageAccount.Parse(connectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
-                var table = tableClient.GetTableReference("AzureFunctionsLogTable");
+                var table = tableClient.GetTableReference(Utility.GetCurrentLogsTableName());
                 int size = 0;
                 var latestNewLog = DateTime.UtcNow;
                 var lastSize = 0;
 
                 do
                 {
-                    var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == "R");
+                    var query = table.CreateQuery<AzureFunctionLogs>().Where(x => x.PartitionKey == Constants.AzureFunctionLogExecutionPartitionKey);
 
                     if (!string.IsNullOrEmpty(functionName))
                     {

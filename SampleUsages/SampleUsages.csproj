@@ -62,12 +62,24 @@
     <Compile Include="FileLogger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <None Include="TestSamples\AwsQueueLowLoadTests.json" />
-    <None Include="TestSamples\AwsQueueMediumLoadTests.json" />
-    <None Include="TestSamples\AzureQueueShortRunTests.json" />
-    <None Include="TestSamples\AzureQueueHighLoadTests.json" />
-    <None Include="TestSamples\AzureQueueMediumLoadTests.json" />
-    <None Include="TestSamples\AzureQueueLowLoadTests.json" />
+    <None Include="TestSamples\AwsQueueLowLoadTests.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestSamples\AwsQueueMediumLoadTests.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestSamples\AzureQueueShortRunTests.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestSamples\AzureQueueHighLoadTests.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestSamples\AzureQueueMediumLoadTests.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestSamples\AzureQueueLowLoadTests.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="TestScenario.cs" />
     <None Include="packages.config" />
     <None Include="secrets.config">

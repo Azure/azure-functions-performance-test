@@ -57,29 +57,23 @@ namespace ServerlessDashboard.Models
         {
             var firstResults = this.FirstTest.TestResults;
             var secondResults = this.SecondTest.TestResults;
-            var timeDiff = (firstResults.First().Timestamp - secondResults.First().Timestamp).TotalSeconds;
+            var timeDiff = firstResults.First().Timestamp - secondResults.First().Timestamp;
+            var firstTestShortName = this.FirstTest.Name.Substring(8);
+            var secondTestShortName = this.SecondTest.Name.Substring(8);
 
             return new List<object>
             {
                 new
                 {
-                    label = prefixName + this.FirstTest.Name.Substring(8) + this.FirstTest.Id,
-                    data = firstResults.Select(x => new object[] { ToFlotTimestamp(x.Timestamp), selector(x) }).ToList()
+                    label = $"{prefixName}{firstTestShortName}{this.SecondTest.Id}",
+                    data = firstResults.Select(x => new object[] { TestResultsModel.ToFlotTimestamp(x.Timestamp), selector(x) }).ToList()
                 },
                 new
                 {
-                    label = prefixName + this.FirstTest.Name.Substring(8) + this.SecondTest.Id,
-                    data = secondResults.Select(x => new object[] { ToFlotTimestamp(x.Timestamp.Add(TimeSpan.FromSeconds(timeDiff))), selector(x) }).ToList()
+                    label = $"{prefixName}{secondTestShortName}{this.SecondTest.Id}",
+                    data = secondResults.Select(x => new object[] { TestResultsModel.ToFlotTimestamp(x.Timestamp.Add(timeDiff)), selector(x) }).ToList()
                 }
             };
-        }
-
-        private static long ToFlotTimestamp(DateTime timestamp)
-        {
-            timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var time = timestamp.ToUniversalTime().Subtract(new TimeSpan(epoch.Ticks));
-            return (long)(time.Ticks / 10000);
         }
     }
 }

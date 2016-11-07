@@ -93,7 +93,7 @@ namespace SampleUsages
 
                 if (logToConsole)
                 {
-                    testScenario.RunScenario(new ConsoleLogger(), testScenario: scenario);
+                    testScenario.RunScenario(new ConsoleLogger(), databaseTestScenario: scenario);
                 }
                 else
                 {
@@ -104,7 +104,7 @@ namespace SampleUsages
                         try
                         {
                             FunctionLogs._logger = logger;
-                            testScenario.RunScenario(logger, testScenario: scenario);
+                            testScenario.RunScenario(logger, databaseTestScenario: scenario);
                         }
                         catch (Exception e)
                         {

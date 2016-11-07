@@ -104,7 +104,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             if (this.TestRepository.IsInitialized)
             {
-                this.TestWithResults.Description = perfResult.ToString();
                 this.TestRepository.UpdateTest(this.TestWithResults, saveResults: true);
             }
 

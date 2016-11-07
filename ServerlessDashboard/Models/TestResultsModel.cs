@@ -54,7 +54,8 @@ namespace ServerlessDashboard.Models
             };
         }
 
-        private static long ToFlotTimestamp(DateTime timestamp)
+        // transfer datetime into format undestandable for flot library
+        public static long ToFlotTimestamp(DateTime timestamp)
         {
             timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);

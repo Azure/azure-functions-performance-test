@@ -4,9 +4,9 @@ public static void Run(string sizeMb, out string output, TraceWriter log)
 {
     var arrSize = int.Parse(sizeMb) * 1024 * 1024;
     var bytes = new byte[arrSize];
-    for (int i = 0; i < arrSize; i++)
+    for (int i = 0; i < arrSize; i += 256)
     {
-        bytes[i] = (byte)(i % 255);
+        bytes[i] = (byte)(1);
     }
     output = sizeMb;
 }

@@ -1,7 +1,6 @@
 ﻿[{
     "functionName": "Queue-NodeJs-CPUIntensive",
-    "platform": "Amazon",
-    "inputPath": "..\\queueitems-static-128.config",
+    "platform": "Amazon",    
     "input": [128],    
     "triggerType": "Queue",
     "loadProfile": "Linear",
@@ -14,9 +13,8 @@
 },
 {
     "functionName": "Queue-NodeJs-HighMemory",
-    "platform": "Amazon",
-    "inputPath": "..\\queueitems-static-1.config",
-    "input": [128],    
+    "platform": "Amazon",    
+    "input": [16],    
     "triggerType": "Queue",
     "loadProfile": "Linear",
     "inputObject": "samples-node-js-memory-perf-test",

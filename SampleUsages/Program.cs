@@ -22,41 +22,6 @@ namespace SampleUsages
         }
 
         [Command]
-        public void Test()
-        {
-            var repo = new TestRepository();
-            var scenario = repo.AddTestScenario(new ServerlessResultManager.TestScenario
-            {
-                Name = "test",
-                StartTimeUtc = DateTime.UtcNow
-            });
-
-            var test = repo.AddTest(new Test
-            {
-                Name = "test1",
-                TestScenario = scenario,
-                TestScenarioId = scenario.Id,
-                Description = "test",
-                Owner = "test",
-                Platform = "test",
-                StartTime = DateTime.UtcNow
-            });
-
-            test.TestResults.Add(new TestResult
-            {
-                AverageLatency = 0,
-                Timestamp = DateTime.UtcNow,
-                CallCount = 0,
-                FailedCount = 0,
-                HostConcurrency = 0,
-                SuccessCount = 0,
-                TimeoutCount = 0
-            });
-
-            repo.UpdateTest(test);
-        }
-
-        [Command]
         public void RunScenario(string scenarioFilePath, bool logToConsole = false)
         {
             var testScenarios = new List<TestScenario>();

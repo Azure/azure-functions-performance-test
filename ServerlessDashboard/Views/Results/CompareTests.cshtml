@@ -1,7 +1,7 @@
 ﻿@using ServerlessDashboard.Models
 @model TestComparisonModel
 @{
-    ViewBag.Title = "title";
+    ViewBag.Title = "Tests comparison";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var throughputContainerName = "flot-throughput-container";
     var latencyContainerName = "flot-latency-container";
@@ -16,58 +16,58 @@
     <hr />
     <table>
         <thead>
-            <tr>
-                <th>Name</th>
-                <th>Platform</th>
-                <th>Total execution requests</th>
-                <th>Succeeded executions</th>
-                <th>Failed executions</th>
-                <th>Timeout executions</th>
-                <th>Average latency</th>
-                <th>TargetEps</th>
-                <th>ExecutionCount</th>
-                <th>ExecutionTimeStd</th>
-                <th>FunctionClockTime</th>
-                <th>HostConcurrency</th>
-                <th>Throughput</th>
-                <th>Errors</th>
+            <tr style="border: 1px solid black">
+                <th  style="border-left: 1px solid black">Name</th>
+                <th style="border-left: 1px solid black">Platform</th>
+                <th style="border-left: 1px solid black">Total execution requests</th>
+                <th style="border-left: 1px solid black">Succeeded executions</th>
+                <th style="border-left: 1px solid black">Failed executions</th>
+                <th style="border-left: 1px solid black">Timeout executions</th>
+                <th style="border-left: 1px solid black">Average latency</th>
+                <th style="border-left: 1px solid black">TargetEps</th>
+                <th style="border-left: 1px solid black">ExecutionCount</th>
+                <th style="border-left: 1px solid black">ExecutionTimeStd</th>
+                <th style="border-left: 1px solid black">FunctionClockTime</th>
+                <th style="border-left: 1px solid black">HostConcurrency</th>
+                <th style="border-left: 1px solid black">Throughput</th>
+                <th style="border-left: 1px solid black">Errors</th>
             </tr>
         </thead>
         <tbody>
         @foreach (var testResult in new List<TestResultsModel> { Model.FirstTest, Model.SecondTest })
         {
             <tr>
-                <td><b>@testResult.Name</b></td>
-                <td>@testResult.Platform</td>
-                <td>@testResult.TotalExecutionRequests</td>
-                <td>@testResult.SucceededExecutions</td>
-                <td>@testResult.FailedExecutions</td>
-                <td>@testResult.TimeoutExecutions</td>
-                <td>@testResult.AverageLatency</td>
-                <td>@testResult.TargetEps</td>
-                <td>@testResult.ExecutionCount</td>
-                <td>@testResult.ExecutionTimeStandardDeviation</td>
-                <td>@testResult.FunctionClockTime</td>
-                <td>@testResult.HostConcurrency</td>
-                <td>@testResult.Throughput</td>
-                <td>@testResult.Errors</td>
+                <td style="border-left: 1px solid black"><b>@testResult.Name</b></td>
+                <td style="border-left: 1px solid black">@testResult.Platform</td>
+                <td style="border-left: 1px solid black">@testResult.TotalExecutionRequests</td>
+                <td style="border-left: 1px solid black">@testResult.SucceededExecutions</td>
+                <td style="border-left: 1px solid black">@testResult.FailedExecutions</td>
+                <td style="border-left: 1px solid black">@testResult.TimeoutExecutions</td>
+                <td style="border-left: 1px solid black">@(testResult.AverageLatency.ToString("F4"))</td>
+                <td style="border-left: 1px solid black">@testResult.TargetEps</td>
+                <td style="border-left: 1px solid black">@testResult.ExecutionCount</td>
+                <td style="border-left: 1px solid black">@(testResult.ExecutionTimeStandardDeviation?.ToString("F4"))</td>
+                <td style="border-left: 1px solid black">@(testResult.FunctionClockTime?.ToString("F4"))</td>
+                <td style="border-left: 1px solid black">@(testResult.HostConcurrency?.ToString("F4"))</td>
+                <td style="border-left: 1px solid black">@(testResult.Throughput?.ToString("F4"))</td>
+                <td style="border-left: 1px solid black; border-right: 1px solid black">@testResult.Errors</td>
             </tr>
         }
-            <tr>
-                <td><b>Diff</b></td>
-                <td>@Model.PlatformDiff</td>
-                <td>@Model.TotalExecutionRequestsDiff</td>
-                <td>@Model.SucceededExecutionsDiff</td>
-                <td>@Model.FailedExecutionsDiff</td>
-                <td>@Model.TimeoutExecutionsDiff</td>
-                <td>@Model.AverageLatencyDiff</td>
-                <td>@Model.TargetEpsDiff</td>
-                <td>@Model.ExecutionCountDiff</td>
-                <td>@Model.ExecutionTimeStdDiff</td>
-                <td>@Model.FunctionClockTimeDiff</td>
-                <td>@Model.HostConcurrencyDiff</td>
-                <td>@Model.ThroughputDiff</td>
-                <td>@Model.ErrorsDiff</td>
+            <tr style="border-top: 1px black solid; border-bottom: 1px black solid">
+                <td style="border-left: 1px solid black"><b>Diff</b></td>
+                <td style="border-left: 1px solid black">@Model.PlatformDiff</td>
+                <td style="border-left: 1px solid black">@Model.TotalExecutionRequestsDiff</td>
+                <td style="border-left: 1px solid black">@Model.SucceededExecutionsDiff</td>
+                <td style="border-left: 1px solid black">@Model.FailedExecutionsDiff</td>
+                <td style="border-left: 1px solid black">@Model.TimeoutExecutionsDiff</td>
+                <td style="border-left: 1px solid black">@Model.AverageLatencyDiff</td>
+                <td style="border-left: 1px solid black">@Model.TargetEpsDiff</td>
+                <td style="border-left: 1px solid black">@Model.ExecutionCountDiff</td>
+                <td style="border-left: 1px solid black">@Model.ExecutionTimeStdDiff</td>
+                <td style="border-left: 1px solid black">@Model.FunctionClockTimeDiff</td>
+                <td style="border-left: 1px solid black">@Model.HostConcurrencyDiff</td>
+                <td style="border-left: 1px solid black">@Model.ThroughputDiff</td>
+                <td style="border-left: 1px solid black; border-right: 1px solid black">@Model.ErrorsDiff</td>
             </tr>
         </tbody>
     </table>

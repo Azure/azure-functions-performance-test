@@ -33,13 +33,13 @@ namespace ServerlessDashboard.Models
         public string SucceededExecutionsDiff => (FirstTest.SucceededExecutions - SecondTest.SucceededExecutions).ToString();
         public string FailedExecutionsDiff => (FirstTest.FailedExecutions - SecondTest.FailedExecutions).ToString();
         public string TimeoutExecutionsDiff => (FirstTest.TimeoutExecutions - SecondTest.TimeoutExecutions).ToString();
-        public string AverageLatencyDiff => (FirstTest.AverageLatency - SecondTest.AverageLatency).ToString();
+        public string AverageLatencyDiff => (FirstTest.AverageLatency - SecondTest.AverageLatency).ToString("F4");
         public string TargetEpsDiff => (FirstTest.TargetEps - SecondTest.TargetEps).ToString();
         public string ExecutionCountDiff => (FirstTest.ExecutionCount - SecondTest.ExecutionCount).ToString();
-        public string ExecutionTimeStdDiff=> (FirstTest.ExecutionTimeStandardDeviation - SecondTest.ExecutionTimeStandardDeviation).ToString();
-        public string FunctionClockTimeDiff => (FirstTest.FunctionClockTime - SecondTest.FunctionClockTime).ToString();
-        public string HostConcurrencyDiff => (FirstTest.HostConcurrency - SecondTest.HostConcurrency).ToString();
-        public string ThroughputDiff => (FirstTest.Throughput - SecondTest.Throughput).ToString();
+        public string ExecutionTimeStdDiff=> (FirstTest.ExecutionTimeStandardDeviation - SecondTest.ExecutionTimeStandardDeviation)?.ToString("F4");
+        public string FunctionClockTimeDiff => (FirstTest.FunctionClockTime - SecondTest.FunctionClockTime)?.ToString("F4");
+        public string HostConcurrencyDiff => (FirstTest.HostConcurrency - SecondTest.HostConcurrency)?.ToString("F4");
+        public string ThroughputDiff => (FirstTest.Throughput - SecondTest.Throughput)?.ToString("F4");
         public string ErrorsDiff => (FirstTest.Errors - SecondTest.Errors).ToString();
 
         public TestComparisonModel(Test firstTest, Test secondTest)

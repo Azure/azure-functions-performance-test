@@ -82,8 +82,11 @@ namespace SampleUsages
                 Console.WriteLine($"Finished running scenario {counter}/{testScenarios.Count}.");
             }
 
-            scenario.EndTimeUtc = DateTime.UtcNow;
-            repo.UpdateTestScenario(scenario);
+            if (scenario != null)
+            {
+                scenario.EndTimeUtc = DateTime.UtcNow;
+                repo.UpdateTestScenario(scenario);
+            }
         }
 
         #region LambdaTests

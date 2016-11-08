@@ -3,6 +3,8 @@
 @{
     ViewBag.Title = "Test list";
 }
+
+<input type="button" id="select-tests" value="Compare selected" />
 <table style="border: 1px solid black">
     <thead style="border: 1px solid black">
         <tr>
@@ -29,22 +31,28 @@
             }
     </tbody>
 </table>
-<input type="button" id="select-tests" value="Show selected" />
 
 <script>
     $(function() {
         $("#select-tests").click(function () {
             var ids = [];
-            $(".test-id:checkbox:checked").each(function() {
-                ids.push($(this).val());
-            });
+            var length = $(".test-id:checkbox:checked").length;
 
-            var idsString = ids.reduce(function (a, b) {
-                return a + "," + b;
-            }, "");
+            if (length != 2) {
+                alert("Failed to compare scenarios, select 2 scenarios to compare");
+            } else {
 
-            idsString = idsString.substring(1, idsString.length);
-            window.location = "/compareScenarios/" + idsString;
+                $(".test-id:checkbox:checked").each(function () {
+                    ids.push($(this).val());
+                });
+
+                var idsString = ids.reduce(function (a, b) {
+                    return a + "/" + b;
+                }, "");
+
+                idsString = idsString.substring(1, idsString.length);
+                window.location = "/compareScenarios/" + idsString;
+            }
         });
     })
 </script>

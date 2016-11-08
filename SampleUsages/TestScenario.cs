@@ -8,6 +8,7 @@ using ServerlessBenchmark.TriggerTests.AWS;
 using ServerlessBenchmark.TriggerTests.Azure;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 using System.Collections.Generic;
+using ServerlessResultManager;
 
 namespace SampleUsages
 {
@@ -27,7 +28,7 @@ namespace SampleUsages
         public string AzureStorageConnectionStringConfigName { get; set; }
         private ILogger _logger { get; set; }
 
-        internal void RunScenario(ILogger logger)
+        internal void RunScenario(ILogger logger, ServerlessResultManager.TestScenario databaseTestScenario = null)
         {
             this._logger = logger;
             var scenarioType = Tuple.Create(this.Platform, this.TriggerType);
@@ -91,9 +92,23 @@ namespace SampleUsages
                 this._logger.LogException(ex);
                 throw ex;
             }
-            
+
+            Directory.CreateDirectory(this.FunctionName);
             profile = GetLoadProfile(inputCount);
             test.Logger = _logger;
+
+            var dbTest = new Test
+            {
+                Source = this.InputObject,
+                Destination = this.OutputObject,
+                TriggerType = this.TriggerType.ToString(),
+                Platform = this.Platform.ToString(),
+                TargetEps = this.Eps,
+                ToolsVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString()
+            };
+            
+            dbTest.TestScenarioId = databaseTestScenario?.Id;
+            test.TestWithResults = dbTest;
             RunScenario(test, profile);
         }
 

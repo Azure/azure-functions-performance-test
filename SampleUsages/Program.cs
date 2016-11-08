@@ -22,7 +22,42 @@ namespace SampleUsages
         }
 
         [Command]
-        public void RunScenario(string scenarioFilePath)
+        public void Test()
+        {
+            var repo = new TestRepository();
+            var scenario = repo.AddTestScenario(new ServerlessResultManager.TestScenario
+            {
+                Name = "test",
+                StartTimeUtc = DateTime.UtcNow
+            });
+
+            var test = repo.AddTest(new Test
+            {
+                Name = "test1",
+                TestScenario = scenario,
+                TestScenarioId = scenario.Id,
+                Description = "test",
+                Owner = "test",
+                Platform = "test",
+                StartTime = DateTime.UtcNow
+            });
+
+            test.TestResults.Add(new TestResult
+            {
+                AverageLatency = 0,
+                Timestamp = DateTime.UtcNow,
+                CallCount = 0,
+                FailedCount = 0,
+                HostConcurrency = 0,
+                SuccessCount = 0,
+                TimeoutCount = 0
+            });
+
+            repo.UpdateTest(test);
+        }
+
+        [Command]
+        public void RunScenario(string scenarioFilePath, bool logToConsole = false)
         {
             var testScenarios = new List<TestScenario>();
             using (StreamReader r = new StreamReader(scenarioFilePath))
@@ -42,30 +77,48 @@ namespace SampleUsages
             Console.WriteLine("Start running scenarios.");
             var counter = 0;
             var now = DateTime.UtcNow;
+            var repo = new TestRepository();
+
+            var scenario = repo.AddTestScenario(new ServerlessResultManager.TestScenario
+            {
+                Name = string.Format("Scenario-{0}-{1}", scenarioFilePath, now.ToString("s")),
+                StartTimeUtc = now
+            });
 
             foreach (var testScenario in testScenarios)
             {
                 Console.WriteLine($"Start running scenario for function {testScenario.FunctionName} {++counter}/{testScenarios.Count}.");
                 var testFolder = string.Format(testScenario.FunctionName);
                 Directory.CreateDirectory(testFolder);
-                var logFilePath = $"{testFolder}/{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
 
-                using (var logger = new FileLogger(logFilePath))
+                if (logToConsole)
                 {
-                    try
+                    testScenario.RunScenario(new ConsoleLogger(), databaseTestScenario: scenario);
+                }
+                else
+                {
+                    var logFilePath = $"{testFolder}/{now.ToString("yyyy-M-d-HH-mm")}-{testScenario.FunctionName}.log";
+
+                    using (var logger = new FileLogger(logFilePath))
                     {
-                        FunctionLogs._logger = logger;
-                        testScenario.RunScenario(logger);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Error while running {testScenario.FunctionName} check {logFilePath} for log details.");
-                        Console.WriteLine($"Exception {e}");
+                        try
+                        {
+                            FunctionLogs._logger = logger;
+                            testScenario.RunScenario(logger, databaseTestScenario: scenario);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Error while running {testScenario.FunctionName} check {logFilePath} for log details.");
+                            Console.WriteLine($"Exception {e}");
+                        }
                     }
                 }
 
                 Console.WriteLine($"Finished running scenario {counter}/{testScenarios.Count}.");
             }
+
+            scenario.EndTimeUtc = DateTime.UtcNow;
+            repo.UpdateTestScenario(scenario);
         }
 
         #region LambdaTests
@@ -207,6 +260,7 @@ namespace SampleUsages
         public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime, int testId = 0)
         {
             var resultsProvider = new AzureGenericPerformanceResultsProvider();
+            Directory.CreateDirectory(functionName);
             TestRepository repo = null;
             if (testId != 0)
             {

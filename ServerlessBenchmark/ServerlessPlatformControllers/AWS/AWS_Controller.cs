@@ -16,7 +16,6 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.AWS
 {
     public class AwsController: ICloudPlatformController
     {
-        public Platform PlatformName => Platform.Amazon;
         public ILogger Logger { get; set;  } = new ConsoleLogger();
 
         protected AmazonSimpleNotificationServiceClient SnsClient

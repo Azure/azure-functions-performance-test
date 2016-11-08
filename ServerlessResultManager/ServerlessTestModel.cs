@@ -21,6 +21,7 @@ namespace ServerlessResultManager
             return connString;
         }
 
+        public virtual DbSet<TestScenario> TestScenarios { get; set; }
         public virtual DbSet<TestResult> TestResults { get; set; }
         public virtual DbSet<Test> Tests { get; set; }
 

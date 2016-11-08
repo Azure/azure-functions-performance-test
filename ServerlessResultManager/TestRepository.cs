@@ -22,7 +22,27 @@ namespace ServerlessResultManager
 
         public bool IsInitialized => !string.IsNullOrEmpty(this._connectionString);
 
-        public Test GetTest(int id, bool fetchResults = false)
+        public TestScenario GetTestScenario(int id, bool fetchTests = true)
+        {
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
+            {
+                if (fetchTests)
+                {
+                    return model.TestScenarios.Include("Tests.TestResults").FirstOrDefault(s => s.Id == id);
+                }
+                else
+                {
+                    return model.TestScenarios.FirstOrDefault(s => s.Id == id);
+                }
+            }
+        }
+
+        public Test GetTest(long id, bool fetchResults = false)
         {
             if (string.IsNullOrEmpty(this._connectionString))
             {
@@ -72,7 +92,6 @@ namespace ServerlessResultManager
                 {
                     return model.Tests.Where(t => t.StartTime >= dateFrom).ToList();
                 }
-
             }
         }
 
@@ -86,6 +105,41 @@ namespace ServerlessResultManager
             using (var model = new ServerlessTestModel(this._connectionString))
             {
                 return model.Tests.Where(t => idsNumbers.Contains(t.Id)).Include("TestResults").ToList();
+            }
+        }
+
+        public IEnumerable<TestScenario> GetTestScenarios(bool fetchTests = false)
+        {
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
+            {
+                if (fetchTests)
+                {
+                    return model.TestScenarios.Include("Tests").ToList();
+                }
+                else
+                {
+                    return model.TestScenarios.ToList();
+                }
+            }
+        }
+
+        public TestScenario AddTestScenario(TestScenario testsScenario)
+        {
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return null;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
+            {
+                var scenario = model.TestScenarios.Add(testsScenario);
+                model.SaveChanges();
+                return scenario;
             }
         }
 
@@ -103,7 +157,7 @@ namespace ServerlessResultManager
                 return addedTest;
             }
         }
-
+        
         public TestResult AddTestResult(Test test, TestResult testResult)
         {
             if (string.IsNullOrEmpty(this._connectionString))
@@ -140,6 +194,20 @@ namespace ServerlessResultManager
                     }
                 }
 
+                model.SaveChanges();
+            }
+        }
+
+        public void UpdateTestScenario(TestScenario scenario)
+        {
+            if (string.IsNullOrEmpty(this._connectionString))
+            {
+                return;
+            }
+
+            using (var model = new ServerlessTestModel(this._connectionString))
+            {
+                model.TestScenarios.AddOrUpdate(scenario);
                 model.SaveChanges();
             }
         }

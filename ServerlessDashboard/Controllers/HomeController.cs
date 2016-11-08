@@ -22,7 +22,8 @@ namespace ServerlessDashboard.Controllers
         {
             var repo = new TestRepository();
             var fetchResults = true;
-            var tests = repo.GetTestsAfter(DateTime.MinValue, fetchResults: fetchResults)
+            var tests = repo.GetTestsAfter(DateTime.MinValue, fetchResults: fetchResults);
+            tests = tests
                 .OrderByDescending(t => t.StartTime)
                 .Select(t =>
                 {
@@ -34,6 +35,20 @@ namespace ServerlessDashboard.Controllers
                 .ToList();
 
             return View(tests);
+        }
+
+        public ActionResult TestScenarioList()
+        {
+            var repo = new TestRepository();
+            var scenarios = repo.GetTestScenarios(fetchTests: true).OrderByDescending(s => s.StartTimeUtc);
+            return View(scenarios);
+        }
+
+        public ActionResult TestScenario(int id)
+        {
+            var repo = new TestRepository();
+            var scenarios = repo.GetTestScenario(id, fetchTests: true);
+            return View(scenarios);
         }
 
         public ActionResult Contact()

@@ -89,7 +89,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         {
             var toleranceInSeconds = 5;
 
-            foreach (var result in dbTest.TestResults)
+            foreach (var result in dbTest.TestResults.Where(r => r != null))
             {
                 if (force || Math.Abs(result.AverageLatency) < 0.00001)
                 {

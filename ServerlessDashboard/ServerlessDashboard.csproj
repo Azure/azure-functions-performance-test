@@ -137,7 +137,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\ScenarioComparisonModel.cs" />
+    <Compile Include="Models\TestComparisonModel.cs" />
     <Compile Include="Models\TestResultsModel.cs" />
+    <Compile Include="Models\TestScenarioModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -215,6 +218,10 @@
     <Content Include="Views\Results\TestPartial.cshtml" />
     <Content Include="Views\Results\TestResultsPartial.cshtml" />
     <None Include="Views\Home\List.cshtml" />
+    <Content Include="Views\Home\TestScenarioList.cshtml" />
+    <Content Include="Views\Home\TestScenario.cshtml" />
+    <Content Include="Views\Results\CompareTests.cshtml" />
+    <Content Include="Views\Results\CompareScenarios.cshtml" />
     <None Include="Views\Results\OpenTests.cshtml" />
     <Content Include="Views\Results\TestResultsPastPartial.cshtml" />
   </ItemGroup>

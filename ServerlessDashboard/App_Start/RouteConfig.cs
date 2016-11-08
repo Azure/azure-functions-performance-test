@@ -22,6 +22,11 @@ namespace ServerlessDashboard
                 defaults: new { controller = "Results", action = "OpenTests" });
 
             routes.MapRoute(
+                name: "TestScenario",
+                url: "testScenario/{id}",
+                defaults: new { controller = "Home", action = "TestScenario" });
+
+            routes.MapRoute(
                 name: "ResultPoll",
                 url: "getNewData/{testId}/{startDate}",
                 defaults: new { controller = "Results", action = "GetNewResults" }
@@ -37,6 +42,16 @@ namespace ServerlessDashboard
                 name: "GetRunningTests",
                 url: "getRunningTests/{timespanInMinutes}/{monitoredTests}",
                 defaults: new { controller = "Results", action = "GetRunningTests", monitoredTests = UrlParameter.Optional });
+
+            routes.MapRoute(
+                name: "CompareTests",
+                url: "compareTests/{firstTestId}/{secondTestId}",
+                defaults: new { controller = "Results", action = "CompareTests" });
+
+            routes.MapRoute(
+                name: "CompareScenarios",
+                url: "compareScenarios/{firstScenarioId}/{secondScenarioId}",
+                defaults: new { controller = "Results", action = "CompareScenarios" });
 
             routes.MapRoute(
                 name: "Default",

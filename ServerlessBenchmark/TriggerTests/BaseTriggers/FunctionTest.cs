@@ -16,6 +16,8 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
     public abstract class FunctionTest
     {
         public ILogger Logger { get; set; } = new ConsoleLogger();
+        public Test TestWithResults { get; set; }
+        public TestScenario TestScenario { get; set; }
         protected string FunctionName { get; set; }
         protected abstract IEnumerable<string> SourceItems { get; set; }
         protected int ExpectedExecutionCount;
@@ -27,7 +29,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
         protected abstract ICloudPlatformController CloudPlatformController { get; }
         protected abstract PerfResultProvider PerfmormanceResultProvider { get; }
         private bool onTestCoolDown = false;
-        protected Test TestWithResults { get; set; }
         protected ITestRepository TestRepository { get; set; }
         protected int WarmUpTimeInMinutes { get; }
         public int Eps { get; } = 60;
@@ -83,20 +84,7 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             Logger.LogInfo("--START-- Running load");
             var startTime = DateTime.Now;
-
-            if (this.TestRepository.IsInitialized)
-            {
-                this.TestWithResults = new Test
-                {
-                    StartTime = startTime.ToUniversalTime(),
-                    Name = $"Test function - {FunctionName}",
-                    Platform = CloudPlatformController.PlatformName.ToString(),
-                    Description = "Test manually run from console app.",
-                    Owner = System.Security.Principal.WindowsIdentity.GetCurrent().Name
-                };
-                this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
-            }
-
+            AddTestToDb(startTime);
             var sw = Stopwatch.StartNew();
             await loadProfile.ExecuteRateAsync(i => GenerateLoad(i));
             loadProfile.Dispose();
@@ -122,7 +110,6 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
 
             if (this.TestRepository.IsInitialized)
             {
-                this.TestWithResults.Description = perfResult.ToString();
                 this.TestRepository.UpdateTest(this.TestWithResults, saveResults: true);
             }
 
@@ -204,6 +191,23 @@ namespace ServerlessBenchmark.TriggerTests.BaseTriggers
                 };
             }
             return progressData;
-        } 
+        }
+
+        private void AddTestToDb(DateTime startTime)
+        {
+            if (this.TestRepository.IsInitialized)
+            {
+                if (this.TestWithResults == null)
+                {
+                    this.TestWithResults = new Test();
+                }
+
+                this.TestWithResults.StartTime = startTime.ToUniversalTime();
+                this.TestWithResults.Name = $"Test function - {FunctionName}";
+                this.TestWithResults.Description = "Test manually run from console app.";
+                this.TestWithResults.Owner = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                this.TestWithResults = this.TestRepository.AddTest(this.TestWithResults);
+            }
+        }
     }
 }

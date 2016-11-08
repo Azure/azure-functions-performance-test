@@ -36,6 +36,44 @@ namespace ServerlessResultManager
         [StringLength(200)]
         public string Owner { get; set; }
 
+        [StringLength(250)]
+        public string ToolsVersion { get; set; }
+
+        [StringLength(250)]
+        public string PlatformVersion { get; set; }
+
+        [StringLength(250)]
+        public string FunctionsRuntimeVersion { get; set; }
+
+        public int? TargetEps { get; set; }
+
+        [StringLength(250)]
+        public string TriggerType { get; set; }
+
+        [StringLength(250)]
+        public string Source { get; set; }
+
+        [StringLength(250)]
+        public string Destination { get; set; }
+
+        public double? AverageExecutionTime { get; set; }
+
+        public int? ExecutionCount { get; set; }
+
+        public double? ExecutionTimeStandardDeviation { get; set; }
+
+        public double? FunctionClockTime { get; set; }
+
+        public double? HostConcurrency { get; set; }
+
+        public double? Throughput { get; set; }
+
+        public int? Errors { get; set; }
+
+        public long? TestScenarioId { get; set; }
+
+        public virtual TestScenario TestScenario { get; set; }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<TestResult> TestResults { get; set; }
     }

@@ -24,6 +24,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             if (this.DatabaseTest != null)
             {
                 UpdateResultsWithLatency(this.DatabaseTest, RetrieveAvgExecutionTimesPerSecond(logs));
+                this.DatabaseTest.AverageExecutionTime = avgExecutionTime * 1000;
             }
 
             return TimeSpan.FromMilliseconds(avgExecutionTime);
@@ -38,6 +39,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             var sumOfSquaredDifferences =
                 executionTimes.Select(t => (t.TotalMilliseconds - avgExecutionTime) * (t.TotalMilliseconds - avgExecutionTime)).Sum();
             var std = Math.Sqrt(sumOfSquaredDifferences / executionTimes.Count());
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.ExecutionTimeStandardDeviation = std;
+            }
+
             return std.ToString();
         }
 
@@ -47,6 +54,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var executionTimes = RetrieveExecutionTimes(logs);
             var executionCount = executionTimes.Count();
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.ExecutionCount = executionCount;
+            }
+
             return executionCount;
         }
 
@@ -55,6 +68,12 @@ namespace ServerlessBenchmark.PerfResultProviders
         {
             var logs = FunctionLogs(functionName, testStartTime, expectedExecutionCount);
             var totalFailed = logs.Count(l => l.RawStatus == "CompletedFailure");
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.Errors = totalFailed;
+            }
+
             return totalFailed;
         }
 
@@ -79,6 +98,7 @@ namespace ServerlessBenchmark.PerfResultProviders
 
             var throughputList = new List<int>();
             var fileName = string.Format("{0}/{1}-Throughput.txt", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
 
             using (var logWriter = new StreamWriter(fileName))
             {
@@ -92,8 +112,14 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
 
             Debug.Assert(throughputList.Sum() == countByTimestamp.Values.Sum(), "We missed log counts somehow");
+            var averageThroughput = throughputList.Average();
 
-            return throughputList.Average();
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.Throughput = averageThroughput;
+            }
+
+            return averageThroughput;
         }
 
         [PerfMetric(PerfMetrics.ThroughputGraph)]
@@ -104,6 +130,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             var secondsInGroup = 15;
             var logGroupped = GetAverageLogCountInTimeWindow(logs.ToList(), secondsInGroup);
             var fileName = string.Format("{0}/Azure-{1}-Throughput-graph.pdf", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
             PrintThroughputGraph(logGroupped, fileName, secondsInGroup);            
 
             return string.Format("Plot can be found at {0}", fileName);
@@ -135,6 +162,7 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
 
             var fileName = string.Format("{0}/{1}-HostConcurrency.txt", functionName, Guid.NewGuid().ToString());
+            Directory.CreateDirectory(functionName);
             var hostConcurrencyInTime = new Dictionary<DateTime, int>();
 
             using (var logWriter = new StreamWriter(fileName))
@@ -149,12 +177,15 @@ namespace ServerlessBenchmark.PerfResultProviders
                 }
             }
 
+            var averageHostConcurrency = concurrencyList.Average();
+
             if (this.DatabaseTest != null)
             {
                 UpdateResultsWithHostConcurrency(this.DatabaseTest, hostConcurrencyInTime);
+                this.DatabaseTest.HostConcurrency = averageHostConcurrency;
             }
-            
-            return concurrencyList.Average();
+
+            return averageHostConcurrency;
         }
 
         private class TrimmedFunctionLog
@@ -211,7 +242,14 @@ namespace ServerlessBenchmark.PerfResultProviders
             var firstTime = logs.OrderBy(log => log.StartTime).First().StartTime;
             var endTime = logs.OrderBy(log => log.EndTime).Last().EndTime;
             var clockTime = endTime - firstTime;
-            return TimeSpan.FromMilliseconds(clockTime.TotalMilliseconds);
+            var functionClockTime = TimeSpan.FromMilliseconds(clockTime.TotalMilliseconds);
+
+            if (this.DatabaseTest != null)
+            {
+                this.DatabaseTest.FunctionClockTime = functionClockTime.TotalSeconds;
+            }
+
+            return functionClockTime;
         }
 
         private IEnumerable<FunctionLogs.AzureFunctionLogs> _functionLogs;

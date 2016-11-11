@@ -8,6 +8,9 @@ namespace ServerlessBenchmark.PerfResultProviders
 {
     public class AzureGenericPerformanceResultsProvider : AzurePerformanceResultProviderBase
     {
+        public AzureGenericPerformanceResultsProvider(string storageAccountConnectionStringConfigName = null) :
+            base(storageAccountConnectionStringConfigName) { }
+
         protected override Dictionary<string, string> ObtainAdditionalPerfMetrics(PerfTestResult genericPerfTestResult, string functionName, DateTime testStartTime,
             DateTime testEndTime)
         {

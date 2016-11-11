@@ -45,14 +45,16 @@ namespace ServerlessBenchmark.PerfResultProviders
             }
         }
 
-        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, int expectedExecutionCount = 0, int waitForAllLogsTimeoutInMinutes = 2, bool includeIncomplete = false)
+        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, DateTime? startTime, 
+            int expectedExecutionCount = 0, int waitForAllLogsTimeoutInMinutes = 2, bool includeIncomplete = false,
+            string storageAccountConnectionStringConfigName = null)
         {
-            return GetAzureFunctionLogsInternal(functionName, startTime, expectedExecutionCount, waitForAllLogsTimeoutInMinutes, includeIncomplete);
+            return GetAzureFunctionLogsInternal(functionName, startTime, expectedExecutionCount, waitForAllLogsTimeoutInMinutes, includeIncomplete, storageAccountConnectionStringConfigName: storageAccountConnectionStringConfigName);
         }
 
-        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName)
+        public static List<AzureFunctionLogs> GetAzureFunctionLogs(string functionName, string storageAccountConnectionStringConfigName = null)
         {
-            return GetAzureFunctionLogs(functionName, null);
+            return GetAzureFunctionLogs(functionName, null, storageAccountConnectionStringConfigName: storageAccountConnectionStringConfigName);
         }
 
         public static bool RemoveAllCLoudWatchLogs(string functionName)
@@ -84,10 +86,12 @@ namespace ServerlessBenchmark.PerfResultProviders
             return tablePurged;
         }
 
-        private static List<AzureFunctionLogs> GetAzureFunctionLogsInternal(string functionName, DateTime? startTime, int expectedExecutionCount, int waitForAllLogsTimeoutInMinutes, bool includeIncomplete)
+        private static List<AzureFunctionLogs> GetAzureFunctionLogsInternal(string functionName, DateTime? startTime, 
+            int expectedExecutionCount, int waitForAllLogsTimeoutInMinutes, bool includeIncomplete,
+            string storageAccountConnectionStringConfigName = null)
         {
             _logger.LogInfo("Getting Azure Function logs from Azure Storage Tables..");
-            var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+            var connectionString = ConfigurationManager.AppSettings[storageAccountConnectionStringConfigName] ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
             var _azurefunctionLogs = new List<AzureFunctionLogs>();
 
             if (!string.IsNullOrEmpty(connectionString))

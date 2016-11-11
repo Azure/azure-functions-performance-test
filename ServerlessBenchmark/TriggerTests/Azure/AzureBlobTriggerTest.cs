@@ -43,7 +43,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AzureGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
+            get { return new AzureGenericPerformanceResultsProvider(_azureStorageConnectionStringConfigName) { DatabaseTest = this.TestWithResults }; }
         }
 
         private bool RemoveAzureFunctionLogs()

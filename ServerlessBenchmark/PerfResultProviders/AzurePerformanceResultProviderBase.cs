@@ -13,6 +13,12 @@ namespace ServerlessBenchmark.PerfResultProviders
     public abstract class AzurePerformanceResultProviderBase:PerfResultProvider
     {
         private List<FunctionLogs.AzureFunctionLogs> _logs;
+        private string _storageAccountConnectionStringConfigName;
+
+        public AzurePerformanceResultProviderBase(string storageAccountConnectionStringConfigName = null)
+        {
+            _storageAccountConnectionStringConfigName = storageAccountConnectionStringConfigName;
+        }
         
         [PerfMetric(PerfMetrics.AverageExecutionTime)]
         protected TimeSpan? CalculateAverageExecutionTime(string functionName, DateTime testStartTime, DateTime testEndTime, int expectedExecutionCount)
@@ -257,7 +263,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         {
             if (_logs == null)
             {
-                _logs = PerfResultProviders.FunctionLogs.GetAzureFunctionLogs(functionName, testStartTime, expectedExecutions);                
+                _logs = PerfResultProviders.FunctionLogs.GetAzureFunctionLogs(functionName, testStartTime, expectedExecutions, storageAccountConnectionStringConfigName: _storageAccountConnectionStringConfigName);                
             }
             return _logs;
         }

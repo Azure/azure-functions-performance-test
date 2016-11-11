@@ -14,11 +14,14 @@ namespace SampleUsages
 {
     class TestScenario
     {
+        private string[] _input;
+
         public string FunctionName { get; set; }
         public Platform Platform { get; set; }
         public TriggerType TriggerType { get; set; }
         public LoadProfilesType LoadProfile { get; set; }
         public string InputPath { get; set; }
+        public string[] Input { get { return _input; } set { _input = (value != null && value.Length == 0) ? null : value; } }
         public string InputObject { get; set; }
         public string OutputObject { get; set; }
         public int Eps { get; set; }
@@ -34,56 +37,51 @@ namespace SampleUsages
             var scenarioType = Tuple.Create(this.Platform, this.TriggerType);
             FunctionTest test = null;
             TriggerTestLoadProfile profile;
-            var inputCount = 0;
+
+            string[] inputItems;
+            try
+            {
+                inputItems = this.Input ?? Directory.GetFiles(this.InputPath);
+            }
+            catch
+            {
+                inputItems = File.ReadAllLines(this.InputPath);
+            }
 
             if (scenarioType.Compare(Platform.Amazon, TriggerType.Blob))
             {
                 AssertInput("FunctionName", "InputPath", "InputObject", "OutputObject");
-                var blobs = Directory.GetFiles(this.InputPath);
-                test = new AmazonS3TriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, blobs, this.InputObject, this.OutputObject);
-                inputCount = blobs.Count();
+                test = new AmazonS3TriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject);
             }
             else if (scenarioType.Compare(Platform.Amazon, TriggerType.Http))
             {
                 AssertInput("FunctionName", "InputPath");
-                var urls = File.ReadAllLines(this.InputPath);
-                test = new AmazonApiGatewayTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, urls);
-                inputCount = urls.Count();
+                test = new AmazonApiGatewayTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems);
             }
             else if (scenarioType.Compare(Platform.Amazon, TriggerType.Queue))
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
-                var queueMessages = File.ReadAllLines(this.InputPath);
-                test = new AmazonSnsToSqs(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject);
-                inputCount = queueMessages.Count();
+                test = new AmazonSnsToSqs(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject);
             }
             else if (scenarioType.Compare(Platform.Amazon, TriggerType.AmazonSqsOnly))
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
-                var queueMessages = File.ReadAllLines(this.InputPath);
-                test = new AmazonSqsTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject);
-                inputCount = queueMessages.Count();
+                test = new AmazonSqsTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject);
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Blob))
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
-                var blobs = Directory.GetFiles(this.InputPath);
-                test = new AzureBlobTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, blobs, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
-                inputCount = blobs.Count();
+                test = new AzureBlobTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Http))
             {
                 AssertInput("InputPath", "FunctionName");
-                var urls = File.ReadAllLines(this.InputPath);
-                test = new AzureHttpTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, urls);
-                inputCount = urls.Count();
+                test = new AzureHttpTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems);
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Queue))
             {
                 AssertInput("FunctionName", "InputObject", "OutputObject");
-                var queueMessages = File.ReadAllLines(this.InputPath);
-                test = new AzureQueueTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, queueMessages, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
-                inputCount = queueMessages.Count();
+                test = new AzureQueueTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
             }
             else
             {
@@ -94,7 +92,7 @@ namespace SampleUsages
             }
 
             Directory.CreateDirectory(this.FunctionName);
-            profile = GetLoadProfile(inputCount);
+            profile = GetLoadProfile(inputItems.Count());
             test.Logger = _logger;
 
             var dbTest = new Test
@@ -106,7 +104,7 @@ namespace SampleUsages
                 TargetEps = this.Eps,
                 ToolsVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString()
             };
-            
+
             dbTest.TestScenarioId = databaseTestScenario?.Id;
             test.TestWithResults = dbTest;
             RunScenario(test, profile);
@@ -137,7 +135,7 @@ namespace SampleUsages
                     break;
                 default:
                     var ex = new ArgumentException(
-                        $"Unknown load profile {this.LoadProfile} available values are ({string.Join(",", Enum.GetValues(typeof (LoadProfilesType)))})");
+                        $"Unknown load profile {this.LoadProfile} available values are ({string.Join(",", Enum.GetValues(typeof(LoadProfilesType)))})");
                     this._logger.LogException(ex);
                     throw ex;
             }
@@ -150,7 +148,7 @@ namespace SampleUsages
             var perfResult = functionTest.RunAsync(profile).GetAwaiter().GetResult();
             _logger.LogInfo(perfResult.ToString());
         }
-        
+
         private void AssertInput(params string[] properties)
         {
             var fault = false;
@@ -158,7 +156,7 @@ namespace SampleUsages
 
             foreach (var propertyName in properties)
             {
-                var property = typeof (TestScenario).GetProperty(propertyName);
+                var property = typeof(TestScenario).GetProperty(propertyName);
                 if (property.GetValue(this) == null)
                 {
                     var exception = new ArgumentException($"Required test parameter {property.Name} has not been specified.");

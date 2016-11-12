@@ -39,13 +39,19 @@ namespace SampleUsages
             TriggerTestLoadProfile profile;
 
             string[] inputItems;
-            try
+
+            inputItems = this.Input;
+
+            if (inputItems == null)
             {
-                inputItems = this.Input ?? Directory.GetFiles(this.InputPath);
-            }
-            catch
-            {
-                inputItems = File.ReadAllLines(this.InputPath);
+                if (Directory.Exists(this.InputPath))
+                {
+                    inputItems = Directory.GetFiles(this.InputPath);
+                }
+                else
+                {
+                    inputItems = File.ReadAllLines(this.InputPath);
+                }
             }
 
             if (scenarioType.Compare(Platform.Amazon, TriggerType.Blob))

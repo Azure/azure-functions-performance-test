@@ -1,8 +1,7 @@
 ﻿[
   {
     "functionName": "Queue-NodeJs-CPUIntensive",
-    "platform": "Azure",
-    "inputPath": "..\\queueitems-static-128.config",
+    "platform": "Azure",    
     "input": [128],    
     "triggerType": "Queue",
     "loadProfile": "Linear",
@@ -15,8 +14,7 @@
   },
   {
     "functionName": "Queue-CSharp-CPUIntensive",
-    "platform": "Azure",
-    "inputPath": "..\\queueitems-static-128.config",
+    "platform": "Azure",    
     "input": [128],    
     "triggerType": "Queue",
     "loadProfile": "Linear",
@@ -29,9 +27,8 @@
   },
   {
     "functionName": "Queue-NodeJs-HighMemory",
-    "platform": "Azure",
-    "inputPath": "..\\queueitems-static-1.config",
-    "input": [1],    
+    "platform": "Azure",    
+    "input": [16],    
     "triggerType": "Queue",
     "loadProfile": "Linear",
     "inputObject": "samples-node-js-memory-perf-test",
@@ -43,9 +40,8 @@
   },
   {
     "functionName": "Queue-CSharp-HighMemory",
-    "platform": "Azure",
-    "inputPath": "..\\queueitems-static-1.config",
-    "input": [1],
+    "platform": "Azure",    
+    "input": [16],
     "triggerType": "Queue",
     "loadProfile": "Linear",
     "inputObject": "samples-csharp-memory-perf-test",
@@ -57,8 +53,7 @@
   },
   {
     "functionName": "Queue-NodeJs-LowUsage",
-    "platform": "Azure",
-    "inputPath": "..\\queueitems-static-128.config",
+    "platform": "Azure",    
     "input": [128],  
     "triggerType": "Queue",
     "loadProfile": "Linear",
@@ -71,8 +66,7 @@
   },
   {
     "functionName": "Queue-CSharp-LowUsage",
-    "platform": "Azure",
-    "inputPath": "..\\queueitems-static-128.config",
+    "platform": "Azure",    
     "input": [128],  
     "triggerType": "Queue",
     "loadProfile": "Linear",

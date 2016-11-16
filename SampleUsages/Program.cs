@@ -9,6 +9,7 @@ using ServerlessBenchmark.TriggerTests.AWS;
 using ServerlessBenchmark.TriggerTests.Azure;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 using ServerlessResultManager;
+using System.Configuration;
 
 namespace SampleUsages
 {
@@ -225,9 +226,10 @@ namespace SampleUsages
         }
 
         [Command]
-        public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime, int testId = 0)
+        public void AnalyzeAzureTest(string functionName, DateTime startTime, DateTime endTime, int testId = 0, string azureStorageConnectionStringConfigName = null)
         {
-            var resultsProvider = new AzureGenericPerformanceResultsProvider();
+            var connectionString = ConfigurationManager.AppSettings[azureStorageConnectionStringConfigName] ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+            var resultsProvider = new AzureGenericPerformanceResultsProvider(connectionString);
             Directory.CreateDirectory(functionName);
             TestRepository repo = null;
             if (testId != 0)

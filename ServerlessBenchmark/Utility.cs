@@ -30,7 +30,7 @@ namespace ServerlessBenchmark
                 var operationContext = new OperationContext();
                 var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
-                var logs = FunctionLogs.GetAzureFunctionLogs(functionName);
+                var logs = FunctionLogs.GetAzureFunctionLogs(functionName, storageConnectionString);
                 var table = tableClient.GetTableReference(GetCurrentLogsTableName());
                 var partitions = logs.GroupBy(log => log.PartitionKey);
                 var executionLogsCount = logs.Count(log => log.PartitionKey.Equals(Constants.AzureFunctionLogExecutionPartitionKey, 

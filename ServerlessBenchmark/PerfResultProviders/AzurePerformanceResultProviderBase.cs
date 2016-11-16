@@ -13,11 +13,11 @@ namespace ServerlessBenchmark.PerfResultProviders
     public abstract class AzurePerformanceResultProviderBase:PerfResultProvider
     {
         private List<FunctionLogs.AzureFunctionLogs> _logs;
-        private string _storageAccountConnectionStringConfigName;
+        private string _azureStorageConnectionString;
 
-        public AzurePerformanceResultProviderBase(string storageAccountConnectionStringConfigName = null)
+        public AzurePerformanceResultProviderBase(string azureStorageConnectionString)
         {
-            _storageAccountConnectionStringConfigName = storageAccountConnectionStringConfigName;
+            _azureStorageConnectionString = azureStorageConnectionString;
         }
         
         [PerfMetric(PerfMetrics.AverageExecutionTime)]
@@ -263,7 +263,7 @@ namespace ServerlessBenchmark.PerfResultProviders
         {
             if (_logs == null)
             {
-                _logs = PerfResultProviders.FunctionLogs.GetAzureFunctionLogs(functionName, testStartTime, expectedExecutions, storageAccountConnectionStringConfigName: _storageAccountConnectionStringConfigName);                
+                _logs = PerfResultProviders.FunctionLogs.GetAzureFunctionLogs(functionName, testStartTime, _azureStorageConnectionString, expectedExecutions);                
             }
             return _logs;
         }

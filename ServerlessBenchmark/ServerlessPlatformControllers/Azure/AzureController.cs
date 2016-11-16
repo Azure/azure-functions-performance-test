@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
-using System.Security.Policy;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.Table;
 using System.Threading.Tasks.Dataflow;
 
 namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
@@ -32,13 +26,12 @@ namespace ServerlessBenchmark.ServerlessPlatformControllers.Azure
             get { return storageAccount.CreateCloudBlobClient(); }
         }
 
-        public AzureController(string storageAccountConnectionStringConfigName = null)
+        public AzureController(string storageConnectionString = null)
         {
-            var connectionString = ConfigurationManager.AppSettings[storageAccountConnectionStringConfigName] ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
 
-            if (!string.IsNullOrEmpty(connectionString))
+            if (!string.IsNullOrEmpty(storageConnectionString))
             {
-                storageAccount = CloudStorageAccount.Parse(connectionString);
+                storageAccount = CloudStorageAccount.Parse(storageConnectionString);
                 var queueEndpoint = ServicePointManager.FindServicePoint(storageAccount.QueueEndpoint);
                 var blobEndpoint = ServicePointManager.FindServicePoint(storageAccount.BlobEndpoint);
                 var endpoints = new List<ServicePoint>

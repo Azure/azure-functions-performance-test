@@ -8,19 +8,19 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureQueueTriggerTest:QueueTriggerTest
     {
-        private string _azureStorageConnectionStringConfigName;
+        private string _azureStorageConnectionString;
 
         public AzureQueueTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, string[] messages, 
-            string sourceQueue, string targetQueue, string azureStorageConnectionStringConfigName = null) : base(functionName, eps, warmUpTimeInMinutes, messages, sourceQueue, targetQueue)
+            string sourceQueue, string targetQueue, string azureStorageConnectionString) : base(functionName, eps, warmUpTimeInMinutes, messages, sourceQueue, targetQueue)
         {
-            _azureStorageConnectionStringConfigName = azureStorageConnectionStringConfigName;
+            _azureStorageConnectionString = azureStorageConnectionString;
         }
 
         protected override ICloudPlatformController CloudPlatformController
         {
             get
             {
-                return new AzureController(_azureStorageConnectionStringConfigName)
+                return new AzureController(_azureStorageConnectionString)
                 {
                     Logger = this.Logger
                 };
@@ -29,14 +29,12 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AzureGenericPerformanceResultsProvider(_azureStorageConnectionStringConfigName) { DatabaseTest = this.TestWithResults}; }
+            get { return new AzureGenericPerformanceResultsProvider(_azureStorageConnectionString) { DatabaseTest = this.TestWithResults}; }
         }
 
         protected override bool Setup()
         {
-            return Utility.RemoveAzureFunctionLogs(FunctionName,
-                ConfigurationManager.AppSettings["AzureStorageConnectionString"],
-                this.Logger);
+            return Utility.RemoveAzureFunctionLogs(FunctionName, _azureStorageConnectionString, this.Logger);
         }
     }
 }

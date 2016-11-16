@@ -10,16 +10,16 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 {
     public class AzureHttpTriggerTest:HttpTriggerTest
     {
-        public AzureHttpTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> urls) : base(functionName, eps, warmUpTimeInMinutes, urls.ToArray())
-        {
+        private string _azureStorageConnectionString;
 
+        public AzureHttpTriggerTest(string functionName, int eps, int warmUpTimeInMinutes, IEnumerable<string> urls, string azureStorageConnectionString) : base(functionName, eps, warmUpTimeInMinutes, urls.ToArray())
+        {
+            _azureStorageConnectionString = azureStorageConnectionString;
         }
 
         protected override bool Setup()
         {
-            return Utility.RemoveAzureFunctionLogs(FunctionName,
-                ConfigurationManager.AppSettings["AzureStorageConnectionString"],
-                this.Logger);
+            return Utility.RemoveAzureFunctionLogs(FunctionName, _azureStorageConnectionString, this.Logger);
         }
 
         protected override ICloudPlatformController CloudPlatformController
@@ -35,7 +35,7 @@ namespace ServerlessBenchmark.TriggerTests.Azure
 
         protected override PerfResultProvider PerfmormanceResultProvider
         {
-            get { return new AzureGenericPerformanceResultsProvider { DatabaseTest = this.TestWithResults }; }
+            get { return new AzureGenericPerformanceResultsProvider(_azureStorageConnectionString) { DatabaseTest = this.TestWithResults }; }
         }
     }
 }

@@ -9,6 +9,7 @@ using ServerlessBenchmark.TriggerTests.Azure;
 using ServerlessBenchmark.TriggerTests.BaseTriggers;
 using System.Collections.Generic;
 using ServerlessResultManager;
+using System.Configuration;
 
 namespace SampleUsages
 {
@@ -54,6 +55,8 @@ namespace SampleUsages
                 }
             }
 
+            string azureStorageConnectionString = ConfigurationManager.AppSettings[this.AzureStorageConnectionStringConfigName] ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+
             if (scenarioType.Compare(Platform.Amazon, TriggerType.Blob))
             {
                 AssertInput("FunctionName", "InputPath", "InputObject", "OutputObject");
@@ -77,17 +80,17 @@ namespace SampleUsages
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Blob))
             {
                 AssertInput("InputPath", "FunctionName", "InputObject", "OutputObject");
-                test = new AzureBlobTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
+                test = new AzureBlobTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject, azureStorageConnectionString);
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Http))
             {
                 AssertInput("InputPath", "FunctionName");
-                test = new AzureHttpTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems);
+                test = new AzureHttpTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, azureStorageConnectionString);
             }
             else if (scenarioType.Compare(Platform.Azure, TriggerType.Queue))
             {
                 AssertInput("FunctionName", "InputObject", "OutputObject");
-                test = new AzureQueueTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject, this.AzureStorageConnectionStringConfigName);
+                test = new AzureQueueTriggerTest(this.FunctionName, this.Eps, this.WarmUpTimeInMinutes, inputItems, this.InputObject, this.OutputObject, azureStorageConnectionString);
             }
             else
             {

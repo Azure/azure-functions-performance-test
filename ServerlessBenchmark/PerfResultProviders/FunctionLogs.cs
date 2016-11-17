@@ -96,6 +96,11 @@ namespace ServerlessBenchmark.PerfResultProviders
                 var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
                 var tableClient = storageAccount.CreateCloudTableClient();
                 var table = tableClient.GetTableReference(Utility.GetCurrentLogsTableName());
+                var isCreated = table.CreateIfNotExists();
+                if (isCreated)
+                {
+                    _logger.LogInfo($"Created azure table {Utility.GetCurrentLogsTableName()}");
+                }
                 int size = 0;
                 var latestNewLog = DateTime.UtcNow;
                 var lastSize = 0;

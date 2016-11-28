@@ -56,6 +56,7 @@ namespace MiniCommandLineHelper
                 Console.WriteLine(ex.ToString());
                 Console.ForegroundColor = _originalConsoleColor;
                 Console.WriteLine("Exiting benchmark {0}", ex.ToString());
+                Environment.Exit(-1);
             }
         }
 
